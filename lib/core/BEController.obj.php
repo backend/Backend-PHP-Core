@@ -26,7 +26,8 @@
  *
  * @package BECore
  */
-class BEController {
+class BEController
+{
     /**
      * This contains the request object that we're currently serving
      * @var BERequest

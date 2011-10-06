@@ -27,15 +27,15 @@ define('WEB_FOLDER', BACKEND_FOLDER . '/public');
 switch ($_SERVER['HTTP_HOST']) {
 case 'www.liveserver.com':
     if (!defined('SITE_STATE')) {
-    	define('SITE_STATE', 'production');
-	}
-	break;
+        define('SITE_STATE', 'production');
+    }
+    break;
 case 'localhost':
 default:
     if (!defined('SITE_STATE')) {
-    	define('SITE_STATE', 'local');
-	}
-	break;
+        define('SITE_STATE', 'local');
+    }
+    break;
 }
 
 require(BACKEND_FOLDER . '/core/BEApplication.obj.php');

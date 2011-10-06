@@ -75,7 +75,8 @@ class BERouter
     /**
      * Make the route's protected properties readonly.
      */
-    function __get($property) {
+    function __get($property)
+    {
         $property = '_' . $property;
         return property_exists($this, $property) ? $this->$property : null;
     }

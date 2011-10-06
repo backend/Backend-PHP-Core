@@ -59,9 +59,9 @@ class BEApplication
             return true;
         }
         //PHP Helpers
-		spl_autoload_register(array('BEApplication', '__autoload'));
+        spl_autoload_register(array('BEApplication', '__autoload'));
 
-		return true;
+        return true;
     }
 
     /**
@@ -77,7 +77,8 @@ class BEApplication
      *
      * @return integer The debugging levels
      */
-    public function getDebugLevel() {
+    public function getDebugLevel()
+    {
         return self::$_debugLevel;
     }
 
@@ -86,7 +87,8 @@ class BEApplication
      *
      * @param integer The debugging levels
      */
-    public function setDebugLevel($level) {
+    public function setDebugLevel($level)
+    {
         if ($level <= 0) {
             return false;
         }
@@ -100,16 +102,17 @@ class BEApplication
      *
      * @return boolean If the class file was found and included
      */
-	static public function __autoload($classname) {
-	    $types = array(
-	        'controllers' => 'ctl',
-	        'models'      => 'obj',
-	        'utilities'   => 'util',
-	    );
-	    self::log('Checking for ' . $classname, 5);
+    static public function __autoload($classname)
+    {
+        $types = array(
+            'controllers' => 'ctl',
+            'models'      => 'obj',
+            'utilities'   => 'util',
+        );
+        self::log('Checking for ' . $classname, 5);
 
         //Check the core
-	    if (substr($classname, 0, 2) == 'BE') {
+        if (substr($classname, 0, 2) == 'BE') {
             if (file_exists(BACKEND_FOLDER . '/core/' . $classname . '.obj.php')) {
                 include(BACKEND_FOLDER . '/core/' . $classname . '.obj.php');
                 return true;
@@ -124,8 +127,8 @@ class BEApplication
                 throw new Exception('Missing Exception Class: ' . $classname);
             }
         } else {
-	        foreach($types as $type => $part) {
-	            switch (true) {
+            foreach ($types as $type => $part) {
+                switch (true) {
                 case file_exists(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php'):
                     include(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php');
                     return true;

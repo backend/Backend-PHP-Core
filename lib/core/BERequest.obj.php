@@ -56,7 +56,7 @@ class BERequest
         $this->_method  = $method;
         //Set the payload to request initially
         $this->_payload = empty($request) ? $_REQUEST : $request;
-        foreach($this->_payload as $key => $value) {
+        foreach ($this->_payload as $key => $value) {
             if (empty($value) && !empty($key)) {
                     $this->_query   = $key;
                     unset($this->_payload[$key]);
