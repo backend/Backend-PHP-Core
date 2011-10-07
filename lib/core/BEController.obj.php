@@ -1,6 +1,9 @@
 <?php
 /**
+ * File defining BEController
+ *
  * Copyright (c) 2011 JadeIT cc
+ * @license http://www.opensource.org/licenses/mit-license.php
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in the
@@ -19,20 +22,15 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package BECoreFiles
+ * @package CoreFiles
  */
 /**
  * The main controller class.
  *
- * @package BECore
+ * @package Core
  */
 class BEController
 {
-    /**
-     * This contains the request object that we're currently serving
-     * @var BERequest
-     */
-    private $_request = null;
     /**
      * This contains the router object that will help decide what model and action to execute
      * @var BERouter
@@ -44,15 +42,13 @@ class BEController
      *
      * @param BERequest request A request object to serve
      */
-    function __construct(BERequest $request = null)
+    function __construct(BERouter $router = null)
     {
-        $this->_request = $request ? $request : new BERequest();
-
+        $this->_router = is_null($router) ? new BERouter(new BERequest()) : $router;
         try {
-            $this->_router = new BERouter($this->_request);
 
             //Get and check the model
-            $model = $this->_router->model;
+            $model = class_name($this->_router->model);
             //TODO Check
 
             //Get and check the method
@@ -65,6 +61,15 @@ class BEController
             //TODO Get the Error Model, and execute
             //TODO Handle UknownRouteException
         }
+    }
 
+    /**
+     * Utility function to translate a URL part to a Model Name
+     *
+     * @todo We need to define naming standards
+     */
+    public static function translateModel($model)
+    {
+        return class_name($model);
     }
 }
