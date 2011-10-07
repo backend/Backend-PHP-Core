@@ -1,6 +1,9 @@
 <?php
 /**
+ * File defining BERouter
+ *
  * Copyright (c) 2011 JadeIT cc
+ * @license http://www.opensource.org/licenses/mit-license.php
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in the
@@ -19,12 +22,12 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package BECoreFiles
+ * @package CoreFiles
  */
 /**
- * The Request class.
+ * The Router class.
  *
- * @package BECore
+ * @package Core
  */
 class BERouter
 {
@@ -35,10 +38,16 @@ class BERouter
     protected $_model;
 
     /**
-     * This contains the route's method
+     * This contains the route's action
      * @var string
      */
-    protected $_method;
+    protected $_action;
+
+    /**
+     * This contains the route's identifier
+     * @var integer
+     */
+    protected $_identifier;
 
     /**
      * This contains the route's arguments
@@ -50,6 +59,11 @@ class BERouter
     /**
      * The class constructor
      *
+     * We use REST URI's, so the following structure should be followed.
+     * $resource/$identifier/$extra/$parameters
+     * See the BERequest class for how the action on the resource is determined
+     * *
+     *
      * @param BERequest request A request object to serve
      */
     function __construct(BERequest $request)
@@ -57,19 +71,38 @@ class BERouter
         $query = $request->getQuery();
         if ($query == '') {
             //TODO Make the default query configurable
-            $query = 'home/index';
+            $query = 'home';
         }
-        BEApplication::log('BE Request: ' . $request->getMethod() . ': ' . $query);
+
+        //Map the REST verbs to CRUD
+        switch ($request->getMethod()) {
+        case 'POST':
+            $action = 'create';
+            break;
+        case 'GET':
+            $action = 'read';
+            break;
+        case 'PUT':
+            $action = 'update';
+            break;
+        case 'DELETE':
+            $action = 'delete';
+            break;
+        }
 
         $query = explode('/', $query);
+        //A zero identifier indicates that the action refers to the whole collection
         if (count($query) == 1) {
-            //TODO Make the default action configurable
-            $query[1] = 'index';
+            $query[1] = 0;
         }
 
-        $this->_model     = $query[0];
-        $this->_action    = $query[1];
-        $this->_arguments = count($query) > 2 ? array_slice($query, 2) : array();
+        $this->_model      = $query[0];
+        $this->_action     = $action;
+        $this->_identifier = $query[1];
+        $this->_arguments  = count($query) > 2 ? array_slice($query, 2) : array();
+
+        $message = 'Route: ' . $request->getMethod() . ': ' . $query[0] . '/' . $action . '/' . $query[1];
+        BEApplication::log($message, 4);
     }
 
     /**
