@@ -1,6 +1,9 @@
 <?php
 /**
+ * File defining BERequest
+ *
  * Copyright (c) 2011 JadeIT cc
+ * @license http://www.opensource.org/licenses/mit-license.php
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in the
@@ -19,12 +22,12 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package BECoreFiles
+ * @package CoreFiles
  */
 /**
  * The Request class.
  *
- * @package BECore
+ * @package Core
  */
 class BERequest
 {
@@ -45,13 +48,33 @@ class BERequest
     /**
      * The class constructor
      *
+     * If no method is supplied, it's determined by one of the following:
+     * * A _method POST variable
+     * * A X_HTTP_METHOD_OVERRIDE header
+     * * The REQUEST_METHOD
+     *
      * @param array request The request data. Defaults to the HTTP request data
-     * @param string method The request method. Can be one of GET, POST, PUT or DELETE
+     * @param string method The request method. Can be one of GET, POST, PUT, DELETE or HEAD
      */
     function __construct(array $request = null, $method = null)
     {
         if (!$method) {
-            $method = strtoupper($_SERVER['REQUEST_METHOD']);
+            //Copied the way to determine the method from CakePHP
+            //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
+            switch (true) {
+            case array_key_exists('_method', $_POST):
+                $method = $_POST['_method'];
+                break;
+            case array_key_exists('X_HTTP_METHOD_OVERRIDE', $_SERVER):
+                $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
+                break;
+            default:
+                $method = strtoupper($_SERVER['REQUEST_METHOD']);
+                break;
+            }
+            if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD'))) {
+                throw new UnsupportedMethodException('Unsupported method ' . $method);
+            }
         }
         $this->_method  = $method;
         //Set the payload to request initially
@@ -63,6 +86,9 @@ class BERequest
                     break;
             }
         }
+
+        $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
+        BEApplication::log($message, 4);
     }
 
     /**
