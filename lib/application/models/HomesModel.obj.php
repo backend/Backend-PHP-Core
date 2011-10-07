@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining UncallableMethodException
+ * File defining HomeModel
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,8 +22,16 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package Exceptions
+ * @package ApplicationFiles
  */
-class UncallableMethodException extends Exception
+/**
+ * The main controller class.
+ *
+ * @package Application
+ */
+class HomesModel
 {
+    public function readAction($identifier, array $parameters = array())
+    {
+    }
 }

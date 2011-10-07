@@ -24,6 +24,6 @@
  *
  * @package Exceptions
  */
-class UncallableMethodException extends Exception
+class UnsupportedMethodException extends Exception
 {
 }

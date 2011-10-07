@@ -1,6 +1,9 @@
 <?php
 /**
+ * File defining BEApplication
+ *
  * Copyright (c) 2011 JadeIT cc
+ * @license http://www.opensource.org/licenses/mit-license.php
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in the
@@ -19,12 +22,12 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package BECoreFiles
+ * @package CoreFiles
  */
 /**
  * The main application class.
  *
- * @package BECore
+ * @package Core
  */
 class BEApplication
 {
@@ -61,6 +64,9 @@ class BEApplication
         //PHP Helpers
         spl_autoload_register(array('BEApplication', '__autoload'));
 
+        //Load extra functions
+        include(BACKEND_FOLDER . '/modifiers.inc.php');
+
         return true;
     }
 
@@ -70,6 +76,7 @@ class BEApplication
     public function main()
     {
         $controller = new BEController();
+        $controller->execute();
     }
 
     /**
@@ -131,6 +138,10 @@ class BEApplication
                 switch (true) {
                 case file_exists(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php'):
                     include(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php');
+                    return true;
+                    break;
+                case file_exists(APP_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php'):
+                    include(APP_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php');
                     return true;
                     break;
                 }
