@@ -61,11 +61,26 @@ class BEApplication
         if ($this->_initialized) {
             return true;
         }
+        if (empty($_SERVER['DEBUG_LEVEL'])) {
+            switch (SITE_STATE) {
+            case 'development':
+                self::setDebugLevel(4);
+                break;
+            case 'production':
+                self::setDebugLevel(1);
+                break;
+            }
+        } else {
+            self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
+        }
+
         //PHP Helpers
         spl_autoload_register(array('BEApplication', '__autoload'));
 
         //Load extra functions
         include(BACKEND_FOLDER . '/modifiers.inc.php');
+
+        $this->_initialized = true;
 
         return true;
     }

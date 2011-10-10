@@ -38,7 +38,7 @@ case 'www.liveserver.com':
 case 'localhost':
 default:
     if (!defined('SITE_STATE')) {
-        define('SITE_STATE', 'local');
+        define('SITE_STATE', 'development');
     }
     break;
 }
