@@ -72,9 +72,9 @@ class BERequest
                 $method = strtoupper($_SERVER['REQUEST_METHOD']);
                 break;
             }
-            if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD'))) {
-                throw new UnsupportedMethodException('Unsupported method ' . $method);
-            }
+        }
+        if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD'))) {
+            throw new UnsupportedMethodException('Unsupported method ' . $method);
         }
         $this->_method  = $method;
         //Set the payload to request initially
@@ -85,6 +85,13 @@ class BERequest
                     unset($this->_payload[$key]);
                     break;
             }
+        }
+        //Clean up the query
+        //Decode the URL
+        $this->_query = urldecode($this->_query);
+        //No trailing slash
+        if (substr($this->_query, -1) == '/') {
+            $this->_query = substr($this->_query, 0, strlen($this->_query) - 1);
         }
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
