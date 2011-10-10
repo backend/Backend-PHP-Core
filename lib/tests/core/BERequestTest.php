@@ -1,7 +1,7 @@
 <?php
-require('lib/core/BEApplication.obj.php');
-require('lib/core/BERequest.obj.php');
-require('lib/exceptions/UnsupportedMethodException.obj.php');
+require_once('lib/core/BEApplication.obj.php');
+require_once('lib/core/BERequest.obj.php');
+require_once('lib/exceptions/UnsupportedMethodException.obj.php');
 class BERequestTest extends PHPUnit_Framework_TestCase
 {
     private $_request;

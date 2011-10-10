@@ -76,14 +76,14 @@ class BERouter
 
         //Map the REST verbs to CRUD
         switch ($request->getMethod()) {
-        case 'POST':
-            $action = 'create';
-            break;
         case 'GET':
             $action = 'read';
             break;
         case 'PUT':
             $action = 'update';
+            break;
+        case 'POST':
+            $action = 'create';
             break;
         case 'DELETE':
             $action = 'delete';
@@ -101,7 +101,7 @@ class BERouter
         $this->_identifier = $query[1];
         $this->_arguments  = count($query) > 2 ? array_slice($query, 2) : array();
 
-        $message = 'Route: ' . $request->getMethod() . ': ' . $query[0] . '/' . $action . '/' . $query[1];
+        $message = 'Route: ' . $request->getMethod() . ': ' . $this->getQuery();
         BEApplication::log($message, 4);
     }
 
@@ -112,5 +112,12 @@ class BERouter
     {
         $property = '_' . $property;
         return property_exists($this, $property) ? $this->$property : null;
+    }
+
+    function getQuery()
+    {
+        $result = $this->model . '/' . $this->action . '/' . $this->identifier
+            . implode('/', $this->arguments);
+        return $result;
     }
 }
