@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining HomeModel
+ * File defining BEModel
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,17 +22,16 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ApplicationFiles
+ * @package CoreFiles
  */
 /**
- * The main controller class.
+ * The Model class.
  *
- * @package Application
+ * @package Core
  */
-class HomesModel extends BEModel
+class BEModel
 {
-    public function readAction($identifier, array $parameters = array())
+    function __construct()
     {
-        return true;
     }
 }
