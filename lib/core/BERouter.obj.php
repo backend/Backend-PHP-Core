@@ -35,7 +35,7 @@ class BERouter
      * This contains the route's model
      * @var string
      */
-    protected $_model;
+    protected $_area;
 
     /**
      * This contains the route's action
@@ -68,11 +68,16 @@ class BERouter
      */
     function __construct(BERequest $request)
     {
+        //Setup and split the query
         $query = $request->getQuery();
         if ($query == '') {
             //TODO Make the default query configurable
             $query = 'home';
         }
+        $query = explode('/', $query);
+
+        //Set the area
+        $this->_area = $query[0];
 
         //Map the REST verbs to CRUD
         switch ($request->getMethod()) {
@@ -89,20 +94,24 @@ class BERouter
             $action = 'delete';
             break;
         }
+        $this->_action = $action;
 
-        $query = explode('/', $query);
-        //A zero identifier indicates that the action refers to the whole collection
+        //Determine the resource identifier
         if (count($query) == 1) {
+            //A zero identifier indicates that the action refers to the whole collection
             $query[1] = 0;
         }
-
-        $this->_model      = $query[0];
-        $this->_action     = $action;
         $this->_identifier = $query[1];
-        $this->_arguments  = count($query) > 2 ? array_slice($query, 2) : array();
+
+        //Determine the additional arguments
+        $this->_arguments = count($query) > 2 ? array_slice($query, 2) : array();
 
         $message = 'Route: ' . $request->getMethod() . ': ' . $this->getQuery();
         BEApplication::log($message, 4);
+
+        //Determine the request format
+
+
     }
 
     /**
@@ -116,8 +125,8 @@ class BERouter
 
     function getQuery()
     {
-        $result = $this->model . '/' . $this->action . '/' . $this->identifier
-            . implode('/', $this->arguments);
+        $result = $this->_area . '/' . $this->_action . '/' . $this->_identifier
+            . implode('/', $this->_arguments);
         return $result;
     }
 }

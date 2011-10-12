@@ -32,19 +32,19 @@
 class BEController
 {
     /**
-     * This contains the router object that will help decide what model and action to execute
-     * @var BERouter
+     * This contains the model on which this controller will execute
+     * @var BEModel
      */
-    private $_router = null;
+    private $_modelObj = null;
 
     /**
      * The class constructor
      *
      * @param BERequest request A request object to serve
      */
-    function __construct(BERouter $router = null)
+    function __construct(BEModel $modelObj)
     {
-        $this->_router = is_null($router) ? new BERouter(new BERequest()) : $router;
+        $this->_modelObj = $modelObj;
     }
 
     /**
@@ -53,65 +53,19 @@ class BEController
      * The supplied router will be used to determine what action should be executed
      * on which model and / or controller
      */
-    public function execute()
+    public function execute($action, $identifier, $arguments)
     {
-        try {
-            //Get and check the model
-            $model = self::translateModel($this->_router->model);
-            if (!class_exists($model, true)) {
-                throw new UnknownModelException('Unkown Model: ' . $model);
-            }
-            $modelObj = new $model();
-
-            //See if a controller exists for this model
-            $controller = self::translateController($this->_router->model);
-            if (class_exists($controller, true)) {
-                //TODO Execute the action for this $controller
-                $controllerObj = new $controller($modelObj);
-                //$result =
-            } else {
-                $result = null;
-            }
-
-            //Get and check the method
-            $method = $this->_router->action . 'Action';
-            $function = array($modelObj, $method);
-            if (!is_callable($function)) {
-                throw new UncallableMethodException("Uncallable Method: $model->$method()");
-            }
-
-            BEApplication::log('Executing ' . get_class($modelObj) . '::' . $method, 4);
-            $parameters = array($this->_router->identifier, $this->_router->arguments);
-            $result = call_user_func_array($function, $parameters);
-
-        } catch (Exception $e) {
-            BEApplication::log($e->getMessage(), 1);
-            //TODO Get the Error Model, and execute
-            //TODO Handle UknownRouteException
-            //TODO Handle UnknownModelException
-            //TODO Handle UnsupportedMethodException
+        $parameters = array($identifier, $arguments);
+        //Get and check the method
+        $controllerFunc = array($this, $action);
+        $modelFunc      = array($this->_modelObj, $action);
+        if (is_callable($controllerFunc)) {
+            $result = call_user_func_array($controllerFunc, $parameters);
+        } else if (is_callable($modelFunc)) {
+        } else {
+            throw new UncallableMethodException("Uncallable Method: $model->$action()");
         }
-    }
 
-    /**
-     * Utility function to translate a URL part to a Controller Name
-     *
-     * All Controllers are plural, and ends with Controller
-     * @todo We need to define naming standards
-     */
-    public static function translateController($resource)
-    {
-        return class_name($resource) . 'Controller';
-    }
-
-    /**
-     * Utility function to translate a URL part to a Model Name
-     *
-     * All Models are plural, and ends with Model
-     * @todo We need to define naming standards
-     */
-    public static function translateModel($resource)
-    {
-        return class_name($resource) . 'Model';
+        BEApplication::log('Executing ' . get_class($this->_modelObj) . '::' . $action, 4);
     }
 }
