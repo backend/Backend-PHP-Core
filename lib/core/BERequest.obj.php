@@ -35,14 +35,21 @@ class BERequest
      * @var string The query of the request
      */
     private $_query   = null;
+
     /**
      * @var array The payload of the request
      */
     private $_payload = null;
+
     /**
      * @var string The method of the request. Can be one of GET, POST, PUT or DELETE
      */
     private $_method  = null;
+
+    /**
+     * @var string The format of the request
+     */
+    private $_format  = null;
 
 
     /**
@@ -69,7 +76,12 @@ class BERequest
                 $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
                 break;
             default:
-                $method = strtoupper($_SERVER['REQUEST_METHOD']);
+                if (array_key_exists('REQUEST_METHOD', $_SERVER)) {
+                    $method = strtoupper($_SERVER['REQUEST_METHOD']);
+                } else if (array_key_exists('argv', $_SERVER)) {
+                    //First CL parameter is the method
+                    $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
+                }
                 break;
             }
         }
@@ -78,7 +90,23 @@ class BERequest
         }
         $this->_method  = $method;
         //Set the payload to request initially
-        $this->_payload = empty($request) ? $_REQUEST : $request;
+        if (empty($request)) {
+            if (empty($_SERVER['REQUEST_METHOD'])) {
+                $this->_payload = array(
+                    //Second CL parameter is the query. This will be picked up later
+                    count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
+                );
+                if (count($_SERVER['argv']) >= 4) {
+                    parse_str($_SERVER['argv'][3], $queryVars);
+                    $this->_payload = array_merge($this->_payload, $queryVars);
+                }
+            } else {
+                $this->_payload = $_REQUEST;
+            }
+        } else {
+            $this->_payload = $request;
+        }
+
         foreach ($this->_payload as $key => $value) {
             if (empty($value) && !empty($key)) {
                     $this->_query   = $key;
