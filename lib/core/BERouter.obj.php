@@ -32,6 +32,12 @@
 class BERouter
 {
     /**
+     * This contains the route's request
+     * @var BERequest
+     */
+    protected $_request;
+
+    /**
      * This contains the route's model
      * @var string
      */
@@ -68,8 +74,10 @@ class BERouter
      */
     function __construct(BERequest $request)
     {
+        $this->_request = $request;
+
         //Setup and split the query
-        $query = $request->getQuery();
+        $query = $this->_request->getQuery();
         if ($query == '') {
             //TODO Make the default query configurable
             $query = 'home';
@@ -80,7 +88,7 @@ class BERouter
         $this->_area = $query[0];
 
         //Map the REST verbs to CRUD
-        switch ($request->getMethod()) {
+        switch ($this->_request->getMethod()) {
         case 'GET':
             $action = 'read';
             break;
@@ -106,12 +114,8 @@ class BERouter
         //Determine the additional arguments
         $this->_arguments = count($query) > 2 ? array_slice($query, 2) : array();
 
-        $message = 'Route: ' . $request->getMethod() . ': ' . $this->getQuery();
+        $message = 'Route: ' . $this->_request->getMethod() . ': ' . $this->getQuery();
         BEApplication::log($message, 4);
-
-        //Determine the request format
-
-
     }
 
     /**
@@ -128,5 +132,10 @@ class BERouter
         $result = $this->_area . '/' . $this->_action . '/' . $this->_identifier
             . implode('/', $this->_arguments);
         return $result;
+    }
+
+    function getFormat()
+    {
+        return $this->_request->getFormat();
     }
 }
