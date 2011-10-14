@@ -157,13 +157,13 @@ class BERequest
             return $_SERVER['argv'][3];
         }
 
-		//Check the format parameter
-		if (array_key_exists('format', $this->_payload)) {
-			return $this->_payload['format'];
-		}
+        //Check the format parameter
+        if (array_key_exists('format', $this->_payload)) {
+            return $this->_payload['format'];
+        }
 
-		//No format found, check if there's an Accept Header
-		if (array_key_exists('HTTP_ACCEPT_HEADER', $_SERVER)) {
+        //No format found, check if there's an Accept Header
+        if (array_key_exists('HTTP_ACCEPT_HEADER', $_SERVER)) {
             switch ($_SERVER['HTTP_ACCEPT_HEADER']) {
             case 'text/html':
             case 'application/xhtml+xml':
@@ -183,14 +183,14 @@ class BERequest
                 break;
             default:
                 //Simple Accept header not sent, parse it further
-		        //TODO Not implementing this, as it requires a complicated workaround to work in IE
-		        break;
-	        }
+                //TODO Not implementing this, as it requires a complicated workaround to work in IE
+                break;
+            }
         }
 
-	    //We got nothing. Use cli format for cl requests, html for web
-	    if (empty($_SERVER['REQUEST_METHOD'])) {
-	        return 'cli';
+        //We got nothing. Use cli format for cl requests, html for web
+        if (empty($_SERVER['REQUEST_METHOD'])) {
+            return 'cli';
         } else {
             return 'html';
         }
