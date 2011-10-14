@@ -25,10 +25,10 @@
  * @package ExceptionFiles
  */
 /**
- * UnsupportedMethodException
+ * UnknownViewException
  *
  * @packages Exceptions
  */
-class UnsupportedMethodException extends Exception
+class UnknownViewException extends Exception
 {
 }
