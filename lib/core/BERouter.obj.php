@@ -127,6 +127,9 @@ class BERouter
         return property_exists($this, $property) ? $this->$property : null;
     }
 
+    /**
+     * Return the Request Query String
+     */
     function getQuery()
     {
         $result = $this->_area . '/' . $this->_action . '/' . $this->_identifier
@@ -134,6 +137,61 @@ class BERouter
         return $result;
     }
 
+    /**
+     * Return the Request
+     *
+     * @return BERequest The Route's Request
+     */
+    function getRequest()
+    {
+        return $this->_request;
+    }
+
+    /**
+     * Return the Area component of the Request
+     *
+     * @return string The area component of the Request
+     */
+    function getArea()
+    {
+        return $this->_area;
+    }
+
+    /**
+     * Return the Action component of the Request
+     *
+     * @return string The area component of the Request
+     */
+    function getAction()
+    {
+        return $this->_action;
+    }
+
+    /**
+     * Return the Identifier of the Request
+     *
+     * @return string The identifier of the Request
+     */
+    function getIdentifier()
+    {
+        return $this->_identifier;
+    }
+
+    /**
+     * Return the Arguments of the Request
+     *
+     * @return string The arguments of the Request
+     */
+    function getArguments()
+    {
+        return $this->_arguments;
+    }
+
+    /**
+     * Return the Format of the Request
+     *
+     * @return string The format of the Request
+     */
     function getFormat()
     {
         return $this->_request->getFormat();
