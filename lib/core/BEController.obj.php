@@ -50,8 +50,7 @@ class BEController
     /**
      * The main controller function
      *
-     * The supplied router will be used to determine what action should be executed
-     * on which model and / or controller
+     * Any Application logic can be put into this function
      */
     public function execute($action, $identifier, $arguments)
     {
@@ -60,12 +59,15 @@ class BEController
         $controllerFunc = array($this, $action);
         $modelFunc      = array($this->_modelObj, $action);
         if (is_callable($controllerFunc)) {
-            $result = call_user_func_array($controllerFunc, $parameters);
+            $function = $controllerFunc;
         } else if (is_callable($modelFunc)) {
+            $function = $modelFunc;
         } else {
             throw new UncallableMethodException("Uncallable Method: $model->$action()");
         }
-
-        BEApplication::log('Executing ' . get_class($this->_modelObj) . '::' . $action, 4);
+        //Execute the Business Logic
+        $result = call_user_func_array($function, $parameters);
+        BEApplication::log('Executing ' . get_class($function[0]) . '::' . $action, 4);
+        return $result;
     }
 }
