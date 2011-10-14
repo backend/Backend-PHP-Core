@@ -102,14 +102,14 @@ class BEApplication
         $result = null;
         try {
             //Get and check the model
-            $model = self::translateModel($this->_router->area);
+            $model = self::translateModel($this->_router->getArea());
             if (!class_exists($model, true)) {
                 throw new UnknownModelException('Unkown Model: ' . $model);
             }
             $modelObj = new $model();
 
             //See if a controller exists for this model
-            $controller = self::translateController($this->_router->area);
+            $controller = self::translateController($this->_router->getArea());
             if (class_exists($controller, true)) {
                 $controllerObj = new $controller($modelObj);
             } else {
@@ -118,22 +118,33 @@ class BEApplication
             }
 
             //Execute the Application Logic
-            $action = $this->_router->action . 'Action';
+            $action = $this->_router->getAction() . 'Action';
             $result = $controllerObj->execute(
                 $action,
-                $this->_router->identifier,
-                $this->_router->arguments
+                $this->_router->getIdentifier(),
+                $this->_router->getArguments()
             );
         } catch (Exception $e) {
-            BEApplication::log('Exception: ' . $e->getMessage(), 1);
+            BEApplication::log('Logic Exception: ' . $e->getMessage(), 1);
             //TODO Get the Error Model, and execute
             //TODO Handle UknownRouteException
             //TODO Handle UnknownModelException
             //TODO Handle UnsupportedMethodException
+            $result = $e;
         }
 
-        //Pass the result to the View
-
+        //Get the View
+        try {
+            $view = self::translateView($this->_router->getFormat());
+            if (!class_exists($view, true)) {
+                throw new UnknownViewException('Unknown View: ' . $view);
+            }
+        } catch (Exception $e) {
+            BEApplication::log('View Exception: ' . $e->getMessage(), 1);
+            $view = 'BEView';
+        }
+        $viewObj = new $view($controllerObj, $modelObj, $result);
+        $viewObj->display();
         return $result;
     }
 
@@ -228,6 +239,17 @@ class BEApplication
     public static function translateModel($resource)
     {
         return class_name($resource) . 'Model';
+    }
+
+    /**
+     * Utility function to translate a format to a View Name
+     *
+     * All Views are singular, and ends with View
+     * @todo We need to define naming standards
+     */
+    public static function translateView($resource)
+    {
+        return str_replace(' ', '', humanize($resource) . 'View');
     }
 
     /**
