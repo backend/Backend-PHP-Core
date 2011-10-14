@@ -25,6 +25,8 @@ class BERouterTest extends PHPUnit_Framework_TestCase
             array(array('resources/id' => ''), 'PUT', 'resources/update/id'),
             array(array('resources/id' => ''), 'POST', 'resources/create/id'),
             array(array('resources/id' => ''), 'DELETE', 'resources/delete/id'),
+
+            array(array('resources/some%252Fid' => ''), 'DELETE', 'resources/delete/some%2Fid'),
         );
     }
 
