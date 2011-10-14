@@ -23,8 +23,9 @@ Usage
 ###Command Line
 
     cd public
-    php index GET contacts #Will run contacts/read/0
-    php index DELETE contacts/3 #Will run contacts/delete/3
+    php index.php GET contacts #Will run contacts/read/0
+    php index.php DELETE contacts/3 #Will run contacts/delete/3
+    php index.php GET contacts/3 json #Will run contacts/delete/3 with the JsonView
 
 ###HTTP
 
