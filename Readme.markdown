@@ -28,8 +28,9 @@ Usage
 
 ###HTTP
 
-    curl --data contacts --data _method=POST #Will run contacts/create
-    curl --data contacts/3 --data _method=PUT #Will run contacts/update/3
+    curl --data contacts --data _method=POST http://localhost/backend-core/public/index.php #Will run contacts/create
+      #Will run contacts/update/3
+    curl --data contacts/3 http://localhost/backend-core/public/index.php  #Will run contacts/read/3
 
 Details
 ------

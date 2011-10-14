@@ -63,7 +63,7 @@ class BEController
         } else if (is_callable($modelFunc)) {
             $function = $modelFunc;
         } else {
-            throw new UncallableMethodException("Uncallable Method: $model->$action()");
+            throw new UncallableMethodException('Uncallable Method: ' . get_class($this->_modelObj) . "->$action()");
         }
         //Execute the Business Logic
         $result = call_user_func_array($function, $parameters);
