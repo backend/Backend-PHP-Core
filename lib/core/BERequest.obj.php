@@ -96,9 +96,12 @@ class BERequest
                     //Second CL parameter is the query. This will be picked up later
                     count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
                 );
-                if (count($_SERVER['argv']) >= 4) {
-                    parse_str($_SERVER['argv'][3], $queryVars);
-                    $this->_payload = array_merge($this->_payload, $queryVars);
+                if (count($_SERVER['argv']) >= 5) {
+                    //Fourth CL parameter is a query string
+                    parse_str($_SERVER['argv'][4], $queryVars);
+                    if (is_array($queryVars)) {
+                        $this->_payload = array_merge($this->_payload, $queryVars);
+                    }
                 }
             } else {
                 $this->_payload = $_REQUEST;
@@ -109,11 +112,14 @@ class BERequest
 
         foreach ($this->_payload as $key => $value) {
             if (empty($value) && !empty($key)) {
-                    $this->_query   = $key;
-                    unset($this->_payload[$key]);
-                    break;
+                $this->_query   = $key;
+                unset($this->_payload[$key]);
+                break;
             }
         }
+
+        $this->_format = $this->determineFormat();
+
         //Clean up the query
         //Decode the URL
         $this->_query = urldecode($this->_query);
@@ -124,6 +130,70 @@ class BERequest
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
         BEApplication::log($message, 4);
+    }
+
+    private function determineFormat()
+    {
+        //Check the query's extension
+        $parts = preg_split('/[_\.]/', $this->_query);
+        if (count($parts) > 1) {
+            $extension = end($parts);
+            //Check if it's a valid .extension
+            if (array_key_exists('QUERY_STRING', $_SERVER)) {
+                $test = preg_replace('/[_\.]' . $extension . '$/', '.' . $extension, $this->_query);
+                if (strpos($_SERVER['QUERY_STRING'], $test) === false) {
+                    $extension = false;
+                }
+            }
+            if ($extension) {
+                //TODO Check extension against supported extensions
+                $this->_query = preg_replace('/[_\.]' . $extension . '$/', '', $this->_query);
+                return $extension;
+            }
+        }
+
+        //Third CL parameter is the required format
+        if (empty($_SERVER['REQUEST_METHOD']) && count($_SERVER['argv']) >= 4) {
+            return $_SERVER['argv'][3];
+        }
+
+		//Check the format parameter
+		if (array_key_exists('format', $this->_payload)) {
+			return $this->_payload['format'];
+		}
+
+		//No format found, check if there's an Accept Header
+		if (array_key_exists('HTTP_ACCEPT_HEADER', $_SERVER)) {
+            switch ($_SERVER['HTTP_ACCEPT_HEADER']) {
+            case 'text/html':
+            case 'application/xhtml+xml':
+                return 'html';
+                break;
+            case 'application/xml':
+                return 'xml';
+                break;
+            case 'text/plain':
+                return 'plain';
+                break;
+            case 'text/json':
+                return 'json';
+                break;
+            case 'text/css':
+                return 'css';
+                break;
+            default:
+                //Simple Accept header not sent, parse it further
+		        //TODO Not implementing this, as it requires a complicated workaround to work in IE
+		        break;
+	        }
+        }
+
+	    //We got nothing. Use cli format for cl requests, html for web
+	    if (empty($_SERVER['REQUEST_METHOD'])) {
+	        return 'cli';
+        } else {
+            return 'html';
+        }
     }
 
     /**
@@ -156,4 +226,13 @@ class BERequest
         return $this->_payload;
     }
 
+    /**
+     * Return the request's format.
+     *
+     * @return string The Request Format
+     */
+    public function getFormat()
+    {
+        return $this->_format;
+    }
 }

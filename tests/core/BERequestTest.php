@@ -13,7 +13,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
     {
     }
 
-    public function provider()
+    public function providerUrlFormat()
     {
         return array(
             array(array('home' => ''), 'home'),
@@ -25,7 +25,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider provider
+     * @dataProvider providerUrlFormat
      */
     public function testURLFormats($query, $result)
     {
@@ -39,5 +39,29 @@ class BERequestTest extends PHPUnit_Framework_TestCase
     public function testRequestMethod()
     {
         $request = new BERequest(array(), 'UPDATE');
+    }
+
+    public function providerRequestFormat()
+    {
+        return array(
+            array(array('home.json' => ''), 'json'),
+            array(array('home_json' => ''), 'json'),
+            array(array('home_camp.json' => ''), 'json'),
+            array(array('home_camp_json' => ''), 'json'),
+            array(array('home_camp/read.json' => ''), 'json'),
+            array(array('home_camp/read_json' => ''), 'json'),
+
+            array(array('home_camp' => ''), 'cli'),
+        );
+    }
+
+    /**
+     * @dataProvider providerRequestFormat
+     */
+    public function testRequestFormat($query, $result)
+    {
+        $request = new BERequest($query, 'POST');
+        $this->assertEquals($result, $request->getFormat());
+
     }
 }
