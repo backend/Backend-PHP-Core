@@ -76,11 +76,11 @@ class BERequest
                 $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
                 break;
             default:
-                if (array_key_exists('REQUEST_METHOD', $_SERVER)) {
-                    $method = strtoupper($_SERVER['REQUEST_METHOD']);
-                } else if (array_key_exists('argv', $_SERVER)) {
+                if (from_cli()) {
                     //First CL parameter is the method
                     $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
+                } else {
+                    $method = strtoupper($_SERVER['REQUEST_METHOD']);
                 }
                 break;
             }
@@ -91,7 +91,7 @@ class BERequest
         $this->_method  = $method;
         //Set the payload to request initially
         if (empty($request)) {
-            if (empty($_SERVER['REQUEST_METHOD'])) {
+            if (from_cli()) {
                 $this->_payload = array(
                     //Second CL parameter is the query. This will be picked up later
                     count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
@@ -132,6 +132,12 @@ class BERequest
         BEApplication::log($message, 4);
     }
 
+    /**
+     * Determine the requested format for the request
+     *
+     * @return string The format for the request
+     * @todo Find a way for Views to specify what formats they support
+     */
     private function determineFormat()
     {
         //Check the query's extension
@@ -153,7 +159,7 @@ class BERequest
         }
 
         //Third CL parameter is the required format
-        if (empty($_SERVER['REQUEST_METHOD']) && count($_SERVER['argv']) >= 4) {
+        if (from_cli() && count($_SERVER['argv']) >= 4) {
             return $_SERVER['argv'][3];
         }
 
@@ -189,7 +195,7 @@ class BERequest
         }
 
         //We got nothing. Use cli format for cl requests, html for web
-        if (empty($_SERVER['REQUEST_METHOD'])) {
+        if (from_cli()) {
             return 'cli';
         } else {
             return 'html';

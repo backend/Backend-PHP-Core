@@ -56,9 +56,14 @@ class BEView
         $this->_result     = $result;
     }
 
-    function display()
+    /**
+     * Output the request.
+     *
+     * This function should be overwritten by other views to change the output
+     */
+    function output()
     {
-        if (empty($_SERVER['REQUEST_METHOD'])) {
+        if (from_cli()) {
         } else {
             $controllerType = get_class($this->_controller);
             $modelType      = get_class($this->_model);
@@ -72,7 +77,8 @@ class BEView
 END;
         }
         var_dump('Result', $this->_result);
-        if (empty($_SERVER['REQUEST_METHOD'])) {
+        if (from_cli()) {
+            echo PHP_EOL;
         } else {
             echo <<< END
     </body>

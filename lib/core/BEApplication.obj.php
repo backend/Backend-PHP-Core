@@ -87,6 +87,7 @@ class BEApplication
         spl_autoload_register(array('BEApplication', '__autoload'));
 
         //Load extra functions
+        include(BACKEND_FOLDER . '/functions.inc.php');
         include(BACKEND_FOLDER . '/modifiers.inc.php');
 
         $this->_initialized = true;
@@ -144,7 +145,7 @@ class BEApplication
             $view = 'BEView';
         }
         $viewObj = new $view($controllerObj, $modelObj, $result);
-        $viewObj->display();
+        $viewObj->output();
         return $result;
     }
 
