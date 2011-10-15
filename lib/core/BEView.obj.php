@@ -49,6 +49,13 @@ class BEView
      */
     protected $_result;
 
+    /**
+     * The View constructor
+     *
+     * @param BEController controller The controller to display
+     * @param BEModel model The model to display
+     * @params mixed result The result
+     */
     function __construct(BEController $controller, BEModel $model, $result)
     {
         $this->_controller = $controller;
