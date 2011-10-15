@@ -38,13 +38,22 @@ class BEController
     private $_modelObj = null;
 
     /**
+     * This contains the view for which this controller will execute
+     * @var BEView
+     */
+    private $_viewObj = null;
+
+    /**
      * The class constructor
      *
      * @param BERequest request A request object to serve
      */
-    function __construct(BEModel $modelObj)
+    function __construct(BEModel $modelObj, BEView $viewObj)
     {
         $this->_modelObj = $modelObj;
+        $this->_viewObj  = $viewObj;
+
+        $this->_viewObj->bind('modelObj', $this->_modelObj);
     }
 
     /**
@@ -68,6 +77,9 @@ class BEController
         //Execute the Business Logic
         $result = call_user_func_array($function, $parameters);
         BEApplication::log('Executing ' . get_class($function[0]) . '::' . $action, 4);
+
+        //Bind the result
+        $this->_viewObj->bind('result', $result);
         return $result;
     }
 }

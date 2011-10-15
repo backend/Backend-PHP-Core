@@ -101,6 +101,18 @@ class BEApplication
     public function main()
     {
         $result = null;
+        //Get the View
+        try {
+            $view = self::translateView($this->_router->getFormat());
+            if (!class_exists($view, true)) {
+                throw new UnknownViewException('Unknown View: ' . $view);
+            }
+        } catch (Exception $e) {
+            BEApplication::log('View Exception: ' . $e->getMessage(), 1);
+            $view = 'BEView';
+        }
+        $viewObj = new $view($result);
+
         try {
             //Get and check the model
             $model = self::translateModel($this->_router->getArea());
@@ -115,7 +127,7 @@ class BEApplication
                 //Otherwise run the core controller
                 $controller = 'BEController';
             }
-            $controllerObj = new $controller($modelObj);
+            $controllerObj = new $controller($modelObj, $viewObj);
 
             //Execute the Application Logic
             $action = $this->_router->getAction() . 'Action';
@@ -133,17 +145,7 @@ class BEApplication
             $result = $e;
         }
 
-        //Get the View
-        try {
-            $view = self::translateView($this->_router->getFormat());
-            if (!class_exists($view, true)) {
-                throw new UnknownViewException('Unknown View: ' . $view);
-            }
-        } catch (Exception $e) {
-            BEApplication::log('View Exception: ' . $e->getMessage(), 1);
-            $view = 'BEView';
-        }
-        $viewObj = new $view($controllerObj, $modelObj, $result);
+        //Output
         $viewObj->output();
         return $result;
     }

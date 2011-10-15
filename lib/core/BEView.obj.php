@@ -32,35 +32,27 @@
 class BEView
 {
     /**
-     * This contains the controller the view is acting on
-     * @var BEController
+     * This contains the variables bound to the view
+     * @var array
      */
-    protected $_controller;
-
-    /**
-     * This contains the model the view is acting on
-     * @var BEModel
-     */
-    protected $_model;
-
-    /**
-     * This contains the result the view is acting on
-     * @var mixed
-     */
-    protected $_result;
+    protected $_variables = array();
 
     /**
      * The View constructor
-     *
-     * @param BEController controller The controller to display
-     * @param BEModel model The model to display
-     * @params mixed result The result
      */
-    function __construct(BEController $controller, BEModel $model, $result)
+    function __construct()
     {
-        $this->_controller = $controller;
-        $this->_model      = $model;
-        $this->_result     = $result;
+    }
+
+    /**
+     * Bind a variable to the view
+     *
+     * @param string The name of the variable
+     * @param mixed The value of the variable
+     */
+    function bind($name, $value)
+    {
+        $this->_variables[$name] = $value;
     }
 
     /**
@@ -72,13 +64,11 @@ class BEView
     {
         if (from_cli()) {
         } else {
-            $controllerType = get_class($this->_controller);
-            $modelType      = get_class($this->_model);
             echo <<< END
 <!DOCTYPE HTML>
 <html>
     <head>
-        <title>$controllerType::$modelType</title>
+        <title>Backend-Core</title>
     </head>
     <body>
 END;
