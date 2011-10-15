@@ -111,12 +111,11 @@ class BEApplication
 
             //See if a controller exists for this model
             $controller = self::translateController($this->_router->getArea());
-            if (class_exists($controller, true)) {
-                $controllerObj = new $controller($modelObj);
-            } else {
+            if (!class_exists($controller, true)) {
                 //Otherwise run the core controller
-                $controllerObj = new BEController($modelObj);
+                $controller = 'BEController';
             }
+            $controllerObj = new $controller($modelObj);
 
             //Execute the Application Logic
             $action = $this->_router->getAction() . 'Action';
@@ -185,6 +184,7 @@ class BEApplication
             'controllers' => 'ctl',
             'models'      => 'obj',
             'utilities'   => 'util',
+            'views'       => 'view',
         );
         self::log('Checking for ' . $classname, 5);
 
