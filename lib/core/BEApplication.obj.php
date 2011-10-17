@@ -27,6 +27,11 @@
 /**
  * The main application class.
  *
+ * The application will / should be the only singleton in the framework, acting as
+ * a Toolbox. That means that any resource that should be globally accessable (and
+ * some times a singleton) should be passed to the Application. Read more at
+ * http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3
+ *
  * @package Core
  */
 class BEApplication
@@ -37,9 +42,9 @@ class BEApplication
     private $_initialized = false;
 
     /**
-     * @var integer The debugging level. The higher, the more verbose
+     * @var array This contains all tools that should be globally accessable. Use this wisely.
      */
-    protected static $_debugLevel = 3;
+    private static $_toolbox = array();
 
     /**
      * This contains the router object that will help decide what controller, model and action to execute
@@ -48,14 +53,45 @@ class BEApplication
     private $_router = null;
 
     /**
+     * This contains the view object that display the executed request
+     * @var BEView
+     */
+    private $_view = null;
+
+    /**
+     * @var integer The debugging level. The higher, the more verbose
+     */
+    protected static $_debugLevel = 3;
+
+    /**
      * The class constructor
      */
-    function __construct(BERouter $router = null)
+    function __construct(BERouter $router = null, BEView $view = null, array $tools = array())
     {
         $this->init();
 
         //Get Router
         $this->_router = is_null($router) ? new BERouter(new BERequest()) : $router;
+
+        if (!$view) {
+            //Get the View
+            try {
+                $view = self::translateView($this->_router->getFormat());
+                if (!class_exists($view, true)) {
+                    throw new UnknownViewException('Unknown View: ' . $view);
+                }
+            } catch (Exception $e) {
+                BEApplication::log('View Exception: ' . $e->getMessage(), 1);
+                $view = 'BEView';
+            }
+            $this->_view = new $view();
+        } else {
+            $this->_view = $view;
+        }
+
+        foreach ($tools as $tool) {
+            self::addTool($tool);
+        }
     }
 
     /**
@@ -73,7 +109,7 @@ class BEApplication
         if (empty($_SERVER['DEBUG_LEVEL'])) {
             switch (SITE_STATE) {
             case 'development':
-                self::setDebugLevel(4);
+                self::setDebugLevel(5);
                 break;
             case 'production':
                 self::setDebugLevel(1);
@@ -101,18 +137,6 @@ class BEApplication
     public function main()
     {
         $result = null;
-        //Get the View
-        try {
-            $view = self::translateView($this->_router->getFormat());
-            if (!class_exists($view, true)) {
-                throw new UnknownViewException('Unknown View: ' . $view);
-            }
-        } catch (Exception $e) {
-            BEApplication::log('View Exception: ' . $e->getMessage(), 1);
-            $view = 'BEView';
-        }
-        $viewObj = new $view($result);
-
         try {
             //Get and check the model
             $model = self::translateModel($this->_router->getArea());
@@ -127,7 +151,7 @@ class BEApplication
                 //Otherwise run the core controller
                 $controller = 'BEController';
             }
-            $controllerObj = new $controller($modelObj, $viewObj);
+            $controllerObj = new $controller($modelObj, $this->_view);
 
             //Execute the Application Logic
             $action = $this->_router->getAction() . 'Action';
@@ -146,8 +170,53 @@ class BEApplication
         }
 
         //Output
-        $viewObj->output();
+        $this->_view->output();
         return $result;
+    }
+
+    /**
+     * Add a tool to the application
+     *
+     * @param The tool to add. Can also be the name of a class to instansiate
+     */
+    public static function addTool($tool, array $parameters = array())
+    {
+        if (is_array($tool)) {
+            $toolName = $tool[0];
+            $tool     = $tool[1];
+        }
+        if (is_string($tool)) {
+            $function = false;
+            if (is_callable(array($tool, 'getInstance'))) {
+                $function = array($tool, 'getInstance');
+            } else if (is_callable(array($tool, 'instance'))) {
+                $function = array($tool, 'instance');
+            } else if (is_callable(array($tool, 'factory'))) {
+                $function = array($tool, 'factory');
+            } else if (is_callable(array($tool, 'singleton'))) {
+                $function = array($tool, 'singleton');
+            }
+            if ($function) {
+                $tool = call_user_func_array($function, $parameters);
+            } else {
+                $tool = new $tool($parameters);
+            }
+        }
+        $toolName = empty($toolName) ? get_class($tool) : $toolName;
+        self::$_toolbox[$toolName] = $tool;
+    }
+
+    /**
+     * Get a tool from the application
+     *
+     * @param string The class of the tool to retrieve
+     */
+    public static function getTool($className)
+    {
+        if (array_key_exists($className, self::$_toolbox)) {
+            return self::$_toolbox[$className];
+        }
+        return null;
     }
 
     /**
@@ -187,6 +256,7 @@ class BEApplication
             'models'      => 'obj',
             'utilities'   => 'util',
             'views'       => 'view',
+            'interfaces'  => 'inf',
         );
         self::log('Checking for ' . $classname, 5);
 
@@ -256,15 +326,15 @@ class BEApplication
     }
 
     /**
-     * Basic placehold function to do logging. This will be deprecated eventually.
+     * Logging function hook. This will call the provided Logger to do the logging
      *
      * Log levels:
      * * 1 - Critical Messages
-     * * 2 - Important Messages
-     * * 3 - Debugging Messages
+     * * 2 - Warning | Alert Messages
+     * * 3 - Important Messages
      * * 4 - Informative Messages
+     * * 5 - Debugging Messages
      *
-     * @todo Replace this with a proper logging module
      * @param string message The message
      * @param integer level The logging level of the message
      * @param string context The context of the message
@@ -274,6 +344,12 @@ class BEApplication
         if ($level > self::$_debugLevel) {
             return;
         }
+
+        $logger = self::getTool('Logger');
+        if (!$logger) {
+            return false;
+        }
+
         if (!$context) {
             $bt = debug_backtrace();
             //Remove the call to this function
@@ -283,27 +359,10 @@ class BEApplication
             }
         }
         $context = $context ? $context : get_called_class();
-        switch ($level) {
-        case 1:
-            $message = ' (CRITICAL) ' . $message;
-            break;
-        case 2:
-            $message = ' (IMPORTANT) ' . $message;
-            break;
-        case 3:
-            $message = ' (DEBUG) ' . $message;
-            break;
-        case 4:
-            $message = ' (INFORMATION) ' . $message;
-            break;
-        default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
-            break;
-        }
         if ($context) {
             $message = ' [' . $context . '] ' . $message;
         }
-        $message = date('Y-m-d H:i:s') . $message;
-        echo $message . '<br>';
+
+        return $logger->log($message, $level);
     }
 }
