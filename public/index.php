@@ -48,7 +48,27 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
 }
 
 require(BACKEND_FOLDER . '/core/BEApplication.obj.php');
-$application = new BEApplication();
+//Using Simple Logging, as shipped with the framework
+require_once('Log.php');
+$application = new BEApplication(
+    null,
+    null,
+    array(
+        'Logger'
+    )
+);
+//Using the PEAR Log module
+//http://pear.github.com/Log/
+/*
+require_once('Log.php');
+$application = new BEApplication(
+    null,
+    null,
+    array(
+        array('Logger', Log::factory('file', '/tmp/out.log', 'TEST'))
+    )
+);
+*/
 $application->main();
 
 //Done
