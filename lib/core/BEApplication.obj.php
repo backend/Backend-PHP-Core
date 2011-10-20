@@ -89,7 +89,7 @@ class BEApplication
         } else {
             //Get the View
             try {
-                $view = ViewFactory::build($request);
+                $view = ViewFactory::build($this->_request);
             } catch (Exception $e) {
                 BEApplication::log('View Exception: ' . $e->getMessage(), 2);
                 $view = new BEView();
