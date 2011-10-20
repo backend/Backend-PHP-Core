@@ -42,7 +42,7 @@ class ViewFactory
      * @param BERequest The Request to use to determine the view
      * @return BEView The view that can handle the Request
      */
-    public static function build(BERequest $request = null)
+    public static function build(BERequest $request)
     {
         $viewFolder = BACKEND_FOLDER . '/views/';
 
