@@ -47,12 +47,6 @@ class BERequest
     private $_method  = null;
 
     /**
-     * @var string The format of the request
-     */
-    private $_format  = null;
-
-
-    /**
      * The class constructor
      *
      * If no method is supplied, it's determined by one of the following:
@@ -118,8 +112,6 @@ class BERequest
             }
         }
 
-        $this->_format = $this->determineFormat();
-
         //Clean up the query
         //Decode the URL
         $this->_query = urldecode($this->_query);
@@ -136,11 +128,28 @@ class BERequest
      * Determine the requested format for the request
      *
      * @return string The format for the request
-     * @todo Find a way for Views to specify what formats they support
      */
-    private function determineFormat()
+    public function getSpecifiedFormat()
     {
-        //Check the query's extension
+        //Third CL parameter is the required format
+        if (from_cli() && count($_SERVER['argv']) >= 4) {
+            return $_SERVER['argv'][3];
+        }
+
+        //Check the format parameter
+        if (array_key_exists('format', $this->_payload)) {
+            return $this->_payload['format'];
+        }
+        return false;
+    }
+
+    /**
+     * Determine the extension for the request
+     *
+     * @return string The extension for the request
+     */
+    public function getExtension()
+    {
         $parts = preg_split('/[_\.]/', $this->_query);
         if (count($parts) > 1) {
             $extension = end($parts);
@@ -157,49 +166,28 @@ class BERequest
                 return $extension;
             }
         }
+        return false;
+    }
 
-        //Third CL parameter is the required format
-        if (from_cli() && count($_SERVER['argv']) >= 4) {
-            return $_SERVER['argv'][3];
-        }
-
-        //Check the format parameter
-        if (array_key_exists('format', $this->_payload)) {
-            return $this->_payload['format'];
-        }
-
-        //No format found, check if there's an Accept Header
-        if (array_key_exists('HTTP_ACCEPT_HEADER', $_SERVER)) {
-            switch ($_SERVER['HTTP_ACCEPT_HEADER']) {
-            case 'text/html':
-            case 'application/xhtml+xml':
-                return 'html';
-                break;
-            case 'application/xml':
-                return 'xml';
-                break;
-            case 'text/plain':
-                return 'plain';
-                break;
-            case 'text/json':
-                return 'json';
-                break;
-            case 'text/css':
-                return 'css';
-                break;
-            default:
-                //Simple Accept header not sent, parse it further
-                //TODO Not implementing this, as it requires a complicated workaround to work in IE
-                break;
-            }
-        }
-
-        //We got nothing. Use cli format for cl requests, html for web
+    /**
+     * Determine the requested MIME Type for the request
+     *
+     * @return string The MIME Type for the request
+     */
+    public function getMimeType()
+    {
         if (from_cli()) {
             return 'cli';
-        } else {
-            return 'html';
+        } else if (array_key_exists('HTTP_ACCEPT', $_SERVER)) {
+            //No format found, check if there's an Accept Header
+            $mimeType = $_SERVER['HTTP_ACCEPT'];
+            //Try to get the first type
+            $types = explode(',', $mimeType);
+            //Remove the preference variable
+            $mimeType = explode(';', reset($types));
+            return reset($mimeType);
         }
+        return false;
     }
 
     /**
@@ -230,15 +218,5 @@ class BERequest
     public function getPayload()
     {
         return $this->_payload;
-    }
-
-    /**
-     * Return the request's format.
-     *
-     * @return string The Request Format
-     */
-    public function getFormat()
-    {
-        return $this->_format;
     }
 }
