@@ -47,6 +47,11 @@ class BERequest
     private $_method  = null;
 
     /**
+     * @var string The extension of the request.
+     */
+    private $_extension  = null;
+
+    /**
      * The class constructor
      *
      * If no method is supplied, it's determined by one of the following:
@@ -119,6 +124,7 @@ class BERequest
         if (substr($this->_query, -1) == '/') {
             $this->_query = substr($this->_query, 0, strlen($this->_query) - 1);
         }
+        $this->_extension = $this->getExtension();
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
         BEApplication::log($message, 4);
@@ -150,6 +156,9 @@ class BERequest
      */
     public function getExtension()
     {
+        if (!is_null($this->_extension)) {
+            return $this->_extension;
+        }
         $parts = preg_split('/[_\.]/', $this->_query);
         if (count($parts) > 1) {
             $extension = end($parts);
@@ -161,7 +170,6 @@ class BERequest
                 }
             }
             if ($extension) {
-                //TODO Check extension against supported extensions
                 $this->_query = preg_replace('/[_\.]' . $extension . '$/', '', $this->_query);
                 return $extension;
             }
