@@ -53,6 +53,12 @@ class BEApplication
     private $_router = null;
 
     /**
+     * This contains the request object that will influence the router and view objects.
+     * @var BERequest
+     */
+    private $_request = null;
+
+    /**
      * This contains the view object that display the executed request
      * @var BEView
      */
@@ -66,17 +72,17 @@ class BEApplication
     /**
      * The class constructor
      */
-    function __construct(BERouter $router = null, BEView $view = null, array $tools = array())
+    function __construct(BEView $view = null, BERequest $request = null, array $tools = array())
     {
         $this->init();
 
-        //Get Router
-        $this->_router = is_null($router) ? new BERouter(new BERequest()) : $router;
+        //Get the Request
+        $this->_request = is_null($request) ? new BERequest() : $request;
 
         if (!$view) {
             //Get the View
             try {
-                $view = self::translateView($this->_router->getFormat());
+                $view = self::translateView($this->_request->getFormat());
                 if (!class_exists($view, true)) {
                     throw new UnknownViewException('Unknown View: ' . $view);
                 }
@@ -134,8 +140,11 @@ class BEApplication
     /**
      * Main function for the application
      */
-    public function main()
+    public function main(BERouter $router = null)
     {
+        //Get Router
+        $this->_router = is_null($router) ? new BERouter($this->_request) : $router;
+
         $result = null;
         try {
             //Get and check the model
