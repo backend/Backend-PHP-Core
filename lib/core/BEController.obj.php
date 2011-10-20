@@ -78,8 +78,6 @@ class BEController
         $result = call_user_func_array($function, $parameters);
         BEApplication::log('Executing ' . get_class($function[0]) . '::' . $action, 4);
 
-        //Bind the result
-        $this->_viewObj->bind('result', $result);
         return $result;
     }
 }

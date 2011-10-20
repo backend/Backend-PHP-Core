@@ -76,28 +76,27 @@ class BEApplication
     {
         $this->init();
 
-        //Get the Request
-        $this->_request = is_null($request) ? new BERequest() : $request;
-
-        if (!$view) {
-            //Get the View
-            try {
-                $view = self::translateView($this->_request->getFormat());
-                if (!class_exists($view, true)) {
-                    throw new UnknownViewException('Unknown View: ' . $view);
-                }
-            } catch (Exception $e) {
-                BEApplication::log('View Exception: ' . $e->getMessage(), 1);
-                $view = 'BEView';
-            }
-            $this->_view = new $view();
-        } else {
-            $this->_view = $view;
-        }
-
+        //Initiate the Tools
         foreach ($tools as $tool) {
             self::addTool($tool);
         }
+
+        //Get the Request
+        $this->_request = is_null($request) ? new BERequest() : $request;
+
+        if ($view instanceof BEView) {
+            $this->_view = $view;
+        } else {
+            //Get the View
+            try {
+                $view = ViewFactory::build($request);
+            } catch (Exception $e) {
+                BEApplication::log('View Exception: ' . $e->getMessage(), 2);
+                $view = new BEView();
+            }
+            $this->_view = $view;
+        }
+
     }
 
     /**
@@ -179,6 +178,7 @@ class BEApplication
         }
 
         //Output
+        $this->_view->bind('result', $result);
         $this->_view->output();
         return $result;
     }
