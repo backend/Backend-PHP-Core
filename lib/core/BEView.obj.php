@@ -38,6 +38,12 @@ class BEView
     protected $_variables = array();
 
     /**
+     * Define the formats this view can handle
+     * @var array
+     */
+    public static $handledFormats = array();
+
+    /**
      * The View constructor
      */
     function __construct()
@@ -63,6 +69,7 @@ class BEView
     function output()
     {
         if (from_cli()) {
+            var_export($this->_variables['result']);
         } else {
             echo <<< END
 <!DOCTYPE HTML>

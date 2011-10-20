@@ -63,16 +63,41 @@ class ViewFactory
 
             //Check the view class
             $viewName = substr($file, 0, strlen($file) - 9);
-            if (!class_exists($viewName, true) || !($viewName instanceof BEView)) {
+            if (!class_exists($viewName, true)) {
                 continue;
             }
 
             //Check if the view can handle the request
-            if (call_user_func(array($viewName, 'handleRequest'), $request)) {
-                return new $viewName();
+            if (self::checkView($viewName, $request)) {
+                $view = new $viewName();
+                if (!($view instanceof BEView)) {
+                    throw new UnknownViewException('Invalid View: ' . get_class($view));
+                }
+                return $view;
             }
         }
-        throw new UnknownViewException('Unrecognized Format: ' . $request->getFormat());
+        throw new UnknownViewException('Unrecognized Format');
+        return false;
+    }
+
+    /**
+     * Check the View against the supplied request
+     *
+     * This was originally implemented in BEView, but issues with static variables
+     * and inheritance prevented it from working properly. Non static properties could
+     * not be used, as we do not want to construct each view.
+     */
+    private static function checkView($viewName, $request)
+    {
+        if (in_array($request->getSpecifiedFormat(), $viewName::$handledFormats)) {
+            return true;
+        }
+        if (in_array($request->getExtension(), $viewName::$handledFormats)) {
+            return true;
+        }
+        if (in_array($request->getMimeType(), $viewName::$handledFormats)) {
+            return true;
+        }
         return false;
     }
 }
