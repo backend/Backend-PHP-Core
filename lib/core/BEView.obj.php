@@ -73,7 +73,7 @@ class BEView
     <body>
 END;
         }
-        var_dump('Result', $this->_result);
+        var_dump('Result', $this->_variables['result']);
         if (from_cli()) {
             echo PHP_EOL;
         } else {

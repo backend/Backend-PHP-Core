@@ -72,9 +72,9 @@ class BERouter
      *
      * @param BERequest request A request object to serve
      */
-    function __construct(BERequest $request)
+    function __construct(BERequest $request = null)
     {
-        $this->_request = $request;
+        $this->_request = is_null($request) ? new BERequest() : $request;
 
         //Setup and split the query
         $query = $this->_request->getQuery();
@@ -185,15 +185,5 @@ class BERouter
     function getArguments()
     {
         return $this->_arguments;
-    }
-
-    /**
-     * Return the Format of the Request
-     *
-     * @return string The format of the Request
-     */
-    function getFormat()
-    {
-        return $this->_request->getFormat();
     }
 }
