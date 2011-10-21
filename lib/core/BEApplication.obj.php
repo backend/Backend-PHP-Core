@@ -117,7 +117,6 @@ class BEApplication
         }
 
         //Load extra functions
-        include(BACKEND_FOLDER . '/functions.inc.php');
         include(BACKEND_FOLDER . '/modifiers.inc.php');
 
         //PHP Helpers
