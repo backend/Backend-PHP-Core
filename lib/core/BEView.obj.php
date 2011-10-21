@@ -62,6 +62,17 @@ class BEView
     }
 
     /**
+     * Get the value of a variable
+     *
+     * @param string The name of the variable
+     * @return mixed The value of the variable
+     */
+    function get($name)
+    {
+        return array_key_exists($name, $this->_variables) ? $this->_variables[$name] : null;
+    }
+
+    /**
      * Output the request.
      *
      * This function should be overwritten by other views to change the output
