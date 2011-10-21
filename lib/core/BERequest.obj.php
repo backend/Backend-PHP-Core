@@ -231,7 +231,7 @@ class BERequest
     /**
      * Check if this requests originates from a CLI.
      */
-    function from_cli()
+    public static function from_cli()
     {
         return !array_key_exists('REQUEST_METHOD', $_SERVER) && array_key_exists('argv', $_SERVER);
     }
