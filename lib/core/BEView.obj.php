@@ -79,7 +79,7 @@ class BEView
      */
     function output()
     {
-        if (from_cli()) {
+        if (BERequest::from_cli()) {
             var_export($this->_variables['result']);
         } else {
             echo <<< END
@@ -92,7 +92,7 @@ class BEView
 END;
         }
         var_dump('Result', $this->_variables['result']);
-        if (from_cli()) {
+        if (BERequest::from_cli()) {
             echo PHP_EOL;
         } else {
             echo <<< END

@@ -75,7 +75,7 @@ class BERequest
                 $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
                 break;
             default:
-                if (from_cli()) {
+                if (BERequest::from_cli()) {
                     //First CL parameter is the method
                     $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
                 } else {
@@ -90,7 +90,7 @@ class BERequest
         $this->_method  = $method;
         //Set the payload to request initially
         if (empty($request)) {
-            if (from_cli()) {
+            if (BERequest::from_cli()) {
                 $this->_payload = array(
                     //Second CL parameter is the query. This will be picked up later
                     count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
@@ -138,7 +138,7 @@ class BERequest
     public function getSpecifiedFormat()
     {
         //Third CL parameter is the required format
-        if (from_cli() && count($_SERVER['argv']) >= 4) {
+        if (BERequest::from_cli() && count($_SERVER['argv']) >= 4) {
             return $_SERVER['argv'][3];
         }
 
@@ -184,7 +184,7 @@ class BERequest
      */
     public function getMimeType()
     {
-        if (from_cli()) {
+        if (BERequest::from_cli()) {
             return 'cli';
         } else if (array_key_exists('HTTP_ACCEPT', $_SERVER)) {
             //No format found, check if there's an Accept Header
@@ -226,5 +226,13 @@ class BERequest
     public function getPayload()
     {
         return $this->_payload;
+    }
+
+    /**
+     * Check if this requests originates from a CLI.
+     */
+    function from_cli()
+    {
+        return !array_key_exists('REQUEST_METHOD', $_SERVER) && array_key_exists('argv', $_SERVER);
     }
 }
