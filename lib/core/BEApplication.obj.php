@@ -110,7 +110,7 @@ class BEApplication
      *
      * @return boolean If the initialization was succesful or not.
      */
-    private function init()
+    protected function init()
     {
         if ($this->_initialized) {
             return true;
@@ -279,7 +279,7 @@ class BEApplication
         self::log('Checking for ' . $classname, 5);
 
         //Check the core
-        if (preg_match('/^BE[A-Z].*/', $classname)) {
+        if (preg_match('/^BE[A-Z][a-z].*/', $classname)) {
             if (file_exists(BACKEND_FOLDER . '/core/' . $classname . '.obj.php')) {
                 include(BACKEND_FOLDER . '/core/' . $classname . '.obj.php');
                 return true;
