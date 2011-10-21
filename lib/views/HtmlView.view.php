@@ -45,8 +45,11 @@ class HtmlView extends BEView
 
     function output()
     {
+        $render = new Render($this);
+
         $buffered = ob_get_clean();
-        include(BACKEND_FOLDER . '/templates/index.tpl.php');
+        $index = $render->file(BACKEND_FOLDER . '/templates/index.tpl.php');
+        echo $index;
         echo '<div id="buffered">' . $buffered . '</div>';
     }
 }
