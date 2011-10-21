@@ -25,7 +25,7 @@
  * @package CoreFiles
  */
 /**
- * The Base View class
+ * The Base View class.
  *
  * @package Core
  */
@@ -59,6 +59,17 @@ class BEView
     function bind($name, $value)
     {
         $this->_variables[$name] = $value;
+    }
+
+    /**
+     * Get the value of a variable
+     *
+     * @param string The name of the variable
+     * @return mixed The value of the variable
+     */
+    function get($name)
+    {
+        return array_key_exists($name, $this->_variables) ? $this->_variables[$name] : null;
     }
 
     /**

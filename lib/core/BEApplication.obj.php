@@ -272,7 +272,6 @@ class BEApplication
         $types = array(
             'controllers' => 'ctl',
             'models'      => 'obj',
-            'views'       => 'view',
             'utilities'   => 'util',
             'exceptions'  => 'obj',
             'interfaces'  => 'inf',
@@ -286,6 +285,11 @@ class BEApplication
                 return true;
             } else {
                 throw new Exception('Missing Core Class: ' . $className);
+            }
+        } else if (substr($className, -4) == 'View') {
+            if (file_exists(BACKEND_FOLDER . '/views/' . $className . '.view.php')) {
+                include(BACKEND_FOLDER . '/views/' . $className . '.view.php');
+                return true;
             }
         } else {
             //Check other types
@@ -389,6 +393,14 @@ class BEApplication
         return $logger->log($message, $level);
     }
 
+    /**
+     * Mail function hook. This will call the provided Mailer to do the mailing.
+     *
+     * @param string The recipient of the email
+     * @param string The subject of the email
+     * @param string The content of the email
+     * @param array Extra email options
+     */
     public static function mail($recipient, $subject, $message, array $options = array())
     {
         $mail = self::getTool('Mailer');
