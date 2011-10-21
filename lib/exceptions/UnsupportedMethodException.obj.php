@@ -27,7 +27,7 @@
 /**
  * UnsupportedMethodException
  *
- * @packages Exceptions
+ * @package Exceptions
  */
 class UnsupportedMethodException extends Exception
 {

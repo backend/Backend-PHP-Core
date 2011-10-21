@@ -27,7 +27,7 @@
 /**
  * UnknownModelException
  *
- * @packages Exceptions
+ * @package Exceptions
  */
 class UnknownModelException extends Exception
 {

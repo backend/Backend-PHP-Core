@@ -27,7 +27,7 @@
 /**
  * UncallableMethodException
  *
- * @packages Exceptions
+ * @package Exceptions
  */
 class UncallableMethodException extends Exception
 {

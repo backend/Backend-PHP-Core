@@ -30,7 +30,7 @@
  * The application will / should be the only singleton in the framework, acting as
  * a Toolbox. That means that any resource that should be globally accessable (and
  * some times a singleton) should be passed to the Application. Read more at
- * http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3
+ * {@link http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3}
  *
  * @package Core
  */
@@ -71,6 +71,10 @@ class BEApplication
 
     /**
      * The class constructor
+     *
+     * @param BEView The view for the application
+     * @param BERequest The request to handle
+     * @param array An array of tools to instansiate
      */
     function __construct(BEView $view = null, BERequest $request = null, array $tools = array())
     {
@@ -138,6 +142,9 @@ class BEApplication
 
     /**
      * Main function for the application
+     *
+     * @param BERouter The route to execute
+     * @return mixed The result of the call
      */
     public function main(BERouter $router = null)
     {
@@ -186,7 +193,8 @@ class BEApplication
     /**
      * Add a tool to the application
      *
-     * @param The tool to add. Can also be the name of a class to instansiate
+     * @param mixed The tool to add. Can also be the name of a class to instansiate
+     * @param array The parameters to pass to the constructor of the Tool
      */
     public static function addTool($tool, array $parameters = array())
     {
@@ -219,6 +227,7 @@ class BEApplication
      * Get a tool from the application
      *
      * @param string The class of the tool to retrieve
+     * @return mixed The requested Tool, or null if it doesn't exist
      */
     public static function getTool($className)
     {
@@ -255,7 +264,7 @@ class BEApplication
      * Function to autoload BackendMVC classes
      *
      * It gets set by BEApplication::init
-     *
+     * @param string The class name to auto load
      * @return boolean If the class file was found and included
      */
     static public function __autoload($classname)
@@ -305,6 +314,8 @@ class BEApplication
      * Utility function to translate a URL part to a Controller Name
      *
      * All Controllers are plural, and ends with Controller
+     * @param string The resource to translate into a Controller name
+     * @return string The translated Controller Name
      * @todo We need to define naming standards
      */
     public static function translateController($resource)
@@ -316,6 +327,8 @@ class BEApplication
      * Utility function to translate a URL part to a Model Name
      *
      * All Models are plural, and ends with Model
+     * @param string The resource to translate into a Model name
+     * @return string The translated Model Name
      * @todo We need to define naming standards
      */
     public static function translateModel($resource)
@@ -324,25 +337,14 @@ class BEApplication
     }
 
     /**
-     * Utility function to translate a format to a View Name
-     *
-     * All Views are singular, and ends with View
-     * @todo We need to define naming standards
-     */
-    public static function translateView($resource)
-    {
-        return str_replace(' ', '', humanize($resource) . 'View');
-    }
-
-    /**
      * Logging function hook. This will call the provided Logger to do the logging
      *
      * Log levels:
-     * * 1 - Critical Messages
-     * * 2 - Warning | Alert Messages
-     * * 3 - Important Messages
-     * * 4 - Informative Messages
-     * * 5 - Debugging Messages
+     * 1. Critical Messages
+     * 2. Warning | Alert Messages
+     * 3. Important Messages
+     * 4. Informative Messages
+     * 5. Debugging Messages
      *
      * @param string message The message
      * @param integer level The logging level of the message

@@ -55,9 +55,9 @@ class BERequest
      * The class constructor
      *
      * If no method is supplied, it's determined by one of the following:
-     * * A _method POST variable
-     * * A X_HTTP_METHOD_OVERRIDE header
-     * * The REQUEST_METHOD
+     * 1. A _method POST variable
+     * 2. A X_HTTP_METHOD_OVERRIDE header
+     * 3. The REQUEST_METHOD
      *
      * @param array request The request data. Defaults to the HTTP request data
      * @param string method The request method. Can be one of GET, POST, PUT, DELETE or HEAD
@@ -221,7 +221,7 @@ class BERequest
     /**
      * Return the request's payload.
      *
-     * @return string The Request Payload
+     * @return array The Request Payload
      */
     public function getPayload()
     {
