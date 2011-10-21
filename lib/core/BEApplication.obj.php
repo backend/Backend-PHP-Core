@@ -267,7 +267,7 @@ class BEApplication
      * @param string The class name to auto load
      * @return boolean If the class file was found and included
      */
-    static public function __autoload($classname)
+    public static function __autoload($classname)
     {
         $types = array(
             'controllers' => 'ctl',
@@ -279,7 +279,7 @@ class BEApplication
         self::log('Checking for ' . $classname, 5);
 
         //Check the core
-        if (substr($classname, 0, 2) == 'BE') {
+        if (preg_match('/^BE[A-Z].*/', $classname)) {
             if (file_exists(BACKEND_FOLDER . '/core/' . $classname . '.obj.php')) {
                 include(BACKEND_FOLDER . '/core/' . $classname . '.obj.php');
                 return true;
@@ -295,15 +295,9 @@ class BEApplication
             }
         } else {
             foreach ($types as $type => $part) {
-                switch (true) {
-                case file_exists(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php'):
+                if (file_exists(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php')) {
                     include(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php');
                     return true;
-                    break;
-                case file_exists(APP_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php'):
-                    include(APP_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php');
-                    return true;
-                    break;
                 }
             }
         }
