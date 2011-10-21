@@ -46,7 +46,8 @@ class BEController
     /**
      * The class constructor
      *
-     * @param BERequest request A request object to serve
+     * @param BEModel The Model the controller should execute on
+     * @param BEView The View the controller should execute with
      */
     function __construct(BEModel $modelObj, BEView $viewObj)
     {
@@ -60,8 +61,12 @@ class BEController
      * The main controller function
      *
      * Any Application logic can be put into this function
+     * @param string The action the controller should execute
+     * @param mixed The identifier that should be passed to the executing function
+     * @param array The extra arguments that should be passed to the executing function
+     * @return mixed The result of the execution
      */
-    public function execute($action, $identifier, $arguments)
+    public function execute($action, $identifier, array $arguments)
     {
         $parameters = array($identifier, $arguments);
         //Get and check the method
@@ -75,8 +80,8 @@ class BEController
             throw new UncallableMethodException('Uncallable Method: ' . get_class($this->_modelObj) . "->$action()");
         }
         //Execute the Business Logic
+        BEApplication::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
         $result = call_user_func_array($function, $parameters);
-        BEApplication::log('Executing ' . get_class($function[0]) . '::' . $action, 4);
 
         return $result;
     }

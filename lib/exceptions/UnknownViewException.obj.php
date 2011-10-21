@@ -27,7 +27,7 @@
 /**
  * UnknownViewException
  *
- * @packages Exceptions
+ * @package Exceptions
  */
 class UnknownViewException extends Exception
 {

@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining UncallableMethodException
+ * File defining BEView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -27,7 +27,7 @@
 /**
  * The Base View class
  *
- * @package CoreFiles
+ * @package Core
  */
 class BEView
 {

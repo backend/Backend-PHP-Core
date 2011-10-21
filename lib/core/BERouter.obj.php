@@ -70,7 +70,7 @@ class BERouter
      * See the BERequest class for how the action on the resource is determined
      * *
      *
-     * @param BERequest request A request object to serve
+     * @param BERequest A request object to serve
      */
     function __construct(BERequest $request = null)
     {
@@ -119,16 +119,9 @@ class BERouter
     }
 
     /**
-     * Make the route's protected properties readonly.
-     */
-    function __get($property)
-    {
-        $property = '_' . $property;
-        return property_exists($this, $property) ? $this->$property : null;
-    }
-
-    /**
      * Return the Request Query String
+     *
+     * @return string The query string for the request
      */
     function getQuery()
     {
@@ -160,7 +153,7 @@ class BERouter
     /**
      * Return the Action component of the Request
      *
-     * @return string The area component of the Request
+     * @return string The action component of the Request
      */
     function getAction()
     {
@@ -180,7 +173,7 @@ class BERouter
     /**
      * Return the Arguments of the Request
      *
-     * @return string The arguments of the Request
+     * @return array The arguments of the Request
      */
     function getArguments()
     {
