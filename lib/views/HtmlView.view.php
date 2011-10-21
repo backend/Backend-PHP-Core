@@ -40,6 +40,42 @@ class HtmlView extends BEView
     function __construct()
     {
         ob_start();
+
+        $url = 'http';
+        if ($_SERVER['SERVER_PORT'] == 443 || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')) {
+            $url .= 's';
+        }
+        $url .= '://' . $_SERVER['HTTP_HOST'];
+
+        $url .= $_SERVER['PHP_SELF'];
+        if (!empty($_SERVER['QUERY_STRING'])) {
+            $url .= '?' . $_SERVER['QUERY_STRING'];
+        }
+
+        $url = parse_url($url);
+        $folder = !empty($url['path']) ? $url['path'] : '/';
+        if (substr($folder, -1) != '/' && substr($folder, -1) != '\\') {
+            $folder = dirname($folder);
+        }
+        if ($folder != '.') {
+            if (substr($folder, strlen($folder) - 1) != '/') {
+                $folder .= '/';
+            }
+            define('WEB_SUB_FOLDER', $folder);
+        } else {
+            define('WEB_SUB_FOLDER', '/');
+        }
+        $this->bind('WEB_SUB_FOLDER', WEB_SUB_FOLDER);
+
+        $domain = !empty($url['host']) ? $url['host'] : 'localhost';
+        define('SITE_DOMAIN', $domain);
+        $this->bind('SITE_DOMAIN', SITE_DOMAIN);
+
+        $scheme = !empty($_SERVER['HTTPS']) ? 'https://' : 'http://';
+        $url = SITE_DOMAIN . WEB_SUB_FOLDER;
+        define('SITE_LINK', $scheme . $url);
+        $this->bind('SITE_LINK', SITE_LINK);
+
         parent::__construct();
     }
 
@@ -48,8 +84,8 @@ class HtmlView extends BEView
         $render = new Render($this);
 
         $buffered = ob_get_clean();
+        $this->bind('buffered', $buffered);
         $index = $render->file(BACKEND_FOLDER . '/templates/index.tpl.php');
         echo $index;
-        echo '<div id="buffered">' . $buffered . '</div>';
     }
 }

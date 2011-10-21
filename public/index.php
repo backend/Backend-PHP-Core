@@ -48,9 +48,10 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
 }
 
 require(BACKEND_FOLDER . '/core/BEApplication.obj.php');
+require(BACKEND_FOLDER . '/base/BApplication.obj.php');
 //Using Simple Logging, as shipped with the framework
 require_once('Log.php');
-$application = new BEApplication(
+$application = new BApplication(
     null,
     null,
     array(
