@@ -39,7 +39,7 @@ class BEApplication
     /**
      * @var boolean This property indicates if the application has been initialized yet.
      */
-    private $_initialized = false;
+    protected $_initialized = false;
 
     /**
      * @var array This contains all tools that should be globally accessable. Use this wisely.
@@ -267,8 +267,12 @@ class BEApplication
      * @param string The class name to auto load
      * @return boolean If the class file was found and included
      */
-    public static function __autoload($className)
+    public static function __autoload($className, $base = '')
     {
+        if ($base != '') {
+            $base .= '/';
+        }
+
         $types = array(
             'controllers' => 'ctl',
             'models'      => 'obj',
@@ -288,8 +292,8 @@ class BEApplication
             }
         //Check for an Exception
         } else if (substr($className, -9) == 'Exception') {
-            if (file_exists(BACKEND_FOLDER . '/exceptions/' . $className . '.obj.php')) {
-                include(BACKEND_FOLDER . '/exceptions/' . $className . '.obj.php');
+            if (file_exists(BACKEND_FOLDER . '/exceptions/' . $base . $className . '.obj.php')) {
+                include(BACKEND_FOLDER . '/exceptions/' . $base . $className . '.obj.php');
                 return true;
             } else {
                 throw new Exception('Missing Exception Class: ' . $className);
@@ -297,8 +301,8 @@ class BEApplication
         } else {
             //Check other types
             foreach ($types as $type => $part) {
-                if (file_exists(BACKEND_FOLDER . '/' . $type . '/' . $className . '.' . $part . '.php')) {
-                    include(BACKEND_FOLDER . '/' . $type . '/' . $className . '.' . $part . '.php');
+                if (file_exists(BACKEND_FOLDER . '/' . $type . '/' . $base . $className . '.' . $part . '.php')) {
+                    include(BACKEND_FOLDER . '/' . $type . '/' . $base . $className . '.' . $part . '.php');
                     return true;
                 }
             }
