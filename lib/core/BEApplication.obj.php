@@ -397,4 +397,22 @@ class BEApplication
 
         return $logger->log($message, $level);
     }
+
+    public static function mail($recipient, $subject, $message, array $options = array())
+    {
+        $mail = self::getTool('Mailer');
+
+        if (array_key_exists('headers', $options)) {
+            $headers = $options['headers'];
+            unset($options['headers']);
+        } else {
+            $headers = array();
+        }
+
+        if ($mail) {
+        } else {
+            $options['headers'] = 'X-Mailer: BackendCore / PHP';
+            return mail($recipient, $subject, $message, $options['headers'], $options);
+        }
+    }
 }
