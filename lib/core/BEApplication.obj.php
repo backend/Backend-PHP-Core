@@ -343,8 +343,8 @@ class BEApplication
      * 1. Critical Messages
      * 2. Warning | Alert Messages
      * 3. Important Messages
-     * 4. Informative Messages
-     * 5. Debugging Messages
+     * 4. Debugging Messages
+     * 5. Informative Messages
      *
      * @param string message The message
      * @param integer level The logging level of the message
@@ -371,7 +371,28 @@ class BEApplication
         }
         $context = $context ? $context : get_called_class();
         if ($context) {
-            $message = ' [' . $context . '] ' . $message;
+            $message = '[' . $context . '] ' . $message;
+        }
+
+        switch ($level) {
+        case 1:
+            $message = ' (CRITICAL) ' . $message;
+            break;
+        case 2:
+            $message = ' (WARNING) ' . $message;
+            break;
+        case 3:
+            $message = ' (IMPORTANT) ' . $message;
+            break;
+        case 4:
+            $message = ' (DEBUG) ' . $message;
+            break;
+        case 5:
+            $message = ' (INFORMATION) ' . $message;
+            break;
+        default:
+            $message = ' (OTHER - ' . $level . ') ' . $message;
+            break;
         }
 
         return $logger->log($message, $level);
