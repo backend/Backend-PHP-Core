@@ -267,36 +267,38 @@ class BEApplication
      * @param string The class name to auto load
      * @return boolean If the class file was found and included
      */
-    public static function __autoload($classname)
+    public static function __autoload($className)
     {
         $types = array(
             'controllers' => 'ctl',
             'models'      => 'obj',
-            'utilities'   => 'util',
             'views'       => 'view',
+            'utilities'   => 'util',
             'interfaces'  => 'inf',
         );
-        self::log('Checking for ' . $classname, 5);
+        self::log('Checking for ' . $className, 5);
 
-        //Check the core
-        if (preg_match('/^BE[A-Z][a-z].*/', $classname)) {
-            if (file_exists(BACKEND_FOLDER . '/core/' . $classname . '.obj.php')) {
-                include(BACKEND_FOLDER . '/core/' . $classname . '.obj.php');
+        //Check for a Core class
+        if (preg_match('/^BE[A-Z][a-z].*/', $className)) {
+            if (file_exists(BACKEND_FOLDER . '/core/' . $className . '.obj.php')) {
+                include(BACKEND_FOLDER . '/core/' . $className . '.obj.php');
                 return true;
             } else {
-                throw new Exception('Missing Core Class: ' . $classname);
+                throw new Exception('Missing Core Class: ' . $className);
             }
-        } else if (substr($classname, -9) == 'Exception') {
-            if (file_exists(BACKEND_FOLDER . '/exceptions/' . $classname . '.obj.php')) {
-                include(BACKEND_FOLDER . '/exceptions/' . $classname . '.obj.php');
+        //Check for an Exception
+        } else if (substr($className, -9) == 'Exception') {
+            if (file_exists(BACKEND_FOLDER . '/exceptions/' . $className . '.obj.php')) {
+                include(BACKEND_FOLDER . '/exceptions/' . $className . '.obj.php');
                 return true;
             } else {
-                throw new Exception('Missing Exception Class: ' . $classname);
+                throw new Exception('Missing Exception Class: ' . $className);
             }
         } else {
+            //Check other types
             foreach ($types as $type => $part) {
-                if (file_exists(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php')) {
-                    include(BACKEND_FOLDER . '/' . $type . '/' . $classname . '.' . $part . '.php');
+                if (file_exists(BACKEND_FOLDER . '/' . $type . '/' . $className . '.' . $part . '.php')) {
+                    include(BACKEND_FOLDER . '/' . $type . '/' . $className . '.' . $part . '.php');
                     return true;
                 }
             }
