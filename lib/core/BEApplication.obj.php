@@ -272,7 +272,6 @@ class BEApplication
         $types = array(
             'controllers' => 'ctl',
             'models'      => 'obj',
-            'views'       => 'view',
             'utilities'   => 'util',
             'exceptions'  => 'obj',
             'interfaces'  => 'inf',
@@ -286,6 +285,11 @@ class BEApplication
                 return true;
             } else {
                 throw new Exception('Missing Core Class: ' . $className);
+            }
+        } else if (substr($className, -4) == 'View') {
+            if (file_exists(BACKEND_FOLDER . '/views/' . $className . '.view.php')) {
+                include(BACKEND_FOLDER . '/views/' . $className . '.view.php');
+                return true;
             }
         } else {
             //Check other types
