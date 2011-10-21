@@ -25,7 +25,7 @@
  * @package CoreFiles
  */
 /**
- * The Base View class
+ * The Base View class.
  *
  * @package Core
  */

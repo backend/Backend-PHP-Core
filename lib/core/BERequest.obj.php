@@ -25,7 +25,7 @@
  * @package CoreFiles
  */
 /**
- * The Request class.
+ * The Request class which helps determine the Query string and request format.
  *
  * @package Core
  */

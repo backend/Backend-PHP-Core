@@ -25,7 +25,8 @@
  * @package CoreFiles
  */
 /**
- * The Router class.
+ * The Router class that uses the query string to help determine the area, action
+ * and identifier for the request.
  *
  * @package Core
  */

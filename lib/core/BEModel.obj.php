@@ -25,7 +25,7 @@
  * @package CoreFiles
  */
 /**
- * The Model class.
+ * The main Model class.
  *
  * @package Core
  */

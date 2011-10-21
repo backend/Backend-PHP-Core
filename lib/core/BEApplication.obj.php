@@ -389,6 +389,14 @@ class BEApplication
         return $logger->log($message, $level);
     }
 
+    /**
+     * Mail function hook. This will call the provided Mailer to do the mailing.
+     *
+     * @param string The recipient of the email
+     * @param string The subject of the email
+     * @param string The content of the email
+     * @param array Extra email options
+     */
     public static function mail($recipient, $subject, $message, array $options = array())
     {
         $mail = self::getTool('Mailer');
