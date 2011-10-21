@@ -36,30 +36,8 @@ class Logger implements iLogger
      */
     public function log($message, $level = 3)
     {
-        static $stash = array();
-
-        switch ($level) {
-        case 1:
-            $message = ' (CRITICAL) ' . $message;
-            break;
-        case 2:
-            $message = ' (WARNING) ' . $message;
-            break;
-        case 3:
-            $message = ' (IMPORTANT) ' . $message;
-            break;
-        case 4:
-            $message = ' (INFORMATION) ' . $message;
-            break;
-        case 5:
-            $message = ' (DEBUG) ' . $message;
-            break;
-        default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
-            break;
-        }
         $message = date('Y-m-d H:i:s') . $message;
 
-        echo $message . '<br>';
+        echo $message . '<br>' . PHP_EOL;
     }
 }
