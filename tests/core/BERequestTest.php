@@ -1,7 +1,7 @@
 <?php
 require_once('lib/core/BEApplication.obj.php');
 require_once('lib/core/BERequest.obj.php');
-require_once('lib/exceptions/UnsupportedMethodException.obj.php');
+require_once('lib/core/exceptions/UnsupportedMethodException.obj.php');
 class BERequestTest extends PHPUnit_Framework_TestCase
 {
     private $_request;
@@ -41,7 +41,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
         $request = new BERequest(array(), 'UPDATE');
     }
 
-    public function providerRequestFormat()
+    public function providerRequestExtension()
     {
         return array(
             array(array('home.json' => ''), 'json'),
@@ -56,12 +56,28 @@ class BERequestTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider providerRequestFormat
+     * @dataProvider providerRequestExtension
      */
-    public function testRequestFormat($query, $result)
+    public function testRequestExtension($query, $result)
     {
         $request = new BERequest($query, 'POST');
-        $this->assertEquals($result, $request->getFormat());
+        $this->assertEquals($result, $request->getExtension());
 
+    }
+
+    public function provideRequestFormat()
+    {
+        return array(
+            array(array('home' => '', 'format' => 'xml'), 'xml'),
+        );
+    }
+
+    /**
+     * @dataProvider provideRequestFormat
+     */
+    public function testSpecifiedFormat($query, $result)
+    {
+        $request = new BERequest($query, 'GET');
+        $this->assertEquals($result, $request->getSpecifiedFormat());
     }
 }

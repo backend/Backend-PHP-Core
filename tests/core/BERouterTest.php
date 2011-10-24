@@ -2,7 +2,7 @@
 require_once('lib/core/BEApplication.obj.php');
 require_once('lib/core/BERequest.obj.php');
 require_once('lib/core/BERouter.obj.php');
-require_once('lib/exceptions/UnsupportedMethodException.obj.php');
+require_once('lib/core/exceptions/UnsupportedMethodException.obj.php');
 class BERouterTest extends PHPUnit_Framework_TestCase
 {
     private $_request;

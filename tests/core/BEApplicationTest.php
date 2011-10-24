@@ -25,11 +25,5 @@ class BEApplicationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(BEApplication::translateModel('homes'), 'HomesModel');
         $this->assertEquals(BEApplication::translateModel('home-camps'), 'HomeCampsModel');
         $this->assertEquals(BEApplication::translateModel('home_camps'), 'HomeCampsModel');
-
-        $this->assertEquals(BEApplication::translateView('json'), 'JsonView');
-        $this->assertEquals(BEApplication::translateView('text'), 'TextView');
-        $this->assertEquals(BEApplication::translateView('html'), 'HtmlView');
-        $this->assertEquals(BEApplication::translateView('css'), 'CssView');
-        $this->assertEquals(BEApplication::translateView('some_other'), 'SomeOtherView');
     }
 }
