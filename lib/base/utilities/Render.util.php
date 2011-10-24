@@ -45,9 +45,10 @@ class Render
      * Render the specified file
      *
      * @param string The name of the template
+     * @param array Extra variables to consider
      * @return string The contents of the rendered template
      */
-    public function file($template)
+    public function file($template, array $values = array())
     {
         $file = $this->templateFile($template);
         if (!$file) {
@@ -55,9 +56,17 @@ class Render
             BEApplication::log('Missing Template: ' . $template, 4);
             return false;
         }
+
+        //TODO Add Caching
+
         ob_start();
         include($file);
-        return ob_get_clean();
+        $result = ob_get_clean();
+
+        //Substitute Variables into the templates
+        $result = $this->parseVariables($result, $values);
+
+        return $result;
     }
 
     /**
@@ -84,5 +93,27 @@ class Render
             }
         }
         return false;
+    }
+
+    /**
+     * Check the string for variables (#VarName#) and replace them with the appropriate values
+     *
+     * The values currently bound to the view will be used.
+     *
+     * @param string The string to check for variable names
+     * @param array Extra variables to consider
+     * @return string The string with the variables replaced
+     */
+    function parseVariables($string, array $values = array())
+    {
+        $values = array_merge($this->_view->getVariables(), $values);
+        foreach ($values as $name => $value) {
+            if (is_string($name) && is_string($value)) {
+                $search[] = '#' . $name . '#';
+                $replace[] = $value;
+            }
+        }
+        $string = str_replace($search, $replace, $string);
+        return $string;
     }
 }
