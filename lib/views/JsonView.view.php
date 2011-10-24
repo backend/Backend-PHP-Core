@@ -40,7 +40,7 @@ class JsonView extends BEView
     function output()
     {
         echo json_encode($this->_variables['result']);
-        if (Request::from_cli()) {
+        if (BERequest::from_cli()) {
             echo PHP_EOL;
         }
     }
