@@ -89,14 +89,22 @@ class ViewFactory
      */
     private static function checkView($viewName, $request)
     {
-        if (in_array($request->getSpecifiedFormat(), $viewName::$handledFormats)) {
-            return true;
+        if ($format = $request->getSpecifiedFormat()) {
+            var_dump($format); die;
+            if (in_array($format, $viewName::$handledFormats)) {
+                return true;
+            }
+            return false;
         }
-        if (in_array($request->getExtension(), $viewName::$handledFormats)) {
-            return true;
+        if ($extension = $request->getExtension()) {
+            if (in_array($extension, $viewName::$handledFormats)) {
+                return true;
+            }
         }
-        if (in_array($request->getMimeType(), $viewName::$handledFormats)) {
-            return true;
+        if ($mimeType = $request->getMimeType()) {
+            if (in_array($mimeType, $viewName::$handledFormats)) {
+                return true;
+            }
         }
         return false;
     }
