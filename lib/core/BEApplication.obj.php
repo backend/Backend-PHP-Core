@@ -42,6 +42,11 @@ class BEApplication
     protected $_initialized = false;
 
     /**
+     * @var boolean This static property indicates if the application has been constructed yet.
+     */
+    protected static $_constructed = false;
+
+    /**
      * @var array This contains all tools that should be globally accessable. Use this wisely.
      */
     private static $_toolbox = array();
@@ -101,6 +106,7 @@ class BEApplication
             $this->_view = $view;
         }
 
+        self::$_constructed = true;
     }
 
     /**
@@ -237,6 +243,11 @@ class BEApplication
      */
     public static function getTool($className)
     {
+        //Check that we have a running Application first
+        if (!self::$_constructed) {
+            return false;
+        }
+
         if (array_key_exists($className, self::$_toolbox)) {
             return self::$_toolbox[$className];
         }
@@ -354,7 +365,7 @@ class BEApplication
     public static function log($message, $level = 3, $context = false)
     {
         if ($level > self::$_debugLevel) {
-            return;
+            return false;
         }
 
         $logger = self::getTool('Logger');
