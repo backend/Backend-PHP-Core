@@ -90,7 +90,6 @@ class ViewFactory
     private static function checkView($viewName, $request)
     {
         if ($format = $request->getSpecifiedFormat()) {
-            var_dump($format); die;
             if (in_array($format, $viewName::$handledFormats)) {
                 return true;
             }
