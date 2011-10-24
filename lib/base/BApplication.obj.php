@@ -37,10 +37,10 @@ class BApplication extends BEApplication
             return true;
         }
 
-        $result = parent::init();
-
         //PHP Helpers
         spl_autoload_register(array('BApplication', '__autoload'));
+
+        $result = parent::init();
 
         return $result;
     }
