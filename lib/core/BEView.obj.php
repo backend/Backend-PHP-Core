@@ -73,6 +73,16 @@ class BEView
     }
 
     /**
+     * Get all of the bound variables
+     *
+     * @return array An array of all the variables bound to the view
+     */
+    function getVariables()
+    {
+        return $this->_variables;
+    }
+
+    /**
      * Redirect the application to another location
      *
      * Views are welcome to overwrite this to customize the way we redirect
