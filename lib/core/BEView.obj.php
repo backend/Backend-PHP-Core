@@ -93,6 +93,7 @@ class BEView
     {
         header('X-Redirector: ' . get_class($this));
         header('Location: ' . $location);
+        die;
     }
 
     /**
