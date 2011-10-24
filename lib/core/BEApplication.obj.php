@@ -93,10 +93,10 @@ class BEApplication
         //Get the Request
         $this->_request = is_null($request) ? new BERequest() : $request;
 
+        //Get the View
         if ($view instanceof BEView) {
             $this->_view = $view;
         } else {
-            //Get the View
             try {
                 $view = ViewFactory::build($this->_request);
             } catch (Exception $e) {
@@ -126,7 +126,10 @@ class BEApplication
         include(BACKEND_FOLDER . '/modifiers.inc.php');
 
         //PHP Helpers
-        spl_autoload_register(array('BEApplication', '__autoload'));
+        //Prepend the master autoload function to the beginning of the stack
+        spl_autoload_register(array('BEApplication', '__autoload'), true, true);
+        //The application autoload function should be at the end of the stack
+        spl_autoload_register(array('BEApplication', '__autoloadApplication'));
         //register_shutdown_function(array($this, 'shutdown'));
 
         //Some constants
@@ -278,6 +281,16 @@ class BEApplication
     }
 
     /**
+     * Wrapper function to autoload application level classes.
+     *
+     * @see __autoload
+     */
+    public static function __autoloadApplication($className)
+    {
+        return self::__autoload($className, 'application');
+    }
+
+    /**
      * Function to autoload BackendMVC classes
      *
      * It gets set by BEApplication::init
@@ -293,7 +306,7 @@ class BEApplication
             'exceptions'  => 'obj',
             'interfaces'  => 'inf',
         );
-        self::log('Checking for ' . $className, 5);
+        self::log('Checking for ' . $className . ' (' . $base . ')', 5);
 
         //Check for a Core class
         if ($base == 'core' && preg_match('/^BE[A-Z][a-z].*/', $className)) {
