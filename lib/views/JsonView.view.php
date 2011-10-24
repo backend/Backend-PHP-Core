@@ -25,20 +25,23 @@
  * @package ViewFiles
  */
 /**
- * Output a request on the Command Line.
+ * Output a request in JavaScript Object Notation
  *
  * @package Views
  */
 class JsonView extends BEView
 {
     /**
-     * Handle CLI requests
+     * Handle JSON requests
      * @var array
      */
     public static $handledFormats = array('json', 'text/json');
 
     function output()
     {
-        json_encode($this->_variables['result']);
+        echo json_encode($this->_variables['result']);
+        if (Request::from_cli()) {
+            echo PHP_EOL;
+        }
     }
 }
