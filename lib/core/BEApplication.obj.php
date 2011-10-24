@@ -107,6 +107,7 @@ class BEApplication
         }
 
         self::$_constructed = true;
+        self::log('Showing application with ' . get_class($this->_view));
     }
 
     /**
@@ -130,7 +131,8 @@ class BEApplication
         spl_autoload_register(array('BEApplication', '__autoload'), true, true);
         //The application autoload function should be at the end of the stack
         spl_autoload_register(array('BEApplication', '__autoloadApplication'));
-        //register_shutdown_function(array($this, 'shutdown'));
+
+        register_shutdown_function(array($this, 'shutdown'));
 
         //Some constants
         if (!defined('SITE_STATE')) {
@@ -203,6 +205,11 @@ class BEApplication
         $this->_view->bind('result', $result);
         $this->_view->output();
         return $result;
+    }
+
+    public function shutdown()
+    {
+        self::log('Shutting down Application', 3);
     }
 
     /**
