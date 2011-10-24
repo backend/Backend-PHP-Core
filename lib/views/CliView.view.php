@@ -39,6 +39,9 @@ class CliView extends BEView
 
     function output()
     {
+        echo 'Result:' . PHP_EOL;
         var_export($this->_variables['result']);
+        echo PHP_EOL;
+        return $this->_variables['result'];
     }
 }
