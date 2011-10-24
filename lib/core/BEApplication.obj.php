@@ -42,6 +42,11 @@ class BEApplication
     protected $_initialized = false;
 
     /**
+     * @var boolean This static property indicates if the application has been constructed yet.
+     */
+    protected static $_constructed = false;
+
+    /**
      * @var array This contains all tools that should be globally accessable. Use this wisely.
      */
     private static $_toolbox = array();
@@ -101,6 +106,7 @@ class BEApplication
             $this->_view = $view;
         }
 
+        self::$_constructed = true;
     }
 
     /**
@@ -115,6 +121,19 @@ class BEApplication
         if ($this->_initialized) {
             return true;
         }
+
+        //Load extra functions
+        include(BACKEND_FOLDER . '/modifiers.inc.php');
+
+        //PHP Helpers
+        spl_autoload_register(array('BEApplication', '__autoload'));
+        //register_shutdown_function(array($this, 'shutdown'));
+
+        //Some constants
+        if (!defined('SITE_STATE')) {
+            define('SITE_STATE', 'production');
+        }
+
         if (empty($_SERVER['DEBUG_LEVEL'])) {
             switch (SITE_STATE) {
             case 'development':
@@ -127,13 +146,6 @@ class BEApplication
         } else {
             self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
         }
-
-        //PHP Helpers
-        spl_autoload_register(array('BEApplication', '__autoload'));
-
-        //Load extra functions
-        include(BACKEND_FOLDER . '/functions.inc.php');
-        include(BACKEND_FOLDER . '/modifiers.inc.php');
 
         $this->_initialized = true;
 
@@ -231,6 +243,11 @@ class BEApplication
      */
     public static function getTool($className)
     {
+        //Check that we have a running Application first
+        if (!self::$_constructed) {
+            return false;
+        }
+
         if (array_key_exists($className, self::$_toolbox)) {
             return self::$_toolbox[$className];
         }
@@ -348,7 +365,7 @@ class BEApplication
     public static function log($message, $level = 3, $context = false)
     {
         if ($level > self::$_debugLevel) {
-            return;
+            return false;
         }
 
         $logger = self::getTool('Logger');
