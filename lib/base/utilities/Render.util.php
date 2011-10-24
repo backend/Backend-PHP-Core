@@ -41,10 +41,48 @@ class Render
         $this->_view = $view;
     }
 
+    /**
+     * Render the specified file
+     *
+     * @param string The name of the template
+     * @return string The contents of the rendered template
+     */
     public function file($template)
     {
+        $file = $this->templateFile($template);
+        if (!$file) {
+            //TODO Throw an exception, make a fuss?
+            BEApplication::log('Missing Template: ' . $template, 4);
+            return false;
+        }
         ob_start();
-        include($template);
+        include($file);
         return ob_get_clean();
+    }
+
+    /**
+     * Get the file name for the specified template
+     *
+     * @param string The name of the template
+     * @return string The absolute path to the template file to render
+     */
+    protected function templateFile($template)
+    {
+        if (substr($template, -4) != '.php') {
+            if (substr($template, -4 != '.tpl')) {
+                $template .= '.tpl';
+            }
+            $template .= '.php';
+        }
+        $locations = array();
+        if (!empty($this->_view->templateLocations) && is_array($this->_view->templateLocations)) {
+            $locations = array_unique(array_merge($locations, $this->_view->templateLocations));
+        }
+        foreach ($locations as $location) {
+            if (file_exists($location . '/' . $template)) {
+                return $location . '/' . $template;
+            }
+        }
+        return false;
     }
 }

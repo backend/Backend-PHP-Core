@@ -37,10 +37,31 @@ class HtmlView extends BEView
      */
     public static $handledFormats = array('html', 'htm', 'text/html', 'application/xhtml+xml');
 
+    /**
+     * Location for template files. List them in order of preference
+     */
+    public $templateLocations = array();
+
     function __construct()
     {
         ob_start();
 
+        self::setupConstants();
+
+        $this->templateLocations = array(
+            APP_FOLDER . '/templates',
+            BACKEND_FOLDER . '/templates',
+        );
+
+        parent::__construct();
+    }
+
+    /**
+     * Set up a number of constants / variables to make creating and parsing templates easier.
+     */
+    private function setupConstants()
+    {
+        //Get the current URL
         $url = 'http';
         if ($_SERVER['SERVER_PORT'] == 443 || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')) {
             $url .= 's';
@@ -52,6 +73,7 @@ class HtmlView extends BEView
             $url .= '?' . $_SERVER['QUERY_STRING'];
         }
 
+        //Parse the current URL to get the SITE_SUB_FOLDER
         $url = parse_url($url);
         $folder = !empty($url['path']) ? $url['path'] : '/';
         if (substr($folder, -1) != '/' && substr($folder, -1) != '\\') {
@@ -61,22 +83,22 @@ class HtmlView extends BEView
             if (substr($folder, strlen($folder) - 1) != '/') {
                 $folder .= '/';
             }
-            define('WEB_SUB_FOLDER', $folder);
+            define('SITE_SUB_FOLDER', $folder);
         } else {
-            define('WEB_SUB_FOLDER', '/');
+            define('SITE_SUB_FOLDER', '/');
         }
-        $this->bind('WEB_SUB_FOLDER', WEB_SUB_FOLDER);
+        $this->bind('SITE_SUB_FOLDER', SITE_SUB_FOLDER);
 
+        //Parse the current URL to get the SITE_DOMAIN
         $domain = !empty($url['host']) ? $url['host'] : 'localhost';
         define('SITE_DOMAIN', $domain);
         $this->bind('SITE_DOMAIN', SITE_DOMAIN);
 
+        //Use SITE_DOMAIN and SITE_SUB_FOLDER to create a SITE_LINK
         $scheme = !empty($_SERVER['HTTPS']) ? 'https://' : 'http://';
-        $url = SITE_DOMAIN . WEB_SUB_FOLDER;
+        $url = SITE_DOMAIN . SITE_SUB_FOLDER;
         define('SITE_LINK', $scheme . $url);
         $this->bind('SITE_LINK', SITE_LINK);
-
-        parent::__construct();
     }
 
     function output()
@@ -85,7 +107,7 @@ class HtmlView extends BEView
 
         $buffered = ob_get_clean();
         $this->bind('buffered', $buffered);
-        $index = $render->file(BACKEND_FOLDER . '/templates/index.tpl.php');
+        $index = $render->file('index');
         echo $index;
     }
 }
