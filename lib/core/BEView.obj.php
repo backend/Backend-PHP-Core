@@ -73,6 +73,19 @@ class BEView
     }
 
     /**
+     * Redirect the application to another location
+     *
+     * Views are welcome to overwrite this to customize the way we redirect
+     *
+     * @param string The new location
+     */
+    function redirect($location)
+    {
+        header('X-Redirector: ' . get_class($this));
+        header('Location: ' . $location);
+    }
+
+    /**
      * Output the request.
      *
      * This function should be overwritten by other views to change the output
