@@ -39,6 +39,7 @@ class HtmlView extends BEView
 
     /**
      * Location for template files. List them in order of preference
+     * @var array
      */
     public $templateLocations = array();
 
