@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining RestModel
+ * File defining HtmlView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,40 +22,14 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package CoreModelFiles
+ * @package CoreInterfacesFiles
  */
 /**
- * A Model class that provides basic REST rest functions
+ * Basic interface to a logging class
  *
- * @package CoreModel
+ * @package CoreInterfaces
  */
-abstract class RestModel extends BEModel
+interface iCoreLogger
 {
-    /**
-     * Create function called by the POST HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    abstract protected function createAction($identifier, array $arguments = array());
-
-    /**
-     * Read function called by the GET HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    abstract protected function readAction($identifier, array $arguments = array());
-
-    /**
-     * Update function called by the PUT HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    abstract protected function updateAction($identifier, array $arguments = array());
-
-    /**
-     * Delete function called by the DELETE HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    abstract protected function deleteAction($identifier, array $arguments = array());
+    public function log($message, $level = 3);
 }

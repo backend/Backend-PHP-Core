@@ -29,7 +29,7 @@
  *
  * @package Utility
  */
-class Logger implements iLogger
+class Logger implements iCoreLogger
 {
     /**
      * Function to do logging.
