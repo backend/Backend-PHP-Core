@@ -25,12 +25,7 @@
  * @package UtilityFiles
  */
 /**
- * The main application class.
- *
- * The application will / should be the only singleton in the framework, acting as
- * a Toolbox. That means that any resource that should be globally accessable (and
- * some times a singleton) should be passed to the Application. Read more at
- * http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3
+ * Factory class to create Views
  *
  * @package Utility
  */
