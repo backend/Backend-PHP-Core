@@ -29,9 +29,24 @@
  *
  * @package Application
  */
-class HomesModel extends BEModel
+class HomesModel extends CoreModel implements iCoreRestModel
 {
+    public function createAction($identifier, array $parameters = array())
+    {
+        return true;
+    }
+
     public function readAction($identifier, array $parameters = array())
+    {
+        return true;
+    }
+
+    public function updateAction($identifier, array $parameters = array())
+    {
+        return true;
+    }
+
+    public function deleteAction($identifier, array $parameters = array())
     {
         return true;
     }

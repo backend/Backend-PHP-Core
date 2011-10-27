@@ -29,7 +29,7 @@
  *
  * @package Views
  */
-class JsonView extends BEView
+class JsonView extends CoreView
 {
     /**
      * Handle JSON requests

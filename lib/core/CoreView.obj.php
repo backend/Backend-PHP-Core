@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BEView
+ * File defining CoreView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +29,7 @@
  *
  * @package Core
  */
-class BEView
+class CoreView
 {
     /**
      * This contains the variables bound to the view
@@ -103,7 +103,7 @@ class BEView
      */
     function output()
     {
-        if (BERequest::from_cli()) {
+        if (CoreRequest::from_cli()) {
             var_export($this->_variables['result']);
         } else {
             echo <<< END
@@ -116,7 +116,7 @@ class BEView
 END;
         }
         var_dump('Result', $this->_variables['result']);
-        if (BERequest::from_cli()) {
+        if (CoreRequest::from_cli()) {
             echo PHP_EOL;
         } else {
             echo <<< END

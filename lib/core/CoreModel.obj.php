@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BEModel
+ * File defining CoreModel
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +29,7 @@
  *
  * @package Core
  */
-class BEModel
+class CoreModel
 {
     function __construct()
     {

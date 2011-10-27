@@ -1,8 +1,8 @@
 <?php
-require_once('lib/core/BEApplication.obj.php');
-require_once('lib/core/BERequest.obj.php');
+require_once('lib/core/CoreApplication.obj.php');
+require_once('lib/core/CoreRequest.obj.php');
 require_once('lib/core/exceptions/UnsupportedMethodException.obj.php');
-class BERequestTest extends PHPUnit_Framework_TestCase
+class CoreRequestTest extends PHPUnit_Framework_TestCase
 {
     private $_request;
     public function setUp()
@@ -29,7 +29,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
      */
     public function testURLFormats($query, $result)
     {
-        $request = new BERequest($query, 'GET');
+        $request = new CoreRequest($query, 'GET');
         $this->assertEquals($result, $request->getQuery());
     }
 
@@ -38,7 +38,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
      */
     public function testRequestMethod()
     {
-        $request = new BERequest(array(), 'UPDATE');
+        $request = new CoreRequest(array(), 'UPDATE');
     }
 
     public function providerRequestExtension()
@@ -60,7 +60,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
      */
     public function testRequestExtension($query, $result)
     {
-        $request = new BERequest($query, 'POST');
+        $request = new CoreRequest($query, 'POST');
         $this->assertEquals($result, $request->getExtension());
 
     }
@@ -77,7 +77,7 @@ class BERequestTest extends PHPUnit_Framework_TestCase
      */
     public function testSpecifiedFormat($query, $result)
     {
-        $request = new BERequest($query, 'GET');
+        $request = new CoreRequest($query, 'GET');
         $this->assertEquals($result, $request->getSpecifiedFormat());
     }
 }

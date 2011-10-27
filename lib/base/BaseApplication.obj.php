@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BApplication
+ * File defining BaseApplication
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +29,7 @@
  *
  * @package Base
  */
-class BApplication extends BEApplication
+class BaseApplication extends CoreApplication
 {
     protected function init()
     {
@@ -38,7 +38,7 @@ class BApplication extends BEApplication
         }
 
         //PHP Helpers
-        spl_autoload_register(array('BApplication', '__autoload'));
+        spl_autoload_register(array('BaseApplication', '__autoload'));
 
         $result = parent::init();
 

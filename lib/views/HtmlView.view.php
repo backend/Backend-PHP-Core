@@ -29,7 +29,7 @@
  *
  * @package Views
  */
-class HtmlView extends BEView
+class HtmlView extends CoreView
 {
     /**
      * Handle HTML requests
