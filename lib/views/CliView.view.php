@@ -29,7 +29,7 @@
  *
  * @package Views
  */
-class CliView extends BEView
+class CliView extends CoreView
 {
     /**
      * Handle CLI requests

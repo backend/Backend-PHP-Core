@@ -32,11 +32,11 @@
 class Render
 {
     /**
-     * @var BEView The view used to render
+     * @var CoreView The view used to render
      */
     private $_view;
 
-    function __construct(BEView $view)
+    function __construct(CoreView $view)
     {
         $this->_view = $view;
     }
@@ -53,7 +53,7 @@ class Render
         $file = $this->templateFile($template);
         if (!$file) {
             //TODO Throw an exception, make a fuss?
-            BEApplication::log('Missing Template: ' . $template, 4);
+            CoreApplication::log('Missing Template: ' . $template, 4);
             return false;
         }
 
