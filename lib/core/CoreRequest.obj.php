@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BERequest
+ * File defining CoreRequest
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +29,7 @@
  *
  * @package Core
  */
-class BERequest
+class CoreRequest
 {
     /**
      * @var string The query of the request
@@ -75,7 +75,7 @@ class BERequest
                 $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
                 break;
             default:
-                if (BERequest::from_cli()) {
+                if (CoreRequest::from_cli()) {
                     //First CL parameter is the method
                     $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
                 } else {
@@ -90,7 +90,7 @@ class BERequest
         $this->_method  = $method;
         //Set the payload to request initially
         if (empty($request)) {
-            if (BERequest::from_cli()) {
+            if (CoreRequest::from_cli()) {
                 $this->_payload = array(
                     //Second CL parameter is the query. This will be picked up later
                     count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
@@ -127,7 +127,7 @@ class BERequest
         $this->_extension = $this->getExtension();
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
-        BEApplication::log($message, 4);
+        CoreApplication::log($message, 4);
     }
 
     /**
@@ -138,7 +138,7 @@ class BERequest
     public function getSpecifiedFormat()
     {
         //Third CL parameter is the required format
-        if (BERequest::from_cli() && count($_SERVER['argv']) >= 4) {
+        if (CoreRequest::from_cli() && count($_SERVER['argv']) >= 4) {
             return $_SERVER['argv'][3];
         }
 
@@ -184,7 +184,7 @@ class BERequest
      */
     public function getMimeType()
     {
-        if (BERequest::from_cli()) {
+        if (CoreRequest::from_cli()) {
             return 'cli';
         } else if (array_key_exists('HTTP_ACCEPT', $_SERVER)) {
             //No format found, check if there's an Accept Header

@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BEController
+ * File defining CoreController
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,27 +29,27 @@
  *
  * @package Core
  */
-class BEController
+class CoreController
 {
     /**
      * This contains the model on which this controller will execute
-     * @var BEModel
+     * @var CoreModel
      */
     private $_modelObj = null;
 
     /**
      * This contains the view for which this controller will execute
-     * @var BEView
+     * @var CoreView
      */
     private $_viewObj = null;
 
     /**
      * The class constructor
      *
-     * @param BEModel The Model the controller should execute on
-     * @param BEView The View the controller should execute with
+     * @param CoreModel The Model the controller should execute on
+     * @param CoreView The View the controller should execute with
      */
-    function __construct(BEModel $modelObj, BEView $viewObj)
+    function __construct(CoreModel $modelObj, CoreView $viewObj)
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
@@ -80,7 +80,7 @@ class BEController
             throw new UncallableMethodException('Uncallable Method: ' . get_class($this->_modelObj) . "->$action()");
         }
         //Execute the Business Logic
-        BEApplication::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
+        CoreApplication::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
         $result = call_user_func_array($function, $parameters);
 
         return $result;

@@ -1,9 +1,9 @@
 <?php
-require_once('lib/core/BEApplication.obj.php');
-require_once('lib/core/BERequest.obj.php');
-require_once('lib/core/BERouter.obj.php');
+require_once('lib/core/CoreApplication.obj.php');
+require_once('lib/core/CoreRequest.obj.php');
+require_once('lib/core/CoreRouter.obj.php');
 require_once('lib/core/exceptions/UnsupportedMethodException.obj.php');
-class BERouterTest extends PHPUnit_Framework_TestCase
+class CoreRouterTest extends PHPUnit_Framework_TestCase
 {
     private $_request;
     public function setUp()
@@ -35,8 +35,8 @@ class BERouterTest extends PHPUnit_Framework_TestCase
      */
     public function testRESTTranslations($query, $method, $result)
     {
-        $request = new BERequest($query, $method);
-        $router  = new BERouter($request);
+        $request = new CoreRequest($query, $method);
+        $router  = new CoreRouter($request);
         $this->assertEquals($result, $router->getQuery());
     }
 
@@ -45,6 +45,6 @@ class BERouterTest extends PHPUnit_Framework_TestCase
      */
     public function testRequestMethod()
     {
-        $request = new BERequest(array(), 'UPDATE');
+        $request = new CoreRequest(array(), 'UPDATE');
     }
 }

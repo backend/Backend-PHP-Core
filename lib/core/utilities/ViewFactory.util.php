@@ -25,12 +25,7 @@
  * @package UtilityFiles
  */
 /**
- * The main application class.
- *
- * The application will / should be the only singleton in the framework, acting as
- * a Toolbox. That means that any resource that should be globally accessable (and
- * some times a singleton) should be passed to the Application. Read more at
- * http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3
+ * Factory class to create Views
  *
  * @package Utility
  */
@@ -39,15 +34,15 @@ class ViewFactory
     /**
      * Build a view with the supplied (or current) request
      *
-     * @param BERequest The Request to use to determine the view
-     * @return BEView The view that can handle the Request
+     * @param CoreRequest The Request to use to determine the view
+     * @return CoreView The view that can handle the Request
      */
-    public static function build(BERequest $request)
+    public static function build(CoreRequest $request)
     {
         $viewFolder = BACKEND_FOLDER . '/views/';
 
         //Check the View Folder
-        $request = is_null($request) ? new BERequest() : $request;
+        $request = is_null($request) ? new CoreRequest() : $request;
         if (
             !file_exists($viewFolder)
             || !($handle = opendir($viewFolder))
@@ -70,7 +65,7 @@ class ViewFactory
             //Check if the view can handle the request
             if (self::checkView($viewName, $request)) {
                 $view = new $viewName();
-                if (!($view instanceof BEView)) {
+                if (!($view instanceof CoreView)) {
                     throw new UnknownViewException('Invalid View: ' . get_class($view));
                 }
                 return $view;
@@ -83,7 +78,7 @@ class ViewFactory
     /**
      * Check the View against the supplied request
      *
-     * This was originally implemented in BEView, but issues with static variables
+     * This was originally implemented in CoreView, but issues with static variables
      * and inheritance prevented it from working properly. Non static properties could
      * not be used, as we do not want to construct each view.
      */

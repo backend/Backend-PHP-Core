@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BEApplication
+ * File defining CoreApplication
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -34,7 +34,7 @@
  *
  * @package Core
  */
-class BEApplication
+class CoreApplication
 {
     /**
      * @var boolean This property indicates if the application has been initialized yet.
@@ -53,19 +53,19 @@ class BEApplication
 
     /**
      * This contains the router object that will help decide what controller, model and action to execute
-     * @var BERouter
+     * @var CoreRouter
      */
     private $_router = null;
 
     /**
      * This contains the request object that will influence the router and view objects.
-     * @var BERequest
+     * @var CoreRequest
      */
     private $_request = null;
 
     /**
      * This contains the view object that display the executed request
-     * @var BEView
+     * @var CoreView
      */
     private $_view = null;
 
@@ -77,11 +77,11 @@ class BEApplication
     /**
      * The class constructor
      *
-     * @param BEView The view for the application
-     * @param BERequest The request to handle
+     * @param CoreView The view for the application
+     * @param CoreRequest The request to handle
      * @param array An array of tools to instansiate
      */
-    function __construct(BEView $view = null, BERequest $request = null, array $tools = array())
+    function __construct(CoreView $view = null, CoreRequest $request = null, array $tools = array())
     {
         $this->init();
 
@@ -91,17 +91,17 @@ class BEApplication
         }
 
         //Get the Request
-        $this->_request = is_null($request) ? new BERequest() : $request;
+        $this->_request = is_null($request) ? new CoreRequest() : $request;
 
         //Get the View
-        if ($view instanceof BEView) {
+        if ($view instanceof CoreView) {
             $this->_view = $view;
         } else {
             try {
                 $view = ViewFactory::build($this->_request);
             } catch (Exception $e) {
-                BEApplication::log('View Exception: ' . $e->getMessage(), 2);
-                $view = new BEView();
+                CoreApplication::log('View Exception: ' . $e->getMessage(), 2);
+                $view = new CoreView();
             }
             $this->_view = $view;
         }
@@ -128,9 +128,9 @@ class BEApplication
 
         //PHP Helpers
         //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('BEApplication', '__autoload'), true, true);
+        spl_autoload_register(array('CoreApplication', '__autoload'), true, true);
         //The application autoload function should be at the end of the stack
-        spl_autoload_register(array('BEApplication', '__autoloadApplication'));
+        spl_autoload_register(array('CoreApplication', '__autoloadApplication'));
 
         register_shutdown_function(array($this, 'shutdown'));
 
@@ -160,13 +160,13 @@ class BEApplication
     /**
      * Main function for the application
      *
-     * @param BERouter The route to execute
+     * @param CoreRouter The route to execute
      * @return mixed The result of the call
      */
-    public function main(BERouter $router = null)
+    public function main(CoreRouter $router = null)
     {
         //Get Router
-        $this->_router = is_null($router) ? new BERouter($this->_request) : $router;
+        $this->_router = is_null($router) ? new CoreRouter($this->_request) : $router;
 
         $result = null;
         try {
@@ -181,7 +181,7 @@ class BEApplication
             $controller = self::translateController($this->_router->getArea());
             if (!class_exists($controller, true)) {
                 //Otherwise run the core controller
-                $controller = 'BEController';
+                $controller = 'CoreController';
             }
             $controllerObj = new $controller($modelObj, $this->_view);
 
@@ -193,7 +193,7 @@ class BEApplication
                 $this->_router->getArguments()
             );
         } catch (Exception $e) {
-            BEApplication::log('Logic Exception: ' . $e->getMessage(), 1);
+            CoreApplication::log('Logic Exception: ' . $e->getMessage(), 1);
             //TODO Get the Error Model, and execute
             //TODO Handle UknownRouteException
             //TODO Handle UnknownModelException
@@ -300,7 +300,7 @@ class BEApplication
     /**
      * Function to autoload BackendMVC classes
      *
-     * It gets set by BEApplication::init
+     * It gets set by CoreApplication::init
      * @param string The class name to auto load
      * @return boolean If the class file was found and included
      */
@@ -316,7 +316,7 @@ class BEApplication
         self::log('Checking for ' . $className . ' (' . $base . ')', 5);
 
         //Check for a Core class
-        if ($base == 'core' && preg_match('/^BE[A-Z][a-z].*/', $className)) {
+        if ($base == 'core' && preg_match('/^Core[A-Z][a-z].*/', $className)) {
             if (file_exists(BACKEND_FOLDER . '/core/' . $className . '.obj.php')) {
                 include(BACKEND_FOLDER . '/core/' . $className . '.obj.php');
                 return true;
