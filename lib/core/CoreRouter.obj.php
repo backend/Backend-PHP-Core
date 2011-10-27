@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining BERouter
+ * File defining CoreRouter
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,11 +30,11 @@
  *
  * @package Core
  */
-class BERouter
+class CoreRouter
 {
     /**
      * This contains the route's request
-     * @var BERequest
+     * @var CoreRequest
      */
     protected $_request;
 
@@ -68,14 +68,14 @@ class BERouter
      *
      * We use REST URI's, so the following structure should be followed.
      * $resource/$identifier/$extra/$parameters
-     * See the BERequest class for how the action on the resource is determined
+     * See the CoreRequest class for how the action on the resource is determined
      * *
      *
-     * @param BERequest A request object to serve
+     * @param CoreRequest A request object to serve
      */
-    function __construct(BERequest $request = null)
+    function __construct(CoreRequest $request = null)
     {
-        $this->_request = is_null($request) ? new BERequest() : $request;
+        $this->_request = is_null($request) ? new CoreRequest() : $request;
 
         //Setup and split the query
         $query = $this->_request->getQuery();
@@ -116,7 +116,7 @@ class BERouter
         $this->_arguments = count($query) > 2 ? array_slice($query, 2) : array();
 
         $message = 'Route: ' . $this->_request->getMethod() . ': ' . $this->getQuery();
-        BEApplication::log($message, 4);
+        CoreApplication::log($message, 4);
     }
 
     /**
@@ -134,7 +134,7 @@ class BERouter
     /**
      * Return the Request
      *
-     * @return BERequest The Route's Request
+     * @return CoreRequest The Route's Request
      */
     function getRequest()
     {
