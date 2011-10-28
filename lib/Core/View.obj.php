@@ -1,6 +1,7 @@
 <?php
+namespace Core;
 /**
- * File defining CoreView
+ * File defining Core\View
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +30,7 @@
  *
  * @package Core
  */
-class CoreView
+class View
 {
     /**
      * This contains the variables bound to the view
@@ -103,7 +104,7 @@ class CoreView
      */
     function output()
     {
-        if (CoreRequest::from_cli()) {
+        if (Request::from_cli()) {
             var_export($this->_variables['result']);
         } else {
             echo <<< END
@@ -116,7 +117,7 @@ class CoreView
 END;
         }
         var_dump('Result', $this->_variables['result']);
-        if (CoreRequest::from_cli()) {
+        if (Request::from_cli()) {
             echo PHP_EOL;
         } else {
             echo <<< END

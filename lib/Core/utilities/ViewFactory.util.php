@@ -1,4 +1,5 @@
 <?php
+namespace Core;
 /**
  * File defining ViewFactory
  *
@@ -34,20 +35,20 @@ class ViewFactory
     /**
      * Build a view with the supplied (or current) request
      *
-     * @param CoreRequest The Request to use to determine the view
-     * @return CoreView The view that can handle the Request
+     * @param Core\Request The Request to use to determine the view
+     * @return Core\View The view that can handle the Request
      */
-    public static function build(CoreRequest $request)
+    public static function build(Request $request)
     {
         $viewFolder = BACKEND_FOLDER . '/views/';
 
         //Check the View Folder
-        $request = is_null($request) ? new CoreRequest() : $request;
+        $request = is_null($request) ? new Request() : $request;
         if (
             !file_exists($viewFolder)
             || !($handle = opendir($viewFolder))
         ) {
-            throw new Exception('Cannot open View Folder: ' . $viewFolder);
+            throw new \Exception('Cannot open View Folder: ' . $viewFolder);
         }
 
         //Loop through all the available views
@@ -78,7 +79,7 @@ class ViewFactory
     /**
      * Check the View against the supplied request
      *
-     * This was originally implemented in CoreView, but issues with static variables
+     * This was originally implemented in Core\View, but issues with static variables
      * and inheritance prevented it from working properly. Non static properties could
      * not be used, as we do not want to construct each view.
      */

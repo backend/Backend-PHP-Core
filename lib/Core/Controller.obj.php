@@ -1,6 +1,7 @@
 <?php
+namespace Core;
 /**
- * File defining CoreController
+ * File defining Core\Controller
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,27 +30,27 @@
  *
  * @package Core
  */
-class CoreController
+class Controller
 {
     /**
      * This contains the model on which this controller will execute
-     * @var CoreModel
+     * @var Core\Model
      */
     private $_modelObj = null;
 
     /**
      * This contains the view for which this controller will execute
-     * @var CoreView
+     * @var Core\View
      */
     private $_viewObj = null;
 
     /**
      * The class constructor
      *
-     * @param CoreModel The Model the controller should execute on
-     * @param CoreView The View the controller should execute with
+     * @param Core\Model The Model the controller should execute on
+     * @param Core\View The View the controller should execute with
      */
-    function __construct(CoreModel $modelObj, CoreView $viewObj)
+    function __construct(\Core\Model $modelObj, \Core\View $viewObj)
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
