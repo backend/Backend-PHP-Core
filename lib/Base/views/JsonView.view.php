@@ -1,6 +1,7 @@
 <?php
+namespace Base;
 /**
- * File defining JsonView
+ * File defining \Base\JsonView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +30,7 @@
  *
  * @package Views
  */
-class JsonView extends CoreView
+class JsonView extends \Core\View
 {
     /**
      * Handle JSON requests

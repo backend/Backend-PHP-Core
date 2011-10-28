@@ -1,6 +1,7 @@
 <?php
+namespace Base;
 /**
- * File defining HomeModel
+ * File defining \Base\CliView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,32 +23,25 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ApplicationFiles
+ * @package ViewFiles
  */
 /**
- * The main controller class.
+ * Output a request on the Command Line.
  *
- * @package Application
+ * @package Views
  */
-class HomesModel extends CoreModel implements iCoreRestModel
+class CliView extends \Core\View
 {
-    public function createAction($identifier, array $parameters = array())
-    {
-        return true;
-    }
+    /**
+     * Handle CLI requests
+     * @var array
+     */
+    public static $handledFormats = array('cli');
 
-    public function readAction($identifier, array $parameters = array())
+    function output()
     {
-        return true;
-    }
-
-    public function updateAction($identifier, array $parameters = array())
-    {
-        return true;
-    }
-
-    public function deleteAction($identifier, array $parameters = array())
-    {
-        return true;
+        echo 'Result:' . PHP_EOL;
+        var_export($this->_variables['result']);
+        echo PHP_EOL;
     }
 }

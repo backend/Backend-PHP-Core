@@ -1,6 +1,7 @@
 <?php
+namespace Base;
 /**
- * File defining BaseApplication
+ * File defining \Base\Application
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +30,7 @@
  *
  * @package Base
  */
-class BaseApplication extends CoreApplication
+class Application extends \Core\Application
 {
     protected function init()
     {
@@ -37,25 +38,10 @@ class BaseApplication extends CoreApplication
             return true;
         }
 
-        //PHP Helpers
-        spl_autoload_register(array('BaseApplication', '__autoload'));
-
         $result = parent::init();
 
-        return $result;
-    }
+        self::registerNamespace('Base');
 
-    public static function __autoload($className, $base = 'base')
-    {
-        //Check for a Base class
-        if ($base == 'base' && preg_match('/^B[A-Z][a-z].*/', $className)) {
-            if (file_exists(BACKEND_FOLDER . '/base/' . $className . '.obj.php')) {
-                include(BACKEND_FOLDER . '/base/' . $className . '.obj.php');
-                return true;
-            } else {
-                throw new Exception('Missing Base Class: ' . $className);
-            }
-        }
-        return parent::__autoload($className, $base);
+        return $result;
     }
 }
