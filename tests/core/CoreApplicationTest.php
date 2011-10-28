@@ -1,5 +1,5 @@
 <?php
-require_once('lib/core/CoreApplication.obj.php');
+require_once('lib/Core/Application.obj.php');
 require_once('lib/modifiers.inc.php');
 class CoreApplicationTest extends PHPUnit_Framework_TestCase
 {
@@ -16,14 +16,14 @@ class CoreApplicationTest extends PHPUnit_Framework_TestCase
      */
     public function testTranslations()
     {
-        $this->assertEquals(CoreApplication::translateController('home'), 'HomesController');
-        $this->assertEquals(CoreApplication::translateController('homes'), 'HomesController');
-        $this->assertEquals(CoreApplication::translateController('home-camps'), 'HomeCampsController');
-        $this->assertEquals(CoreApplication::translateController('home_camps'), 'HomeCampsController');
+        $this->assertEquals(\Core\Application::translateController('home'), 'HomesController');
+        $this->assertEquals(\Core\Application::translateController('homes'), 'HomesController');
+        $this->assertEquals(\Core\Application::translateController('home-camps'), 'HomeCampsController');
+        $this->assertEquals(\Core\Application::translateController('home_camps'), 'HomeCampsController');
 
-        $this->assertEquals(CoreApplication::translateModel('home'), 'HomesModel');
-        $this->assertEquals(CoreApplication::translateModel('homes'), 'HomesModel');
-        $this->assertEquals(CoreApplication::translateModel('home-camps'), 'HomeCampsModel');
-        $this->assertEquals(CoreApplication::translateModel('home_camps'), 'HomeCampsModel');
+        $this->assertEquals(\Core\Application::translateModel('home'), 'HomesModel');
+        $this->assertEquals(\Core\Application::translateModel('homes'), 'HomesModel');
+        $this->assertEquals(\Core\Application::translateModel('home-camps'), 'HomeCampsModel');
+        $this->assertEquals(\Core\Application::translateModel('home_camps'), 'HomeCampsModel');
     }
 }

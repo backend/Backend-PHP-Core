@@ -1,6 +1,7 @@
 <?php
+namespace Core;
 /**
- * File defining RestModel
+ * File defining UncallableMethodException
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,40 +23,13 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package CoreInterfacesFiles
+ * @package ExceptionFiles
  */
 /**
- * A Model class that provides basic REST rest functions
+ * UncallableMethodException
  *
- * @package CoreInterfaces
+ * @package Exceptions
  */
-interface iCoreRestModel
+class UncallableMethodException extends \Exception
 {
-    /**
-     * Create function called by the POST HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function createAction($identifier, array $arguments = array());
-
-    /**
-     * Read function called by the GET HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function readAction($identifier, array $arguments = array());
-
-    /**
-     * Update function called by the PUT HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function updateAction($identifier, array $arguments = array());
-
-    /**
-     * Delete function called by the DELETE HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function deleteAction($identifier, array $arguments = array());
 }
