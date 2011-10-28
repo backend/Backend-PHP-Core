@@ -92,8 +92,8 @@ class Application
         $this->init();
 
         //Initiate the Tools
-        foreach ($tools as $tool) {
-            self::addTool($tool);
+        foreach ($tools as $toolName => $tool) {
+            self::addTool($toolName, $tool);
         }
 
         //Get the Request
@@ -224,12 +224,8 @@ class Application
      * @param mixed The tool to add. Can also be the name of a class to instansiate
      * @param array The parameters to pass to the constructor of the Tool
      */
-    public static function addTool($tool, array $parameters = array())
+    public static function addTool($toolName, $tool, array $parameters = array())
     {
-        if (is_array($tool)) {
-            $toolName = $tool[0];
-            $tool     = $tool[1];
-        }
         if (is_string($tool)) {
             $function = false;
             if (is_callable(array($tool, 'getInstance'))) {
@@ -240,6 +236,8 @@ class Application
                 $function = array($tool, 'factory');
             } else if (is_callable(array($tool, 'singleton'))) {
                 $function = array($tool, 'singleton');
+            } else if (is_callable(array($tool, 'build'))) {
+                $function = array($tool, 'build');
             }
             if ($function) {
                 $tool = call_user_func_array($function, $parameters);
@@ -247,7 +245,7 @@ class Application
                 $tool = new $tool($parameters);
             }
         }
-        $toolName = empty($toolName) ? get_class($tool) : $toolName;
+        $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
         self::$_toolbox[$toolName] = $tool;
     }
 
@@ -354,7 +352,7 @@ class Application
                 if (
                     file_exists(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php')
                 ) {
-                    include(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php');
+                    require_once(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php');
                     return true;
                 }
             }

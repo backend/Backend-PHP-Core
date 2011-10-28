@@ -50,12 +50,11 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
 require(BACKEND_FOLDER . '/Core/Application.obj.php');
 require(BACKEND_FOLDER . '/Base/Application.obj.php');
 //Using Simple Logging, as shipped with the framework
-require_once('Log.php');
 $application = new Base\Application(
     null,
     null,
     array(
-        'Core\Logger'
+        'Logger' => '\Core\Logger',
     )
 );
 //Using the PEAR Log module
