@@ -53,6 +53,11 @@ class Application
     private static $_toolbox = array();
 
     /**
+     * @var array This contains all the namespaces for the application
+     */
+    private static $_namespaces = array('Base');
+
+    /**
      * This contains the router object that will help decide what controller, model and action to execute
      * @var Core\Router
      */
@@ -123,6 +128,8 @@ class Application
         if ($this->_initialized) {
             return true;
         }
+
+        self::registerNamespace('Core');
 
         //Load extra functions
         include(BACKEND_FOLDER . '/modifiers.inc.php');
@@ -264,6 +271,29 @@ class Application
     }
 
     /**
+     * Register a namespace with the application
+     *
+     * @param string The namespace
+     */
+    public static function registerNamespace($namespace)
+    {
+        if (!in_array($namespace, self::$_namespaces)) {
+            self::$_namespaces[] = $namespace;
+        }
+    }
+
+    /**
+     * Return the registered namespaces for the application.
+     *
+     * @see registerNamespace
+     * @return array The namespaces for the application
+     */
+    public static function getNamespaces()
+    {
+        return self::$_namespaces;
+    }
+
+    /**
      * Public getter for the Debug Level
      *
      * @return integer The debugging levels
@@ -301,30 +331,32 @@ class Application
             'utilities'   => 'util',
             'exceptions'  => 'obj',
             'interfaces'  => 'inf',
+            'views'       => 'view',
             '' => 'obj',
         );
         self::log('Checking for ' . $className, 5);
 
-        if (substr($className, -4) == 'View') {
-            if (file_exists(BACKEND_FOLDER . '/views/' . $className . '.view.php')) {
-                include(BACKEND_FOLDER . '/views/' . $className . '.view.php');
-                return true;
-            }
+        if (substr($className, 0, 1) == '\\') {
+            $className = substr($className, 1);
         }
         //Check for a name spaced className
         $parts = explode('\\', $className);
         if (count($parts) === 1) {
-            return false;
+            $bases = self::getNamespaces();
+        } else {
+            $bases = array(reset($parts));
+            $className = implode('/', array_slice($parts, 1));
         }
-        $base = reset($parts);
-        $className = implode('/', array_slice($parts, 1));
-        //Check other types
-        foreach ($types as $type => $part) {
-            if (
-                file_exists(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php')
-            ) {
-                include(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php');
-                return true;
+        $bases = array_reverse($bases);
+        foreach ($bases as $base) {
+            //Check other types
+            foreach ($types as $type => $part) {
+                if (
+                    file_exists(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php')
+                ) {
+                    include(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php');
+                    return true;
+                }
             }
         }
         return false;

@@ -40,39 +40,42 @@ class ViewFactory
      */
     public static function build(Request $request)
     {
-        $viewFolder = BACKEND_FOLDER . '/views/';
 
         //Check the View Folder
         $request = is_null($request) ? new Request() : $request;
-        if (
-            !file_exists($viewFolder)
-            || !($handle = opendir($viewFolder))
-        ) {
-            throw new \Exception('Cannot open View Folder: ' . $viewFolder);
-        }
 
         //Loop through all the available views
-        while (false !== ($file = readdir($handle))) {
-            if ($file == '.' || $file == '..' || substr($file, -9) != '.view.php') {
+        $namespaces = array_reverse(\Core\Application::getNamespaces());
+        foreach ($namespaces as $base) {
+            $viewFolder = BACKEND_FOLDER . '/' . $base . '/views/';
+            if (
+                !file_exists($viewFolder)
+                || !($handle = opendir($viewFolder))
+            ) {
                 continue;
             }
-
-            //Check the view class
-            $viewName = substr($file, 0, strlen($file) - 9);
-            if (!class_exists($viewName, true)) {
-                continue;
-            }
-
-            //Check if the view can handle the request
-            if (self::checkView($viewName, $request)) {
-                $view = new $viewName();
-                if (!($view instanceof CoreView)) {
-                    throw new UnknownViewException('Invalid View: ' . get_class($view));
+            while (false !== ($file = readdir($handle))) {
+                if ($file == '.' || $file == '..' || substr($file, -9) != '.view.php') {
+                    continue;
                 }
-                return $view;
+
+                //Check the view class
+                $viewName = $base . '\\' . substr($file, 0, strlen($file) - 9);
+                if (!class_exists($viewName, true)) {
+                    continue;
+                }
+
+                //Check if the view can handle the request
+                if (self::checkView($viewName, $request)) {
+                    $view = new $viewName();
+                    if (!($view instanceof \Core\View)) {
+                        throw new \Core\UnknownViewException('Invalid View: ' . get_class($view));
+                    }
+                    return $view;
+                }
             }
         }
-        throw new UnknownViewException('Unrecognized Format');
+        throw new \Core\UnknownViewException('Unrecognized Format');
         return false;
     }
 
