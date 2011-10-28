@@ -38,9 +38,9 @@ class Application extends \Core\Application
             return true;
         }
 
-        $result = parent::init();
-
         self::registerNamespace('Base');
+
+        $result = parent::init();
 
         return $result;
     }
