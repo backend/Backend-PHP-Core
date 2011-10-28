@@ -129,7 +129,9 @@ class Application
             return true;
         }
 
-        self::registerNamespace('Core');
+        //Core at the beginning, Application at the end
+        self::registerNamespace('Core', true);
+        self::registerNamespace('Application');
 
         //Load extra functions
         include(BACKEND_FOLDER . '/modifiers.inc.php');
@@ -273,10 +275,14 @@ class Application
      *
      * @param string The namespace
      */
-    public static function registerNamespace($namespace)
+    public static function registerNamespace($namespace, $prepend = false)
     {
         if (!in_array($namespace, self::$_namespaces)) {
-            self::$_namespaces[] = $namespace;
+            if ($prepend) {
+                array_unshift(self::$_namespaces, $namespace);
+            } else {
+                self::$_namespaces[] = $namespace;
+            }
         }
     }
 
