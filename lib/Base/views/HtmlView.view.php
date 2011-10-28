@@ -1,6 +1,7 @@
 <?php
+namespace Base;
 /**
- * File defining HtmlView
+ * File defining \Base\HtmlView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -29,7 +30,7 @@
  *
  * @package Views
  */
-class HtmlView extends CoreView
+class HtmlView extends \Core\View
 {
     /**
      * Handle HTML requests

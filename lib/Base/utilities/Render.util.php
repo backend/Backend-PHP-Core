@@ -1,6 +1,7 @@
 <?php
+namespace Base;
 /**
- * File defining Render
+ * File defining \Base\Render
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -32,11 +33,11 @@
 class Render
 {
     /**
-     * @var CoreView The view used to render
+     * @var \Core\View The view used to render
      */
     private $_view;
 
-    function __construct(CoreView $view)
+    function __construct(\Core\View $view)
     {
         $this->_view = $view;
     }
@@ -53,7 +54,7 @@ class Render
         $file = $this->templateFile($template);
         if (!$file) {
             //TODO Throw an exception, make a fuss?
-            CoreApplication::log('Missing Template: ' . $template, 4);
+            \Core\Application::log('Missing Template: ' . $template, 4);
             return false;
         }
 
