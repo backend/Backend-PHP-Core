@@ -1,8 +1,8 @@
 <?php
-require_once('lib/core/CoreApplication.obj.php');
-require_once('lib/core/CoreRequest.obj.php');
-require_once('lib/core/CoreRouter.obj.php');
-require_once('lib/core/exceptions/UnsupportedMethodException.obj.php');
+require_once('lib/Core/Application.obj.php');
+require_once('lib/Core/Request.obj.php');
+require_once('lib/Core/Router.obj.php');
+require_once('lib/Core/exceptions/UnsupportedMethodException.obj.php');
 class CoreRouterTest extends PHPUnit_Framework_TestCase
 {
     private $_request;
@@ -35,16 +35,16 @@ class CoreRouterTest extends PHPUnit_Framework_TestCase
      */
     public function testRESTTranslations($query, $method, $result)
     {
-        $request = new CoreRequest($query, $method);
-        $router  = new CoreRouter($request);
+        $request = new \Core\Request($query, $method);
+        $router  = new \Core\Router($request);
         $this->assertEquals($result, $router->getQuery());
     }
 
     /**
-     * @expectedException UnsupportedMethodException
+     * @expectedException \Core\UnsupportedMethodException
      */
     public function testRequestMethod()
     {
-        $request = new CoreRequest(array(), 'UPDATE');
+        $request = new \Core\Request(array(), 'UPDATE');
     }
 }
