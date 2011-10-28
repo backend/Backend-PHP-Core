@@ -1,4 +1,5 @@
 <?php
+namespace Core;
 /**
  * File defining HtmlView
  *

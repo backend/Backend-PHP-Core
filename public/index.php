@@ -47,15 +47,15 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
     define('SITE_STATE', 'development');
 }
 
-require(BACKEND_FOLDER . '/core/CoreApplication.obj.php');
-require(BACKEND_FOLDER . '/base/BaseApplication.obj.php');
+require(BACKEND_FOLDER . '/Core/Application.obj.php');
+require(BACKEND_FOLDER . '/Base/Application.obj.php');
 //Using Simple Logging, as shipped with the framework
 require_once('Log.php');
-$application = new BaseApplication(
+$application = new Base\Application(
     null,
     null,
     array(
-        'Logger'
+        'Core\Logger'
     )
 );
 //Using the PEAR Log module

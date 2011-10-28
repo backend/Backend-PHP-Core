@@ -1,6 +1,7 @@
 <?php
+namespace Core;
 /**
- * File defining CoreRouter
+ * File defining Core\Router
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,11 +31,11 @@
  *
  * @package Core
  */
-class CoreRouter
+class Router
 {
     /**
      * This contains the route's request
-     * @var CoreRequest
+     * @var Core\Request
      */
     protected $_request;
 
@@ -73,9 +74,9 @@ class CoreRouter
      *
      * @param CoreRequest A request object to serve
      */
-    function __construct(CoreRequest $request = null)
+    function __construct(\Core\Request $request = null)
     {
-        $this->_request = is_null($request) ? new CoreRequest() : $request;
+        $this->_request = is_null($request) ? new Request() : $request;
 
         //Setup and split the query
         $query = $this->_request->getQuery();
@@ -116,7 +117,7 @@ class CoreRouter
         $this->_arguments = count($query) > 2 ? array_slice($query, 2) : array();
 
         $message = 'Route: ' . $this->_request->getMethod() . ': ' . $this->getQuery();
-        CoreApplication::log($message, 4);
+        Application::log($message, 4);
     }
 
     /**

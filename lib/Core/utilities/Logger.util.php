@@ -1,6 +1,7 @@
 <?php
+namespace Core;
 /**
- * File defining UncallableMethodException
+ * File defining HtmlView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,13 +23,22 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ExceptionFiles
+ * @package UtilityFiles
  */
 /**
- * UnknownModelException
+ * Basic Logging class
  *
- * @package Exceptions
+ * @package Utility
  */
-class UnknownModelException extends Exception
+class Logger implements iCoreLogger
 {
+    /**
+     * Function to do logging.
+     */
+    public function log($message, $level = 3)
+    {
+        $message = date('Y-m-d H:i:s') . $message;
+
+        echo $message . '<br>' . PHP_EOL;
+    }
 }

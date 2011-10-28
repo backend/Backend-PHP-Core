@@ -1,6 +1,7 @@
 <?php
+namespace Core;
 /**
- * File defining UncallableMethodException
+ * File defining Core\Model
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -22,13 +23,16 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ExceptionFiles
+ * @package CoreFiles
  */
 /**
- * UnknownViewException
+ * The main Model class.
  *
- * @package Exceptions
+ * @package Core
  */
-class UnknownViewException extends Exception
+class Model
 {
+    function __construct()
+    {
+    }
 }
