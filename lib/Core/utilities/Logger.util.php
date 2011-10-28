@@ -1,7 +1,7 @@
 <?php
 namespace Core;
 /**
- * File defining HtmlView
+ * File defining Logger
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,7 +30,7 @@ namespace Core;
  *
  * @package Utility
  */
-class Logger implements iCoreLogger
+class Logger implements iLogger
 {
     /**
      * Function to do logging.
