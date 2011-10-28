@@ -81,7 +81,7 @@ class Controller
             throw new UncallableMethodException('Uncallable Method: ' . get_class($this->_modelObj) . "->$action()");
         }
         //Execute the Business Logic
-        CoreApplication::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
+        \Core\Application::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
         $result = call_user_func_array($function, $parameters);
 
         return $result;
