@@ -1,7 +1,7 @@
 <?php
-require_once('lib/core/CoreApplication.obj.php');
-require_once('lib/core/CoreRequest.obj.php');
-require_once('lib/core/exceptions/UnsupportedMethodException.obj.php');
+require_once('lib/Core/Application.obj.php');
+require_once('lib/Core/Request.obj.php');
+require_once('lib/Core/exceptions/UnsupportedMethodException.obj.php');
 class CoreRequestTest extends PHPUnit_Framework_TestCase
 {
     private $_request;
@@ -29,16 +29,16 @@ class CoreRequestTest extends PHPUnit_Framework_TestCase
      */
     public function testURLFormats($query, $result)
     {
-        $request = new CoreRequest($query, 'GET');
+        $request = new \Core\Request($query, 'GET');
         $this->assertEquals($result, $request->getQuery());
     }
 
     /**
-     * @expectedException UnsupportedMethodException
+     * @expectedException \Core\UnsupportedMethodException
      */
     public function testRequestMethod()
     {
-        $request = new CoreRequest(array(), 'UPDATE');
+        $request = new \Core\Request(array(), 'UPDATE');
     }
 
     public function providerRequestExtension()
@@ -60,7 +60,7 @@ class CoreRequestTest extends PHPUnit_Framework_TestCase
      */
     public function testRequestExtension($query, $result)
     {
-        $request = new CoreRequest($query, 'POST');
+        $request = new \Core\Request($query, 'POST');
         $this->assertEquals($result, $request->getExtension());
 
     }
@@ -77,7 +77,7 @@ class CoreRequestTest extends PHPUnit_Framework_TestCase
      */
     public function testSpecifiedFormat($query, $result)
     {
-        $request = new CoreRequest($query, 'GET');
+        $request = new \Core\Request($query, 'GET');
         $this->assertEquals($result, $request->getSpecifiedFormat());
     }
 }
