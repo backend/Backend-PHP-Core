@@ -334,6 +334,7 @@ class Application
             'models'      => 'obj',
             'utilities'   => 'util',
             'exceptions'  => 'obj',
+            'bindings'  => 'obj',
             'interfaces'  => 'inf',
             'views'       => 'view',
             '' => 'obj',
