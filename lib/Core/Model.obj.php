@@ -32,7 +32,15 @@ namespace Core;
  */
 class Model
 {
-    function __construct()
+    protected $_id = 0;
+
+    public function getIdentifier()
     {
+        return $this->_id;
+    }
+
+    public function setIdentifier($id)
+    {
+        $this->_id = $id;
     }
 }
