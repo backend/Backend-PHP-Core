@@ -29,7 +29,7 @@
  *
  * @package Application
  */
-class HomesModel extends \Core\Model implements \Core\iCoreRestModel
+class HomesModel extends \Core\Model implements \Core\iRestModel
 {
     public function createAction($identifier, array $parameters = array())
     {
