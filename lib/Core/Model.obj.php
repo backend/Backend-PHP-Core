@@ -32,7 +32,4 @@ namespace Core;
  */
 class Model
 {
-    function __construct()
-    {
-    }
 }
