@@ -1,7 +1,7 @@
 <?php
-namespace Core;
+namespace Backend\Core\Exceptions;
 /**
- * File defining iLogger
+ * File defining UncallableMethodException
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,14 +23,13 @@ namespace Core;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package InterfacesFiles
+ * @package ExceptionFiles
  */
 /**
- * Basic interface to a logging class
+ * UnknownModelException
  *
- * @package Interfaces
+ * @package Exceptions
  */
-interface iLogger
+class UnknownModelException extends \Exception
 {
-    public function log($message, $level = 3);
 }

@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core\Exceptions;
 /**
  * File defining UncallableMethodException
  *
@@ -26,10 +26,10 @@ namespace Core;
  * @package ExceptionFiles
  */
 /**
- * UnsupportedMethodException
+ * UnknownViewException
  *
  * @package Exceptions
  */
-class UnsupportedMethodException extends \Exception
+class UnknownViewException extends \Exception
 {
 }

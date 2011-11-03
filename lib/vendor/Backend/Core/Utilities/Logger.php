@@ -1,7 +1,7 @@
 <?php
-namespace Core;
+namespace Backend\Core\Utilities;
 /**
- * File defining Core\Model
+ * File defining Logger
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,13 +23,22 @@ namespace Core;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package CoreFiles
+ * @package UtilityFiles
  */
 /**
- * The main Model class.
+ * Basic Logging class
  *
- * @package Core
+ * @package Utility
  */
-class Model
+class Logger implements \Backend\Core\Interfaces\Logger
 {
+    /**
+     * Function to do logging.
+     */
+    public function log($message, $level = 3)
+    {
+        $message = date('Y-m-d H:i:s') . $message;
+
+        echo $message . '<br>' . PHP_EOL;
+    }
 }

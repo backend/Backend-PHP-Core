@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core;
 /**
  * File defining Core\Application
  *
@@ -104,7 +104,7 @@ class Application
             $this->_view = $view;
         } else {
             try {
-                $view = ViewFactory::build($this->_request);
+                $view = Utilities\ViewFactory::build($this->_request);
             } catch (\Exception $e) {
                 self::log('View Exception: ' . $e->getMessage(), 2);
                 $view = new View();
@@ -138,7 +138,7 @@ class Application
 
         //PHP Helpers
         //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('\Core\Application', '__autoload'), true, true);
+        spl_autoload_register(array('\Backend\Core\Application', '__autoload'), true, true);
 
         register_shutdown_function(array($this, 'shutdown'));
 
@@ -181,7 +181,7 @@ class Application
             //Get and check the model
             $model = self::translateModel($this->_router->getArea());
             if (!class_exists($model, true)) {
-                throw new UnknownModelException('Unkown Model: ' . $model);
+                throw new Exceptions\UnknownModelException('Unkown Model: ' . $model);
             }
             $modelObj = new $model();
 
@@ -329,17 +329,25 @@ class Application
      */
     public static function __autoload($className)
     {
-        $types = array(
-            'controllers' => 'ctl',
-            'models'      => 'obj',
-            'utilities'   => 'util',
-            'exceptions'  => 'obj',
-            'bindings'  => 'obj',
-            'interfaces'  => 'inf',
-            'views'       => 'view',
-            '' => 'obj',
-        );
         self::log('Checking for ' . $className, 5);
+
+        $className = ltrim($className, '\\');
+        $fileName  = '';
+        $namespace = '';
+        if ($lastNsPos = strripos($className, '\\')) {
+            $namespace = substr($className, 0, $lastNsPos);
+            $className = substr($className, $lastNsPos + 1);
+            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+        }
+        $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+        var_dump(VENDOR_FOLDER . $fileName);
+        if (file_exists(VENDOR_FOLDER . $fileName)) {
+            require_once(VENDOR_FOLDER . $fileName);
+            return true;
+        } else {
+            return false;
+        }
+
 
         if (substr($className, 0, 1) == '\\') {
             $className = substr($className, 1);
