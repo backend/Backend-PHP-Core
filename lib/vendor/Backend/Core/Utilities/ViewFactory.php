@@ -68,7 +68,7 @@ class ViewFactory
                 //Check if the view can handle the request
                 if (self::checkView($viewName, $request)) {
                     $view = new $viewName();
-                    if (!($view instanceof \Core\View)) {
+                    if (!($view instanceof \Backend\Core\View)) {
                         throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
                     }
                     return $view;
