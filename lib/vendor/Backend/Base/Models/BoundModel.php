@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Models;
 /**
  * File defining \Base\BoundModel
  *
@@ -30,11 +30,11 @@ namespace Base;
  *
  * @package Models
  */
-abstract class BoundModel extends \Core\Model implements \Core\iRestModel
+abstract class BoundModel extends \Backend\Core\Model implements \Backend\Core\Interfaces\RestModel
 {
     protected $_source = null;
 
-    public function __construct(iBinding $source)
+    public function __construct(Bindings\Binding $source)
     {
         $this->_source = $source;
     }

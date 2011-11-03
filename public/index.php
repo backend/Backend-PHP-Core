@@ -52,7 +52,7 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
 require(BACKEND_FOLDER . 'Core/Application.php');
 require(BACKEND_FOLDER . 'Base/Application.php');
 //Using Simple Logging, as shipped with the framework
-$application = new Base\Application(
+$application = new Backend\Base\Application(
     null,
     null,
     array(

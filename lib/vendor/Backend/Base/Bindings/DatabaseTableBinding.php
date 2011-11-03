@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Bindings;
 /**
  * File defining \Base\iDatabaseBinding
  *

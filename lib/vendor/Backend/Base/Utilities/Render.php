@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Utilities;
 /**
  * File defining \Base\Render
  *
@@ -37,7 +37,7 @@ class Render
      */
     private $_view;
 
-    function __construct(\Core\View $view)
+    function __construct(\Backend\Core\View $view)
     {
         $this->_view = $view;
     }
@@ -54,7 +54,7 @@ class Render
         $file = $this->templateFile($template);
         if (!$file) {
             //TODO Throw an exception, make a fuss?
-            \Core\Application::log('Missing Template: ' . $template, 4);
+            \Backend\Core\Application::log('Missing Template: ' . $template, 4);
             return false;
         }
 

@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base;
 /**
  * File defining \Base\Application
  *
@@ -30,7 +30,7 @@ namespace Base;
  *
  * @package Base
  */
-class Application extends \Core\Application
+class Application extends \Backend\Core\Application
 {
     protected function init()
     {

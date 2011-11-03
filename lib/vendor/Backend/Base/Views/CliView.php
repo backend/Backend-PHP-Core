@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Views;
 /**
  * File defining \Base\CliView
  *
@@ -30,7 +30,7 @@ namespace Base;
  *
  * @package Views
  */
-class CliView extends \Core\View
+class CliView extends \Backend\Core\View
 {
     /**
      * Handle CLI requests

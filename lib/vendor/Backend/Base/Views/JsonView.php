@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Views;
 /**
  * File defining \Base\JsonView
  *
@@ -30,7 +30,7 @@ namespace Base;
  *
  * @package Views
  */
-class JsonView extends \Core\View
+class JsonView extends \Backend\Core\View
 {
     /**
      * Handle JSON requests
