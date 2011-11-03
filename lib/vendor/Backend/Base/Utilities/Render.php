@@ -89,8 +89,8 @@ class Render
             $locations = array_unique(array_merge($locations, $this->_view->templateLocations));
         }
         foreach ($locations as $location) {
-            if (file_exists($location . '/' . $template)) {
-                return $location . '/' . $template;
+            if (file_exists($location . $template)) {
+                return $location . $template;
             }
         }
         return false;

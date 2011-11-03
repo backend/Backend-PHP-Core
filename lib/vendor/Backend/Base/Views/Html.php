@@ -51,8 +51,8 @@ class Html extends \Backend\Core\View
         self::setupConstants();
 
         $this->templateLocations = array(
-            APP_FOLDER . '/templates',
-            BACKEND_FOLDER . '/templates',
+            APP_FOLDER . 'templates/',
+            BACKEND_FOLDER . 'templates/',
         );
 
         parent::__construct();
@@ -105,7 +105,7 @@ class Html extends \Backend\Core\View
 
     function output()
     {
-        $render = new Render($this);
+        $render = new \Backend\Base\Utilities\Render($this);
 
         $buffered = ob_get_clean();
         $this->bind('buffered', $buffered);
