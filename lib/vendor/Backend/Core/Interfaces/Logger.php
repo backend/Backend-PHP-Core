@@ -1,7 +1,7 @@
 <?php
-namespace Core;
+namespace Backend\Core\Interfaces;
 /**
- * File defining Logger
+ * File defining iLogger
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,22 +23,14 @@ namespace Core;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package UtilityFiles
+ * @package InterfacesFiles
  */
 /**
- * Basic Logging class
+ * Basic interface to a logging class
  *
- * @package Utility
+ * @package Interfaces
  */
-class Logger implements iLogger
+interface Logger
 {
-    /**
-     * Function to do logging.
-     */
-    public function log($message, $level = 3)
-    {
-        $message = date('Y-m-d H:i:s') . $message;
-
-        echo $message . '<br>' . PHP_EOL;
-    }
+    public function log($message, $level = 3);
 }

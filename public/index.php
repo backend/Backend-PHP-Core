@@ -24,9 +24,11 @@
  *
  * @package CoreFiles
  */
-define('BACKEND_FOLDER', dirname(getcwd()) . '/lib');
-define('APP_FOLDER', BACKEND_FOLDER . '/application');
-define('WEB_FOLDER', BACKEND_FOLDER . '/public');
+define('PROJECT_FOLDER', dirname(getcwd()) . '/');
+define('VENDOR_FOLDER', PROJECT_FOLDER . 'lib/vendor/');
+define('BACKEND_FOLDER', VENDOR_FOLDER . 'Backend/');
+define('APP_FOLDER', BACKEND_FOLDER . 'application/');
+define('WEB_FOLDER', PROJECT_FOLDER . 'public/');
 //define('SITE_FOLDER', APP_FOLDER . '/sites/liveserver.com');
 
 if (array_key_exists('HTTP_HOST', $_SERVER)) {
@@ -47,13 +49,13 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
     define('SITE_STATE', 'development');
 }
 
-require(BACKEND_FOLDER . '/Core/Application.obj.php');
+require(BACKEND_FOLDER . '/Core/Application.php');
 //Using Simple Logging, as shipped with the framework
-$application = new Core\Application(
+$application = new Backend\Core\Application(
     null,
     null,
     array(
-        'Logger' => '\Core\Logger',
+        'Logger' => '\Backend\Core\Utilities\Logger',
     )
 );
 //Using the PEAR Log module

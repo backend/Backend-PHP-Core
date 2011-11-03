@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core;
 /**
  * File defining Core\Controller
  *
@@ -50,7 +50,7 @@ class Controller
      * @param Core\Model The Model the controller should execute on
      * @param Core\View The View the controller should execute with
      */
-    function __construct(\Core\Model $modelObj, \Core\View $viewObj)
+    function __construct(Model $modelObj, View $viewObj)
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
@@ -78,7 +78,9 @@ class Controller
         } else if (is_callable($modelFunc)) {
             $function = $modelFunc;
         } else {
-            throw new UncallableMethodException('Uncallable Method: ' . get_class($this->_modelObj) . "->$action()");
+            throw new Exceptions\UncallableMethodException(
+                'Uncallable Method: ' . get_class($this->_modelObj) . "->$action()"
+            );
         }
         //Execute the Business Logic
         \Core\Application::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
