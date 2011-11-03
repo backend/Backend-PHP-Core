@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Base\Views;
 /**
- * File defining \Base\HtmlView
+ * File defining \Base\Views\Html
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,7 +30,7 @@ namespace Backend\Base\Views;
  *
  * @package Views
  */
-class HtmlView extends \Backend\Core\View
+class Html extends \Backend\Core\View
 {
     /**
      * Handle HTML requests
@@ -51,8 +51,8 @@ class HtmlView extends \Backend\Core\View
         self::setupConstants();
 
         $this->templateLocations = array(
-            APP_FOLDER . '/templates',
-            BACKEND_FOLDER . '/templates',
+            APP_FOLDER . 'templates/',
+            BACKEND_FOLDER . 'templates/',
         );
 
         parent::__construct();
@@ -105,7 +105,7 @@ class HtmlView extends \Backend\Core\View
 
     function output()
     {
-        $render = new Render($this);
+        $render = new \Backend\Base\Utilities\Render($this);
 
         $buffered = ob_get_clean();
         $this->bind('buffered', $buffered);
