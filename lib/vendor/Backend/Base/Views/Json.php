@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Base\Views;
 /**
- * File defining \Base\CliView
+ * File defining \Base\Views\Json
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -26,22 +26,23 @@ namespace Backend\Base\Views;
  * @package ViewFiles
  */
 /**
- * Output a request on the Command Line.
+ * Output a request in JavaScript Object Notation
  *
  * @package Views
  */
-class CliView extends \Backend\Core\View
+class Json extends \Backend\Core\View
 {
     /**
-     * Handle CLI requests
+     * Handle JSON requests
      * @var array
      */
-    public static $handledFormats = array('cli');
+    public static $handledFormats = array('json', 'text/json');
 
     function output()
     {
-        echo 'Result:' . PHP_EOL;
-        var_export($this->_variables['result']);
-        echo PHP_EOL;
+        echo json_encode($this->_variables['result']);
+        if (BERequest::from_cli()) {
+            echo PHP_EOL;
+        }
     }
 }

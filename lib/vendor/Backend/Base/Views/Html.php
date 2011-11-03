@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Base\Views;
 /**
- * File defining \Base\HtmlView
+ * File defining \Base\Views\Html
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,7 +30,7 @@ namespace Backend\Base\Views;
  *
  * @package Views
  */
-class HtmlView extends \Backend\Core\View
+class Html extends \Backend\Core\View
 {
     /**
      * Handle HTML requests
