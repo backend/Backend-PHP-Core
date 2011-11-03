@@ -27,7 +27,7 @@
 define('PROJECT_FOLDER', dirname(getcwd()) . '/');
 define('VENDOR_FOLDER', PROJECT_FOLDER . 'lib/vendor/');
 define('BACKEND_FOLDER', VENDOR_FOLDER . 'Backend/');
-define('APP_FOLDER', BACKEND_FOLDER . 'application/');
+define('APP_FOLDER', BACKEND_FOLDER . 'Application/');
 define('WEB_FOLDER', PROJECT_FOLDER . 'public/');
 //define('SITE_FOLDER', APP_FOLDER . '/sites/liveserver.com');
 
