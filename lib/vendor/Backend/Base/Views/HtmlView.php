@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Views;
 /**
  * File defining \Base\HtmlView
  *
@@ -30,7 +30,7 @@ namespace Base;
  *
  * @package Views
  */
-class HtmlView extends \Core\View
+class HtmlView extends \Backend\Core\View
 {
     /**
      * Handle HTML requests

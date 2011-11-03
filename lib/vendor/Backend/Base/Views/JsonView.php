@@ -1,7 +1,7 @@
 <?php
-namespace Base;
+namespace Backend\Base\Views;
 /**
- * File defining \Base\Application
+ * File defining \Base\JsonView
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,25 +23,26 @@ namespace Base;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package BaseFiles
+ * @package ViewFiles
  */
 /**
- * The Base application class.
+ * Output a request in JavaScript Object Notation
  *
- * @package Base
+ * @package Views
  */
-class Application extends \Core\Application
+class JsonView extends \Backend\Core\View
 {
-    protected function init()
+    /**
+     * Handle JSON requests
+     * @var array
+     */
+    public static $handledFormats = array('json', 'text/json');
+
+    function output()
     {
-        if ($this->_initialized) {
-            return true;
+        echo json_encode($this->_variables['result']);
+        if (BERequest::from_cli()) {
+            echo PHP_EOL;
         }
-
-        self::registerNamespace('Base');
-
-        $result = parent::init();
-
-        return $result;
     }
 }

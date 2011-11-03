@@ -1,7 +1,7 @@
 <?php
-namespace Base;
+namespace Backend\Base;
 /**
- * File defining \Base\CliView
+ * File defining \Base\Application
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,25 +23,25 @@ namespace Base;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ViewFiles
+ * @package BaseFiles
  */
 /**
- * Output a request on the Command Line.
+ * The Base application class.
  *
- * @package Views
+ * @package Base
  */
-class CliView extends \Core\View
+class Application extends \Backend\Core\Application
 {
-    /**
-     * Handle CLI requests
-     * @var array
-     */
-    public static $handledFormats = array('cli');
-
-    function output()
+    protected function init()
     {
-        echo 'Result:' . PHP_EOL;
-        var_export($this->_variables['result']);
-        echo PHP_EOL;
+        if ($this->_initialized) {
+            return true;
+        }
+
+        self::registerNamespace('Base');
+
+        $result = parent::init();
+
+        return $result;
     }
 }

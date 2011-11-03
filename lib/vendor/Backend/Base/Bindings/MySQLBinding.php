@@ -1,5 +1,5 @@
 <?php
-namespace Base;
+namespace Backend\Base\Bindings;
 /**
  * File defining \Base\MySQLBinding
  *
@@ -30,7 +30,7 @@ namespace Base;
  *
  * @package Bindings
  */
-class MySQLBinding extends \Base\DatabaseTableBinding
+class MySQLBinding extends DatabaseTableBinding
 {
     public function bind($identifier = null)
     {

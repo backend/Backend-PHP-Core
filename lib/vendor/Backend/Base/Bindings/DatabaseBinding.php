@@ -1,7 +1,7 @@
 <?php
-namespace Base;
+namespace Backend\Base\Bindings;
 /**
- * File defining \Base\JsonView
+ * File defining \Base\iDatabaseBinding
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,26 +23,19 @@ namespace Base;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ViewFiles
+ * @package InterfaceFiles
  */
 /**
- * Output a request in JavaScript Object Notation
+ * Interface for bindings to a database
  *
- * @package Views
+ * @package Interfaces
  */
-class JsonView extends \Core\View
+abstract class DatabaseBinding extends Binding
 {
-    /**
-     * Handle JSON requests
-     * @var array
-     */
-    public static $handledFormats = array('json', 'text/json');
+    protected $_connection = null;
 
-    function output()
+    function __construct(\PDO $connection)
     {
-        echo json_encode($this->_variables['result']);
-        if (BERequest::from_cli()) {
-            echo PHP_EOL;
-        }
+        $this->_connection = $connection;
     }
 }

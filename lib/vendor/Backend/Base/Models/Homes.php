@@ -1,7 +1,7 @@
 <?php
-namespace Base;
+namespace Backend\Models;
 /**
- * File defining \Base\iDatabaseBinding
+ * File defining HomeModel
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,19 +23,32 @@ namespace Base;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package InterfaceFiles
+ * @package ApplicationFiles
  */
 /**
- * Interface for bindings to a database
+ * The main controller class.
  *
- * @package Interfaces
+ * @package Application
  */
-abstract class DatabaseBinding extends Binding
+class Homes extends \Backend\Core\Model implements \Backend\Core\Interfaces\RestModel
 {
-    protected $_connection = null;
-
-    function __construct(\PDO $connection)
+    public function createAction($identifier, array $parameters = array())
     {
-        $this->_connection = $connection;
+        return true;
+    }
+
+    public function readAction($identifier, array $parameters = array())
+    {
+        return true;
+    }
+
+    public function updateAction($identifier, array $parameters = array())
+    {
+        return true;
+    }
+
+    public function deleteAction($identifier, array $parameters = array())
+    {
+        return true;
     }
 }
