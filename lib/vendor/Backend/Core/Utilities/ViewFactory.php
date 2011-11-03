@@ -47,7 +47,7 @@ class ViewFactory
         //Loop through all the available views
         $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
         foreach ($namespaces as $base) {
-            $viewFolder = BACKEND_FOLDER . '/' . $base . '/views/';
+            $viewFolder = BACKEND_FOLDER . $base . '/Views/';
             if (
                 !file_exists($viewFolder)
                 || !($handle = opendir($viewFolder))
@@ -55,12 +55,12 @@ class ViewFactory
                 continue;
             }
             while (false !== ($file = readdir($handle))) {
-                if ($file == '.' || $file == '..' || substr($file, -9) != '.view.php') {
+                if ($file == '.' || $file == '..' || substr($file, -4) != '.php') {
                     continue;
                 }
 
                 //Check the view class
-                $viewName = $base . '\\' . substr($file, 0, strlen($file) - 9);
+                $viewName = '\Backend\\' . $base . '\Views\\' . substr($file, 0, strlen($file) - 4);
                 if (!class_exists($viewName, true)) {
                     continue;
                 }
@@ -68,7 +68,7 @@ class ViewFactory
                 //Check if the view can handle the request
                 if (self::checkView($viewName, $request)) {
                     $view = new $viewName();
-                    if (!($view instanceof \Core\View)) {
+                    if (!($view instanceof \Backend\Core\View)) {
                         throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
                     }
                     return $view;
