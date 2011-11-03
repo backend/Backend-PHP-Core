@@ -384,7 +384,7 @@ class Application
      */
     public static function translateController($resource)
     {
-        return 'Backend\Controllers\\' . class_name($resource) . 'Controller';
+        return 'Backend\Controllers\\' . class_name($resource);
     }
 
     /**
@@ -397,7 +397,7 @@ class Application
      */
     public static function translateModel($resource)
     {
-        return 'Backend\Models\\' . class_name($resource) . 'Model';
+        return 'Backend\Models\\' . class_name($resource);
     }
 
     /**
