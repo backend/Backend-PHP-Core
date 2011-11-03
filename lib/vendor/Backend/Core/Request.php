@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core;
 /**
  * File defining Core\Request
  *
@@ -86,7 +86,7 @@ class Request
             }
         }
         if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD'))) {
-            throw new UnsupportedMethodException('Unsupported method ' . $method);
+            throw new Exceptions\UnsupportedMethodException('Unsupported method ' . $method);
         }
         $this->_method  = $method;
         //Set the payload to request initially

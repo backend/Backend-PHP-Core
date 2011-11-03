@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core\Interfaces;
 /**
  * File defining iRestModel
  *
@@ -30,7 +30,7 @@ namespace Core;
  *
  * @package Interfaces
  */
-interface iRestModel
+interface RestModel
 {
     /**
      * Create function called by the POST HTTP verb

@@ -1,7 +1,7 @@
 <?php
-namespace Core;
+namespace Backend\Core;
 /**
- * File defining UncallableMethodException
+ * File defining Core\Model
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,13 +23,13 @@ namespace Core;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package ExceptionFiles
+ * @package CoreFiles
  */
 /**
- * UncallableMethodException
+ * The main Model class.
  *
- * @package Exceptions
+ * @package Core
  */
-class UncallableMethodException extends \Exception
+class Model
 {
 }

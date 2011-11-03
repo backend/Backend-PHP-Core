@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core;
 /**
  * File defining Core\Router
  *
@@ -74,7 +74,7 @@ class Router
      *
      * @param CoreRequest A request object to serve
      */
-    function __construct(\Core\Request $request = null)
+    function __construct(Request $request = null)
     {
         $this->_request = is_null($request) ? new Request() : $request;
 

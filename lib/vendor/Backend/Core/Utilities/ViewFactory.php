@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core\Utilities;
 /**
  * File defining ViewFactory
  *
@@ -38,14 +38,14 @@ class ViewFactory
      * @param Core\Request The Request to use to determine the view
      * @return Core\View The view that can handle the Request
      */
-    public static function build(Request $request)
+    public static function build(\Backend\Core\Request $request)
     {
 
         //Check the View Folder
-        $request = is_null($request) ? new Request() : $request;
+        $request = is_null($request) ? new \Backend\Core\Request() : $request;
 
         //Loop through all the available views
-        $namespaces = array_reverse(\Core\Application::getNamespaces());
+        $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
         foreach ($namespaces as $base) {
             $viewFolder = BACKEND_FOLDER . '/' . $base . '/views/';
             if (
@@ -69,13 +69,13 @@ class ViewFactory
                 if (self::checkView($viewName, $request)) {
                     $view = new $viewName();
                     if (!($view instanceof \Core\View)) {
-                        throw new \Core\UnknownViewException('Invalid View: ' . get_class($view));
+                        throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
                     }
                     return $view;
                 }
             }
         }
-        throw new \Core\UnknownViewException('Unrecognized Format');
+        throw new \Backend\Core\Exceptions\UnknownViewException('Unrecognized Format');
         return false;
     }
 

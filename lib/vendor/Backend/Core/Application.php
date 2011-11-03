@@ -1,5 +1,5 @@
 <?php
-namespace Core;
+namespace Backend\Core;
 /**
  * File defining Core\Application
  *
@@ -104,7 +104,7 @@ class Application
             $this->_view = $view;
         } else {
             try {
-                $view = ViewFactory::build($this->_request);
+                $view = Utilities\ViewFactory::build($this->_request);
             } catch (\Exception $e) {
                 self::log('View Exception: ' . $e->getMessage(), 2);
                 $view = new View();
@@ -138,7 +138,7 @@ class Application
 
         //PHP Helpers
         //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('\Core\Application', '__autoload'), true, true);
+        spl_autoload_register(array('\Backend\Core\Application', '__autoload'), true, true);
 
         register_shutdown_function(array($this, 'shutdown'));
 
@@ -181,7 +181,7 @@ class Application
             //Get and check the model
             $model = self::translateModel($this->_router->getArea());
             if (!class_exists($model, true)) {
-                throw new UnknownModelException('Unkown Model: ' . $model);
+                throw new Exceptions\UnknownModelException('Unkown Model: ' . $model);
             }
             $modelObj = new $model();
 
@@ -189,7 +189,7 @@ class Application
             $controller = self::translateController($this->_router->getArea());
             if (!class_exists($controller, true)) {
                 //Otherwise run the core controller
-                $controller = 'Core\Controller';
+                $controller = 'Backend\Core\Controller';
             }
             $controllerObj = new $controller($modelObj, $this->_view);
 
@@ -329,39 +329,46 @@ class Application
      */
     public static function __autoload($className)
     {
-        $types = array(
-            'controllers' => 'ctl',
-            'models'      => 'obj',
-            'utilities'   => 'util',
-            'exceptions'  => 'obj',
-            'bindings'  => 'obj',
-            'interfaces'  => 'inf',
-            'views'       => 'view',
-            '' => 'obj',
-        );
         self::log('Checking for ' . $className, 5);
 
-        if (substr($className, 0, 1) == '\\') {
-            $className = substr($className, 1);
+        $className = ltrim($className, '\\');
+        $parts  = explode('\\', $className);
+        $vendor = false;
+        $base   = false;
+        if (count($parts) > 1) {
+            $vendor = $parts[0];
+            if (count($parts) > 2) {
+                $base = $parts[1];
+            }
         }
-        //Check for a name spaced className
-        $parts = explode('\\', $className);
-        if (count($parts) === 1) {
-            $bases = self::getNamespaces();
-        } else {
-            $bases = array(reset($parts));
-            $className = implode('/', array_slice($parts, 1));
+
+        $fileName  = '';
+        $namespace = '';
+        if ($lastNsPos = strripos($className, '\\')) {
+            $namespace = substr($className, 0, $lastNsPos);
+            $className = substr($className, $lastNsPos + 1);
+            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
-        $bases = array_reverse($bases);
-        foreach ($bases as $base) {
-            //Check other types
-            foreach ($types as $type => $part) {
+        $bases = self::getNamespaces();
+        if ($vendor && $base && $vendor == 'Backend' && !in_array($base, $bases)) {
+            //Not in a defined Base, check all
+            $bases = array_reverse($bases);
+            foreach ($bases as $base) {
+                $namespace = implode('/', array_slice($parts, 1, count($parts) - 2));
                 if (
-                    file_exists(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php')
+                    file_exists(BACKEND_FOLDER . '/' . $base . '/' . $namespace . '/' . $className . '.php')
                 ) {
-                    require_once(BACKEND_FOLDER . '/' . $base . '/' . $type . '/' . $className . '.' . $part . '.php');
+                    require_once(BACKEND_FOLDER . '/' . $base . '/' . $namespace . '/' . $className . '.php');
                     return true;
                 }
+            }
+        } else {
+            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+            if (file_exists(VENDOR_FOLDER . $fileName)) {
+                require_once(VENDOR_FOLDER . $fileName);
+                return true;
+            } else {
+                return false;
             }
         }
         return false;
@@ -377,7 +384,7 @@ class Application
      */
     public static function translateController($resource)
     {
-        return class_name($resource) . 'Controller';
+        return 'Backend\Controllers\\' . class_name($resource);
     }
 
     /**
@@ -390,7 +397,7 @@ class Application
      */
     public static function translateModel($resource)
     {
-        return class_name($resource) . 'Model';
+        return 'Backend\Models\\' . class_name($resource);
     }
 
     /**
