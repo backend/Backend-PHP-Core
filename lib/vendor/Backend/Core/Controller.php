@@ -78,7 +78,7 @@ class Controller
         } else if (is_callable($modelFunc)) {
             $function = $modelFunc;
         } else {
-            throw new Exceptions\UncallableMethodException(
+            throw new \BadMethodCallException(
                 'Uncallable Method: ' . get_class($this->_modelObj) . "->$action()"
             );
         }
