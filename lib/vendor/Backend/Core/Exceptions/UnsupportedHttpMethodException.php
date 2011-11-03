@@ -30,6 +30,6 @@ namespace Backend\Core\Exceptions;
  *
  * @package Exceptions
  */
-class UnsupportedMethodException extends \Exception
+class UnsupportedHttpMethodException extends \Exception
 {
 }
