@@ -1,5 +1,5 @@
 <?php
-namespace Backend\Base\Models;
+namespace Backend\Models;
 /**
  * File defining HomeModel
  *
@@ -30,7 +30,7 @@ namespace Backend\Base\Models;
  *
  * @package Application
  */
-class HomesModel extends \Backend\Core\Model implements \Backend\Core\Interfaces\RestModel
+class Homes extends \Backend\Core\Model implements \Backend\Core\Interfaces\RestModel
 {
     public function createAction($identifier, array $parameters = array())
     {
