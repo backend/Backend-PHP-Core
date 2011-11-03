@@ -83,7 +83,7 @@ class Controller
             );
         }
         //Execute the Business Logic
-        \Core\Application::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
+        Application::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
         $result = call_user_func_array($function, $parameters);
 
         return $result;
