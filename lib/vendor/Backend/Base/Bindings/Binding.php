@@ -48,6 +48,11 @@ abstract class Binding
     protected $_resource = null;
 
     /**
+     * @var mixedarray An array of arrays or objects containing an instances of the binding.
+     */
+    protected $_list = null;
+
+    /**
      * @var boolean Flag that specifies if the current instance of the binding has any unsaved changes.
      */
     protected $_modified = false;
@@ -161,6 +166,8 @@ abstract class Binding
 
     /**
      * Find instances of the binding in the resource. Does not nead to be bound.
+     *
+     * Store the instances found in the _list property.
      *
      * Don't specify any criteria to retrieve a full list of instances.
      * @return array An array of representations of the resource

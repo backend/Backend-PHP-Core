@@ -49,6 +49,14 @@ class MySQLBinding extends DatabaseTableBinding
      */
     public function find()
     {
+        //Reset the list
+        $this->_list = null;
+        $query = 'SELECT * FROM ' . $this->_table;
+        $stmt  = $this->_connection->prepare($query);
+        if ($stmt->execute()) {
+            $this->_list = $stmt;
+        }
+        return $this->_list;
     }
 
     /**
