@@ -38,7 +38,7 @@ class ViewFactory
      * @param Core\Request The Request to use to determine the view
      * @return Core\View The view that can handle the Request
      */
-    public static function build(\Backend\Core\Request $request)
+    public static function build(\Backend\Core\Request $request = null)
     {
 
         //Check the View Folder

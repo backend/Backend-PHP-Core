@@ -48,10 +48,27 @@ class Config
         if (!file_exists($filename)) {
             throw new \Exception('Invalid Config File: ' . $filename);
         }
-        $content  = file_get_contents($filename);
-        $this->_values = json_decode($content);
+        if (!is_readable($filename)) {
+            throw new \Exception('Unreadable Config File: ' . $filename);
+        }
+
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $info = pathinfo($filename);
+        switch ($ext) {
+        case 'json':
+            $this->_values = json_decode(file_get_contents($filename), true);
+            break;
+        case 'yaml':
+            if (function_exists('yaml_parse_file')) {
+                $this->_values = \yaml_parse_file($filename);
+            } else if (fopen('SymfonyComponents/YAML/sfYamlParser.php', 'r', true)) {
+                include('SymfonyComponents/YAML/sfYamlParser.php');
+                $yaml = new \sfYamlParser();
+                $this->_values = $yaml->parse(file_get_contents($filename));
+            }
+        }
         if (is_null($this->_values)) {
-            throw new \Exception('Could not parse Config File JSON');
+            throw new \Exception('Could not parse Config File using extension ' . $ext);
         }
     }
 
@@ -60,8 +77,8 @@ class Config
      */
     public function __get($propertyName)
     {
-        if (property_exists($this->_values, $propertyName)) {
-            return $this->_values->$propertyName;
+        if (array_key_exists($propertyName, $this->_values)) {
+            return $this->_values[$propertyName];
         }
         return null;
     }
@@ -78,8 +95,8 @@ class Config
         if ($section) {
             $section = $this->__get($section);
             if ($name && !is_null($section)) {
-                if (property_exists($section, $name)) {
-                    return $section->$name;
+                if (array_key_exists($name, $section)) {
+                    return $section[$name];
                 } else {
                     return null;
                 }
