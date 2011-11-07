@@ -52,27 +52,6 @@ class LogMessage implements \SplSubject
 
     public function __construct($message, $level)
     {
-        switch ($level) {
-        case LogMessage::LEVEL_CRITICAL:
-            $message = ' (CRITICAL) ' . $message;
-            break;
-        case LogMessage::LEVEL_WARNING:
-            $message = ' (WARNING) ' . $message;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $message = ' (IMPORTANT) ' . $message;
-            break;
-        case LogMessage::LEVEL_DEBUGGING:
-            $message = ' (DEBUG) ' . $message;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $message = ' (INFORMATION) ' . $message;
-            break;
-        default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
-            break;
-        }
-
         $this->_message = $message;
 
         $this->_level   = $level;
@@ -80,6 +59,26 @@ class LogMessage implements \SplSubject
         Observable::execute($this);
 
         $this->notify();
+    }
+
+    /**
+     * Accessor for message
+     *
+     * @return string The contents of the message
+     */
+    public function getMessage()
+    {
+        return $this->_message;
+    }
+
+    /**
+     * Accessor for level
+     *
+     * @return int The level of the message
+     */
+    public function getLevel()
+    {
+        return $this->_level;
     }
 
     //SplSubject functions

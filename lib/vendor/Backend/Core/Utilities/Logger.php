@@ -34,6 +34,27 @@ class Logger implements \Backend\Core\Interfaces\LoggingObserver
 {
     public function update(\SplSubject $message)
     {
+        switch ($message->getLevel()) {
+        case LogMessage::LEVEL_CRITICAL:
+            $message = ' (CRITICAL) ' . $message;
+            break;
+        case LogMessage::LEVEL_WARNING:
+            $message = ' (WARNING) ' . $message;
+            break;
+        case LogMessage::LEVEL_IMPORTANT:
+            $message = ' (IMPORTANT) ' . $message;
+            break;
+        case LogMessage::LEVEL_DEBUGGING:
+            $message = ' (DEBUG) ' . $message;
+            break;
+        case LogMessage::LEVEL_IMPORTANT:
+            $message = ' (INFORMATION) ' . $message;
+            break;
+        default:
+            $message = ' (OTHER - ' . $level . ') ' . $message;
+            break;
+        }
+
         $message = date('Y-m-d H:i:s ') . $message;
         echo $message . '<br>' . PHP_EOL;
     }
