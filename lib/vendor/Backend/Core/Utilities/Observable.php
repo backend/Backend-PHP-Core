@@ -46,8 +46,8 @@ class Observable
         }
         //Attach Observers to Subjects
         $config = $config->get('subjects', get_class($subject));
-        if (!empty($config->observers)) {
-            foreach ($config->observers as $observerName) {
+        if (!empty($config['observers'])) {
+            foreach ($config['observers'] as $observerName) {
                 $observer = \Backend\Core\Application::getTool($observerName);
                 if ($observer instanceof \SplObserver) {
                     $subject->attach($observer);

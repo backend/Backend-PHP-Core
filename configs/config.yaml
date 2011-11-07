@@ -1,7 +1,7 @@
 tools:
-    "Logger": "Backend\Core\Utilities\Logger"
+    Logger: Backend\Core\Utilities\Logger
 
 subjects:
-    "Backend\\Core\\Utilities\\LogMessage":
+    Backend\Core\Utilities\LogMessage:
         observers:
-            Logger
+            - Logger
