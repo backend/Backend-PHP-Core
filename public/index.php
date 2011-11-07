@@ -56,22 +56,12 @@ $application = new Backend\Base\Application(
     null,
     null,
     array(
-        'Logger'   => '\Backend\Core\Utilities\Logger',
-        'Config'   => '\Backend\Core\Utilities\Config',
+        'Logger'     => '\Backend\Core\Utilities\Logger',
+        //'PearLogger' => '\Backend\Base\Utilities\PearLogger',
+        'Config'     => '\Backend\Core\Utilities\Config',
     )
 );
-//Using the PEAR Log module
-//http://pear.github.com/Log/
-/*
-require_once('Log.php');
-$application = new CoreApplication(
-    null,
-    null,
-    array(
-        array('Logger', Log::factory('file', '/tmp/out.log', 'TEST'))
-    )
-);
-*/
+
 $application->main();
 
 //Done
