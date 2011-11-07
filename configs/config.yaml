@@ -2,6 +2,7 @@
 tools:
     Logger: Backend\Core\Utilities\Logger
     Render: Backend\Base\Utilities\Render
+#    Render: Backend\Base\Utilities\TwigRender
     PearLogger:
         - Backend\Base\Utilities\PearLogger
         -
