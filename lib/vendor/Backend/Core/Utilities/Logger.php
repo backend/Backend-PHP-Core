@@ -34,6 +34,9 @@ class Logger implements \Backend\Core\Interfaces\LoggingObserver
 {
     public function update(\SplSubject $message)
     {
+        if (!($message instanceof LogMessage)) {
+            return false;
+        }
         switch ($message->getLevel()) {
         case LogMessage::LEVEL_CRITICAL:
             $message = ' (CRITICAL) ' . $message;
