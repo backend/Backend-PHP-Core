@@ -26,19 +26,15 @@ namespace Backend\Core\Utilities;
  * @package UtilityFiles
  */
 /**
- * Basic Logging class
+ * A Basic Logging Observer
  *
- * @package Utility
+ * @package Utilities
  */
-class Logger implements \Backend\Core\Interfaces\Logger
+class Logger implements \Backend\Core\Interfaces\LoggingObserver
 {
-    /**
-     * Function to do logging.
-     */
-    public function log($message, $level = 3)
+    public function update(\SplSubject $message)
     {
-        $message = date('Y-m-d H:i:s') . $message;
-
+        $message = date('Y-m-d H:i:s ') . $message;
         echo $message . '<br>' . PHP_EOL;
     }
 }

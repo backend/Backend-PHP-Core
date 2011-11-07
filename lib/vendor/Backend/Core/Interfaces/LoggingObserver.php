@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core\Interfaces;
 /**
- * File defining iLogger
+ * File defining LoggingObserver
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,7 +30,6 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface Logger
+interface LoggingObserver extends \SplObserver
 {
-    public function log($message, $level = 3);
 }
