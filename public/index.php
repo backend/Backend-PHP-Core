@@ -56,7 +56,8 @@ $application = new Backend\Base\Application(
     null,
     null,
     array(
-        'Logger' => '\Backend\Core\Utilities\Logger',
+        'Logger'   => '\Backend\Core\Utilities\Logger',
+        'Config'   => '\Backend\Core\Utilities\Config',
     )
 );
 //Using the PEAR Log module

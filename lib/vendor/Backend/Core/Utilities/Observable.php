@@ -1,7 +1,7 @@
 <?php
-namespace Backend\Core\Interfaces;
+namespace Backend\Core\Utilities;
 /**
- * File defining iLogger
+ * File defining Observable
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,14 +23,37 @@ namespace Backend\Core\Interfaces;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package InterfacesFiles
+ * @package UtilityFiles
  */
 /**
- * Basic interface to a logging class
+ * Class to automatically attach observers to subjects
  *
- * @package Interfaces
+ * @package Utilities
  */
-interface Logger
+class Observable
 {
-    public function log($message, $level = 3);
+    /**
+     * Check for observers for the given subject
+     *
+     * An observer is only eligible if it implements \SplObserver, and can be retrieved
+     * using \Backend\Core\getTool
+     */
+    public static function execute(\SplSubject $subject)
+    {
+        $config = \Backend\Core\Application::getTool('Config');
+        if (!$config) {
+            return false;
+        }
+        //Attach Observers to Subjects
+        $config = $config->get('subjects', get_class($subject));
+        if (!empty($config->observers)) {
+            foreach ($config->observers as $observerName) {
+                $observer = \Backend\Core\Application::getTool($observerName);
+                if ($observer instanceof \SplObserver) {
+                    $subject->attach($observer);
+                }
+            }
+        }
+        return true;
+    }
 }

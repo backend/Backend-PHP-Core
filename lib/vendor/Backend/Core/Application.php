@@ -113,6 +113,7 @@ class Application
         }
 
         self::$_constructed = true;
+
         self::log('Showing application with ' . get_class($this->_view));
     }
 
@@ -259,11 +260,6 @@ class Application
      */
     public static function getTool($className)
     {
-        //Check that we have a running Application first
-        if (!self::$_constructed) {
-            return false;
-        }
-
         if (array_key_exists($className, self::$_toolbox)) {
             return self::$_toolbox[$className];
         }
@@ -329,7 +325,7 @@ class Application
      */
     public static function __autoload($className)
     {
-        self::log('Checking for ' . $className, 5);
+        //self::log('Checking for ' . $className, 5);
 
         $className = ltrim($className, '\\');
         $parts  = explode('\\', $className);
@@ -414,17 +410,8 @@ class Application
      * @param integer level The logging level of the message
      * @param string context The context of the message
      */
-    public static function log($message, $level = 3, $context = false)
+    public static function log($message, $level = Utilities\LogMessage::LEVEL_IMPORTANT, $context = false)
     {
-        if ($level > self::$_debugLevel) {
-            return false;
-        }
-
-        $logger = self::getTool('Logger');
-        if (!$logger) {
-            return false;
-        }
-
         if (!$context) {
             $bt = debug_backtrace();
             //Remove the call to this function
@@ -438,28 +425,7 @@ class Application
             $message = '[' . $context . '] ' . $message;
         }
 
-        switch ($level) {
-        case 1:
-            $message = ' (CRITICAL) ' . $message;
-            break;
-        case 2:
-            $message = ' (WARNING) ' . $message;
-            break;
-        case 3:
-            $message = ' (IMPORTANT) ' . $message;
-            break;
-        case 4:
-            $message = ' (DEBUG) ' . $message;
-            break;
-        case 5:
-            $message = ' (INFORMATION) ' . $message;
-            break;
-        default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
-            break;
-        }
-
-        return $logger->log($message, $level);
+        $logMessage = new Utilities\LogMessage($message, $level);
     }
 
     /**
