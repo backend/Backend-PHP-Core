@@ -49,13 +49,14 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
     define('SITE_STATE', 'development');
 }
 
-require(BACKEND_FOLDER . '/Core/Application.php');
+require(BACKEND_FOLDER . 'Core/Application.php');
 //Using Simple Logging, as shipped with the framework
 $application = new Backend\Core\Application(
     null,
     null,
     array(
-        'Logger' => '\Backend\Core\Utilities\Logger',
+        'Logger'   => '\Backend\Core\Utilities\Logger',
+        'Config'   => '\Backend\Core\Utilities\Config',
     )
 );
 //Using the PEAR Log module
