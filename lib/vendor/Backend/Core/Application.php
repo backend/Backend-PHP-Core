@@ -38,9 +38,9 @@ namespace Backend\Core;
 class Application
 {
     /**
-     * @var boolean This property indicates if the application has been initialized yet.
+     * @var boolean This property indicates if the application has been bootstrapped yet.
      */
-    protected $_initialized = false;
+    protected $_bootstrapped = false;
 
     /**
      * @var boolean This static property indicates if the application has been constructed yet.
@@ -64,12 +64,6 @@ class Application
     private $_router = null;
 
     /**
-     * This contains the request object that will influence the router and view objects.
-     * @var Core\Request
-     */
-    private $_request = null;
-
-    /**
      * This contains the view object that display the executed request
      * @var Core\View
      */
@@ -87,83 +81,78 @@ class Application
      * @param Request The request to handle
      * @param array An array of tools to instansiate
      */
-    function __construct(Core\View $view = null, Core\Request $request = null, array $tools = array())
+    function __construct(View $view = null)
     {
-        $this->init();
+        if (!self::$_constructed) {
+            //Core at the beginning, Application at the end
+            self::registerNamespace('Core', true);
+            self::registerNamespace('Application');
 
-        //Initiate the Tools
-        foreach ($tools as $toolName => $tool) {
-            self::addTool($toolName, $tool);
+            //Load extra functions
+            require_once(BACKEND_FOLDER . '/modifiers.inc.php');
+
+            //PHP Helpers
+            //Prepend the master autoload function to the beginning of the stack
+            spl_autoload_register(array('\Backend\Core\Application', '__autoload'), true, true);
+
+            register_shutdown_function(array($this, 'shutdown'));
+
+            //Some constants
+            if (!defined('SITE_STATE')) {
+                define('SITE_STATE', 'production');
+            }
+
+            if (empty($_SERVER['DEBUG_LEVEL'])) {
+                switch (SITE_STATE) {
+                case 'development':
+                    self::setDebugLevel(5);
+                    break;
+                case 'production':
+                    self::setDebugLevel(1);
+                    break;
+                }
+            } else {
+                self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
+            }
+
+            self::$_constructed = true;
         }
 
-        //Get the Request
-        $this->_request = is_null($request) ? new Request() : $request;
-
+        //Every new instance can have a seperate view
         //Get the View
-        if ($view instanceof CoreView) {
+        if ($view instanceof View) {
             $this->_view = $view;
         } else {
             try {
-                $view = Utilities\ViewFactory::build($this->_request);
+                $view = Utilities\ViewFactory::build();
             } catch (\Exception $e) {
                 self::log('View Exception: ' . $e->getMessage(), 2);
                 $view = new View();
             }
             $this->_view = $view;
         }
-
-        self::$_constructed = true;
-
         self::log('Showing application with ' . get_class($this->_view));
+
+        return true;
     }
 
     /**
      * Initialize the Application.
-     *
-     * This is a bootstrapping function and should only be run once.
-     *
-     * @return boolean If the initialization was succesful or not.
      */
-    protected function init()
+    protected function bootstrap()
     {
-        if ($this->_initialized) {
+        if ($this->_bootstrapped) {
             return true;
         }
 
-        //Core at the beginning, Application at the end
-        self::registerNamespace('Core', true);
-        self::registerNamespace('Application');
-
-        //Load extra functions
-        include(BACKEND_FOLDER . '/modifiers.inc.php');
-
-        //PHP Helpers
-        //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('\Backend\Core\Application', '__autoload'), true, true);
-
-        register_shutdown_function(array($this, 'shutdown'));
-
-        //Some constants
-        if (!defined('SITE_STATE')) {
-            define('SITE_STATE', 'production');
-        }
-
-        if (empty($_SERVER['DEBUG_LEVEL'])) {
-            switch (SITE_STATE) {
-            case 'development':
-                self::setDebugLevel(5);
-                break;
-            case 'production':
-                self::setDebugLevel(1);
-                break;
+        $config = self::getTool('Config');
+        //Initiate the Tools
+        $tools = $config->tools;
+        if ($tools) {
+            foreach ($tools as $toolName => $tool) {
+                self::addTool($toolName, $tool);
             }
-        } else {
-            self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
         }
-
-        $this->_initialized = true;
-
-        return true;
     }
 
     /**
@@ -174,8 +163,10 @@ class Application
      */
     public function main(Router $router = null)
     {
+        $this->bootstrap();
+
         //Get Router
-        $this->_router = is_null($router) ? new Router($this->_request) : $router;
+        $this->_router = is_null($router) ? new Router() : $router;
 
         $result = null;
         try {
@@ -222,31 +213,36 @@ class Application
     }
 
     /**
+     * Set the config to use for the application.
+     *
+     * This function will have no effect if run after the app has been initialized.
+     *
+     * @param mixed Either a string containing the path to the config file, or an existing config object
+     */
+    public function setConfig($config)
+    {
+        if ($this->_bootstrapped) {
+            return false;
+        }
+        if (is_string($config)) {
+            //String specifies that we should parse the file specified
+            $config = new Utilities\Config($config);
+        }
+        self::addTool('Config', $config);
+    }
+
+    /**
      * Add a tool to the application
      *
      * @param mixed The tool to add. Can also be the name of a class to instansiate
      * @param array The parameters to pass to the constructor of the Tool
      */
-    public static function addTool($toolName, $tool, array $parameters = array())
+    public static function addTool($toolName, $tool)
     {
         if (is_string($tool)) {
-            $function = false;
-            if (is_callable(array($tool, 'getInstance'))) {
-                $function = array($tool, 'getInstance');
-            } else if (is_callable(array($tool, 'instance'))) {
-                $function = array($tool, 'instance');
-            } else if (is_callable(array($tool, 'factory'))) {
-                $function = array($tool, 'factory');
-            } else if (is_callable(array($tool, 'singleton'))) {
-                $function = array($tool, 'singleton');
-            } else if (is_callable(array($tool, 'build'))) {
-                $function = array($tool, 'build');
-            }
-            if ($function) {
-                $tool = call_user_func_array($function, $parameters);
-            } else {
-                $tool = new $tool($parameters);
-            }
+            $tool = new $tool();
+        } else if (is_array($tool) && count($tool) == 2) {
+            $tool = new $tool[0]($tool[1]);
         }
         $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
         self::$_toolbox[$toolName] = $tool;
