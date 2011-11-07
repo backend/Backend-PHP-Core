@@ -2,7 +2,8 @@
     "subjects": {
         "Backend\\Core\\Utilities\\LogMessage": {
             "observers": [
-                "Logger"
+                "Logger",
+                "PearLogger"
             ]
         }
     }
