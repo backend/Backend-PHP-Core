@@ -48,20 +48,19 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
 } else {
     define('SITE_STATE', 'development');
 }
+if (defined('SITE_STATE') && file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
+    $configFile = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
+} else if (file_exists(PROJECT_FOLDER . 'configs/config.yaml')) {
+    $configFile = PROJECT_FOLDER . 'configs/config.yaml';
+} else {
+    die('Unknown config file. Add one to ' . PROJECT_FOLDER . '/configs');
+}
 
 require(BACKEND_FOLDER . 'Core/Application.php');
 require(BACKEND_FOLDER . 'Base/Application.php');
-//Using Simple Logging, as shipped with the framework
-$application = new Backend\Base\Application(
-    null,
-    null,
-    array(
-        'Logger'     => '\Backend\Core\Utilities\Logger',
-        //'PearLogger' => '\Backend\Base\Utilities\PearLogger',
-        'Config'     => '\Backend\Core\Utilities\Config',
-    )
-);
 
+$application = new Backend\Base\Application();
+$application->setConfig($configFile);
 $application->main();
 
 //Done
