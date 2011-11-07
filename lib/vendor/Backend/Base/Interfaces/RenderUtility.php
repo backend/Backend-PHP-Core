@@ -1,7 +1,7 @@
 <?php
-namespace Backend\Core\Interfaces;
+namespace Backend\Base\Interfaces;
 /**
- * File defining Core\Interfaces\RestModel
+ * File defining Base\Interfaces\RenderUtility
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -26,37 +26,32 @@ namespace Backend\Core\Interfaces;
  * @package InterfaceFiles
  */
 /**
- * A Model class that provides basic REST rest functions
+ * Utility to render templates
  *
  * @package Interfaces
  */
-interface RestModel
+interface RenderUtility
 {
     /**
-     * Create function called by the POST HTTP verb
+     * Constructor for the Rendering Utility
      *
-     * @param mixed The identifier. Set to 0 to reference the collection
+     * @param \Backend\Core\View The view currently being used to render the request
      */
-    public function createAction($identifier, array $arguments = array());
+    public function __construct(\Backend\Core\View $view = null);
 
     /**
-     * Read function called by the GET HTTP verb
+     * Set the view for the Renderer
      *
-     * @param mixed The identifier. Set to 0 to reference the collection
+     * @param \Backend\Core\View The view to use the render the request
      */
-    public function readAction($identifier, array $arguments = array());
+    public function setView(\Backend\Core\View $view);
 
     /**
-     * Update function called by the PUT HTTP verb
+     * Render the specified file
      *
-     * @param mixed The identifier. Set to 0 to reference the collection
+     * @param string The name of the template
+     * @param array Extra variables to consider
+     * @return string The contents of the rendered template
      */
-    public function updateAction($identifier, array $arguments = array());
-
-    /**
-     * Delete function called by the DELETE HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function deleteAction($identifier, array $arguments = array());
+    public function file($template, array $values = array());
 }

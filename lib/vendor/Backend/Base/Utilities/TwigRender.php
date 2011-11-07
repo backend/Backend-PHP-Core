@@ -1,7 +1,7 @@
 <?php
-namespace Backend\Core\Interfaces;
+namespace Backend\Base\Utilities;
 /**
- * File defining Core\Interfaces\RestModel
+ * File defining Base\Utilities\TwigRender
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,40 +23,50 @@ namespace Backend\Core\Interfaces;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package InterfaceFiles
+ * @package UtilityFiles
  */
 /**
- * A Model class that provides basic REST rest functions
+ * Render templates
  *
- * @package Interfaces
+ * @package Utility
  */
-interface RestModel
+class TwigRender implements \Backend\Base\Interfaces\RenderUtility
 {
     /**
-     * Create function called by the POST HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
+     * @var Core\View The view used to render
      */
-    public function createAction($identifier, array $arguments = array());
+    protected $_view = null;
 
     /**
-     * Read function called by the GET HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
+     * @var Twig The twig used to render
      */
-    public function readAction($identifier, array $arguments = array());
+    protected $_twig = null;
 
-    /**
-     * Update function called by the PUT HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function updateAction($identifier, array $arguments = array());
+    public function __construct(\Backend\Core\View $view = null)
+    {
+        if ($view) {
+            $this->setView($view);
+        }
+    }
 
-    /**
-     * Delete function called by the DELETE HTTP verb
-     *
-     * @param mixed The identifier. Set to 0 to reference the collection
-     */
-    public function deleteAction($identifier, array $arguments = array());
+    public function setView(\Backend\Core\View $view)
+    {
+        require_once('Twig/Autoloader.php');
+        \Twig_Autoloader::register();
+
+        $this->_view = $view;
+        $loader      = new \Twig_Loader_Filesystem($this->_view->templateLocations);
+        $this->_twig = new \Twig_Environment($loader);
+    }
+
+    public function file($template, array $values = array())
+    {
+        if (!$this->_view) {
+            return false;
+        }
+
+        $values = array_merge($this->_view->getVariables(), $values);
+
+        return $this->_twig->render($template, $values);
+    }
 }

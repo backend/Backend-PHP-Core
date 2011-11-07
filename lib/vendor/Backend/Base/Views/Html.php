@@ -55,6 +55,8 @@ class Html extends \Backend\Core\View
             BACKEND_FOLDER . 'templates/',
         );
 
+        $this->templateLocations = array_filter($this->templateLocations, 'file_exists');
+
         parent::__construct();
     }
 
@@ -105,11 +107,12 @@ class Html extends \Backend\Core\View
 
     function output()
     {
-        $render = new \Backend\Base\Utilities\Render($this);
+        $render = \Backend\Core\Application::getTool('Render');
+        $render->setView($this);
 
         $buffered = ob_get_clean();
         $this->bind('buffered', $buffered);
-        $index = $render->file('index');
+        $index = $render->file('index.tpl.php');
         echo $index;
     }
 }
