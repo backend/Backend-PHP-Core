@@ -39,6 +39,12 @@ class View
     protected $_variables = array();
 
     /**
+     * Object to render the view with
+     * @var object
+     */
+    protected $_renderer = null;
+
+    /**
      * Define the formats this view can handle
      * @var array
      */
@@ -47,8 +53,9 @@ class View
     /**
      * The View constructor
      */
-    function __construct()
+    function __construct($renderer = null)
     {
+        $this->_renderer = $renderer;
     }
 
     /**
