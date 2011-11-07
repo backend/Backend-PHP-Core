@@ -1,6 +1,7 @@
 # Reference all tools likely to be used in the application here
 tools:
     Logger: Backend\Core\Utilities\Logger
+    Render: Backend\Base\Utilities\Render
     PearLogger:
         - Backend\Base\Utilities\PearLogger
         -

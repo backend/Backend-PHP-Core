@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core\Interfaces;
 /**
- * File defining iRestModel
+ * File defining Core\Interfaces\RestModel
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,7 +23,7 @@ namespace Backend\Core\Interfaces;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package InterfacesFiles
+ * @package InterfaceFiles
  */
 /**
  * A Model class that provides basic REST rest functions

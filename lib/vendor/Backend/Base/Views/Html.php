@@ -105,7 +105,8 @@ class Html extends \Backend\Core\View
 
     function output()
     {
-        $render = new \Backend\Base\Utilities\Render($this);
+        $render = \Backend\Core\Application::getTool('Render');
+        $render->setView($this);
 
         $buffered = ob_get_clean();
         $this->bind('buffered', $buffered);

@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Base\Utilities;
 /**
- * File defining \Base\Render
+ * File defining Base\Utilities\Render
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,27 +30,29 @@ namespace Backend\Base\Utilities;
  *
  * @package Utility
  */
-class Render
+class Render implements \Backend\Base\Interfaces\RenderUtility
 {
     /**
-     * @var \Core\View The view used to render
+     * @var Core\View The view used to render
      */
-    private $_view;
+    protected $_view = null;
 
-    function __construct(\Backend\Core\View $view)
+    public function __construct(\Backend\Core\View $view = null)
     {
         $this->_view = $view;
     }
 
-    /**
-     * Render the specified file
-     *
-     * @param string The name of the template
-     * @param array Extra variables to consider
-     * @return string The contents of the rendered template
-     */
+    public function setView(\Backend\Core\View $view)
+    {
+        $this->_view = $view;
+    }
+
     public function file($template, array $values = array())
     {
+        if (!$this->_view) {
+            return false;
+        }
+
         $file = $this->templateFile($template);
         if (!$file) {
             //TODO Throw an exception, make a fuss?
