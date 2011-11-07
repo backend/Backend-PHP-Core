@@ -1,7 +1,7 @@
 <?php
-namespace Backend\Core\Utilities;
+namespace Backend\Core\Interfaces;
 /**
- * File defining Logger
+ * File defining LoggingObserver
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,39 +23,13 @@ namespace Backend\Core\Utilities;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package UtilityFiles
+ * @package InterfacesFiles
  */
 /**
- * A Basic Logging Observer
+ * Basic interface to a logging class
  *
- * @package Utilities
+ * @package Interfaces
  */
-class Logger implements \Backend\Core\Interfaces\LoggingObserver
+interface LoggingObserver extends \SplObserver
 {
-    public function update(\SplSubject $message)
-    {
-        switch ($message->getLevel()) {
-        case LogMessage::LEVEL_CRITICAL:
-            $message = ' (CRITICAL) ' . $message;
-            break;
-        case LogMessage::LEVEL_WARNING:
-            $message = ' (WARNING) ' . $message;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $message = ' (IMPORTANT) ' . $message;
-            break;
-        case LogMessage::LEVEL_DEBUGGING:
-            $message = ' (DEBUG) ' . $message;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $message = ' (INFORMATION) ' . $message;
-            break;
-        default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
-            break;
-        }
-
-        $message = date('Y-m-d H:i:s ') . $message;
-        echo $message . '<br>' . PHP_EOL;
-    }
 }

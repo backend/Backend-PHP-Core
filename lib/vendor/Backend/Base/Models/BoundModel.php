@@ -50,7 +50,7 @@ abstract class BoundModel extends \Backend\Core\Model implements \Backend\Core\I
      */
     public function readAction($identifier, array $arguments = array())
     {
-        if ($identifier === 0) {
+        if ($identifier == 0) {
             //Return a list
             return $this->_source->find();
         } else {
