@@ -1,7 +1,14 @@
+# Reference all tools likely to be used in the application here
 tools:
     Logger: Backend\Core\Utilities\Logger
+    PearLogger:
+        - Backend\Base\Utilities\PearLogger
+        -
+            filename: '/tmp/backend-pear.log'
 
+# Add observers to subject classes here. The observers should refer to the tool name
 subjects:
     Backend\Core\Utilities\LogMessage:
         observers:
             - Logger
+            - PearLogger
