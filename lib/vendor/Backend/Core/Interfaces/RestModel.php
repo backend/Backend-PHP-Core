@@ -30,7 +30,7 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface RestModel
+interface RestModel extends ModelInterface
 {
     /**
      * Create function called by the POST HTTP verb
