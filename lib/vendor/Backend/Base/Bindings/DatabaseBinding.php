@@ -32,8 +32,16 @@ namespace Backend\Base\Bindings;
  */
 abstract class DatabaseBinding extends Binding
 {
+    /**
+     * @var PDO The database connection this binding binds to
+     */
     protected $_connection = null;
 
+    /**
+     * The constructor for the class
+     *
+     * @param PDO The database connection to use in the binding
+     */
     function __construct(\PDO $connection)
     {
         $this->_connection = $connection;

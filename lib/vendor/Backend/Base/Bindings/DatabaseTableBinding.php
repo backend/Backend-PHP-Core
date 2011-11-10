@@ -32,8 +32,17 @@ namespace Backend\Base\Bindings;
  */
 abstract class DatabaseTableBinding extends DatabaseBinding
 {
+    /**
+     * @var The name of the table this binding binds to
+     */
     protected $_table = null;
 
+    /**
+     * The constructor for the class
+     *
+     * @param PDO The database connection to use in the binding
+     * @param string The name of the database table to bind to
+     */
     function __construct(\PDO $connection, $table)
     {
         parent::__construct($connection);
