@@ -77,8 +77,6 @@ class Application
      * The class constructor
      *
      * @param Core\View The view for the application
-     * @param Request The request to handle
-     * @param array An array of tools to instansiate
      */
     function __construct(View $view = null)
     {
