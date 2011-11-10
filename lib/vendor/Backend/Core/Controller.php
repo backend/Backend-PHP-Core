@@ -56,7 +56,7 @@ class Controller implements Interfaces\Decorable
      * @param Core\Model The Model the controller should execute on
      * @param Core\View The View the controller should execute with
      */
-    function __construct(Model $modelObj, View $viewObj)
+    function __construct(ModelInterface $modelObj, View $viewObj)
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
