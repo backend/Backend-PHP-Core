@@ -30,7 +30,7 @@ namespace Backend\Core;
  *
  * @package Core
  */
-class Controller implements Interfaces\Decorable
+class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
 {
     /**
      * This contains the model on which this controller will execute
@@ -56,7 +56,7 @@ class Controller implements Interfaces\Decorable
      * @param Core\Model The Model the controller should execute on
      * @param Core\View The View the controller should execute with
      */
-    function __construct(ModelInterface $modelObj, View $viewObj)
+    function __construct(Interfaces\ModelInterface $modelObj, View $viewObj)
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
