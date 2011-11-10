@@ -30,7 +30,7 @@ namespace Backend\Core;
  *
  * @package Core
  */
-class Model implements Interfaces\ModelInterface
+class Model implements Interfaces\ModelInterface, Interfaces\Decorable
 {
     /**
      * An array of names of decorators to apply to this class

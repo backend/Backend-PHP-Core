@@ -1,4 +1,5 @@
 <?php
+namespace Backend\Core\Interfaces;
 /**
  * File defining Core\Interfaces\Decorator
  *

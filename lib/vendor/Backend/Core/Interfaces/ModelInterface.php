@@ -30,6 +30,6 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface ModelInterface extends Decorable
+interface ModelInterface
 {
 }
