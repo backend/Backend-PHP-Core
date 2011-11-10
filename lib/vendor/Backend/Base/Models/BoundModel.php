@@ -32,21 +32,37 @@ namespace Backend\Base\Models;
  */
 abstract class BoundModel extends \Backend\Core\Model implements \Backend\Core\Interfaces\RestModel
 {
+    /**
+     * @var Binding The source for the model
+     */
     protected $_source = null;
 
+    /**
+     * The constructor for the class
+     *
+     * @param Binding The source for the model
+     */
     public function __construct(Bindings\Binding $source)
     {
         $this->_source = $source;
     }
 
-    //iRestModel functions
-    public function createAction($identifier, array $arguments = array())
+    /**
+     * Create an instance of the model on the source
+     *
+     * @param mixed The identifier to use when creating the instance on the source
+     * @param array Any additional arguments to pass when creating the instance
+     */
+    public function createAction($identifier, array $parameters = array())
     {
         return $this->_source->create($identifier, $arguments);
     }
 
     /**
      * Read the model from the source
+     *
+     * @param mixed The identifier to use when reading the instance from the source
+     * @param array Any additional arguments to pass when readin the instance
      */
     public function readAction($identifier, array $arguments = array())
     {
@@ -60,6 +76,9 @@ abstract class BoundModel extends \Backend\Core\Model implements \Backend\Core\I
 
     /**
      * Update the model on the source
+     *
+     * @param mixed The identifier to use when update the instance on the source
+     * @param array Any additional arguments to pass when updating the instance
      */
     public function updateAction($identifier, array $arguments = array())
     {
@@ -68,6 +87,9 @@ abstract class BoundModel extends \Backend\Core\Model implements \Backend\Core\I
 
     /**
      * Delete the model from the source
+     *
+     * @param mixed The identifier to use when deleting the instance from the source
+     * @param array Any additional arguments to pass when deleting the instance
      */
     public function deleteAction($identifier, array $arguments = array())
     {

@@ -33,7 +33,7 @@ namespace Backend\Base;
 class Application extends \Backend\Core\Application
 {
     /**
-     * The class constructor
+     * The constructor for the class
      *
      * @param Core\View The view for the application
      */
