@@ -74,7 +74,7 @@ class Application
     protected static $_debugLevel = 3;
 
     /**
-     * The class constructor
+     * The constructor for the class
      *
      * @param Core\View The view for the application
      */

@@ -33,21 +33,35 @@ namespace Backend\Core;
 class Model implements Interfaces\ModelInterface, Interfaces\Decorable
 {
     /**
-     * An array of names of decorators to apply to this class
-     * @var array
+     * @var array An array of names of decorators to apply to the model
      */
     protected $_decorators = array();
 
+    /**
+     * Get an array of decorators for the class
+     *
+     * @return array The decorators to apply to the class
+     */
     public function getDecorators()
     {
         return $this->_decorators;
     }
 
+    /**
+     * Add a decorator to the class
+     *
+     * @param string The name of the decorator class to add
+     */
     public function addDecorator($decorator)
     {
         $this->_decorators[] = $decorator;
     }
 
+    /**
+     * Remove a decorator from the class
+     *
+     * @param string The name of the decorator class to remove
+     */
     public function removeDecorator($decorator)
     {
         $key = array_search($decorator, $this->_decorators);

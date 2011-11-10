@@ -65,7 +65,7 @@ class Router
 
 
     /**
-     * The class constructor
+     * The constructor for the class
      *
      * We use REST URI's, so the following structure should be followed.
      * $resource/$identifier/$extra/$parameters
