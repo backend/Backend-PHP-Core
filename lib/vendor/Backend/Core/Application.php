@@ -177,6 +177,13 @@ class Application
             }
             $modelObj = new $model();
 
+            //TODO Compare this with the Visitor pattern in Controller
+            //TODO Model will have a decorators property which is an array of
+            //Decorators to implement, such as ScaffoldingDecorator, CrudDecorator, etc.
+            foreach ($modelObj->getDecorators() as $decorator) {
+                $modelObj = new $decorator($modelObj);
+            }
+
             //See if a controller exists for this model
             $controller = self::translateController($this->_router->getArea());
             if (!class_exists($controller, true)) {
@@ -184,6 +191,9 @@ class Application
                 $controller = 'Backend\Core\Controller';
             }
             $controllerObj = new $controller($modelObj, $this->_view);
+            foreach ($controllerObj->getDecorators() as $decorator) {
+                $controllerObj = new $decorator($controllerObj);
+            }
 
             //Execute the Application Logic
             $action = $this->_router->getAction() . 'Action';
