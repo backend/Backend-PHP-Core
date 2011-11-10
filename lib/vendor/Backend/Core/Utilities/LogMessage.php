@@ -38,18 +38,52 @@ namespace Backend\Core\Utilities;
  */
 class LogMessage implements \SplSubject
 {
+    /**
+     * @var int Log level for Critical Messages
+     */
     const LEVEL_CRITICAL    = 1;
+
+    /**
+     * @var int Log level for Warning or Alert Messages
+     */
     const LEVEL_WARNING     = 2;
+
+    /**
+     * @var int Log level for Important Messages
+     */
     const LEVEL_IMPORTANT   = 3;
+
+    /**
+     * @var int Log level for Debugging Messages
+     */
     const LEVEL_DEBUGGING   = 4;
+
+    /**
+     * @var int Log level for Informational Messages
+     */
     const LEVEL_INFORMATION = 5;
 
+    /**
+     * @var array A set of observers for the log message
+     */
     protected $_observers = array();
 
+    /**
+     * @var string The log message level
+     */
     protected $_level;
 
+    /**
+     * @var string The log message
+     */
     protected $_message;
 
+    /**
+     * Constructor for the class
+     *
+     * @param string The log message
+     * @param string The log message level
+     */
     public function __construct($message, $level)
     {
         $this->_message = $message;
@@ -82,19 +116,31 @@ class LogMessage implements \SplSubject
     }
 
     //SplSubject functions
-
+    /**
+     * Attach an observer to the class
+     *
+     * @param SplObserver The observer to attach
+     */
     public function attach(\SplObserver $observer)
     {
         $id = spl_object_hash($observer);
         $this->_observers[$id] = $observer;
     }
 
+    /**
+     * Detach an observer from the class
+     *
+     * @param SplObserver The observer to detach
+     */
     public function detach(\SplObserver $observer)
     {
         $id = spl_object_hash($observer);
         unset($this->_observers[$id]);
     }
 
+    /**
+     * Notify observers of an update to the class
+     */
     public function notify()
     {
         foreach ($this->_observers as $obs) {
@@ -102,6 +148,9 @@ class LogMessage implements \SplSubject
         }
     }
 
+    /**
+     * Return a string representation of the class
+     */
     function __toString()
     {
         return $this->_message;
