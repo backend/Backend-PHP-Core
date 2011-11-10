@@ -30,7 +30,7 @@ namespace Backend\Core;
  *
  * @package Core
  */
-class Controller
+class Controller implements Interfaces\Decorable
 {
     /**
      * This contains the model on which this controller will execute
@@ -43,6 +43,12 @@ class Controller
      * @var Core\View
      */
     private $_viewObj = null;
+
+    /**
+     * An array of names of decorators to apply to the controller
+     * @var array
+     */
+    protected $_decorators = array();
 
     /**
      * The class constructor
@@ -88,4 +94,27 @@ class Controller
 
         return $result;
     }
+
+    public function getDecorators()
+    {
+        return $this->_decorators;
+    }
+
+    public function addDecorator($decorator)
+    {
+        $this->_decorators[] = $decorator;
+    }
+
+    public function removeDecorator($decorator)
+    {
+        $key = array_search($decorator, $this->_decorators);
+        if ($key !== false) {
+            unset($this->_decorators[$key]);
+        }
+    }
+
+    /*public function accept(Visitor $visitor)
+    {
+        return $visitor->visit($this);
+    }*/
 }

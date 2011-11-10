@@ -1,7 +1,6 @@
 <?php
-namespace Backend\Core;
 /**
- * File defining Core\Model
+ * File defining Core\Interfaces\Decorator
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,36 +22,13 @@ namespace Backend\Core;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package CoreFiles
+ * @package InterfaceFiles
  */
 /**
- * The main Model class.
+ * Interface for all classes that are decorators
  *
- * @package Core
+ * @package Interfaces
  */
-class Model implements Interfaces\ModelInterface
+interface Decorator
 {
-    /**
-     * An array of names of decorators to apply to this class
-     * @var array
-     */
-    protected $_decorators = array();
-
-    public function getDecorators()
-    {
-        return $this->_decorators;
-    }
-
-    public function addDecorator($decorator)
-    {
-        $this->_decorators[] = $decorator;
-    }
-
-    public function removeDecorator($decorator)
-    {
-        $key = array_search($decorator, $this->_decorators);
-        if ($key !== false) {
-            unset($this->_decorators[$key]);
-        }
-    }
 }
