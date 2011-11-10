@@ -32,22 +32,46 @@ namespace Backend\Models;
  */
 class Homes extends \Backend\Core\Model implements \Backend\Core\Interfaces\RestModel
 {
-    public function createAction($identifier, array $parameters = array())
+    /**
+     * Create an instance of the model on the source
+     *
+     * @param mixed The identifier to use when creating the instance on the source
+     * @param array Any additional arguments to pass when creating the instance
+     */
+    public function createAction($identifier, array $arguments = array())
     {
         return true;
     }
 
-    public function readAction($identifier, array $parameters = array())
+    /**
+     * Read the model from the source
+     *
+     * @param mixed The identifier to use when reading the instance from the source
+     * @param array Any additional arguments to pass when readin the instance
+     */
+    public function readAction($identifier, array $arguments = array())
     {
         return true;
     }
 
-    public function updateAction($identifier, array $parameters = array())
+    /**
+     * Update the model on the source
+     *
+     * @param mixed The identifier to use when update the instance on the source
+     * @param array Any additional arguments to pass when updating the instance
+     */
+    public function updateAction($identifier, array $arguments = array())
     {
         return true;
     }
 
-    public function deleteAction($identifier, array $parameters = array())
+    /**
+     * Delete the model from the source
+     *
+     * @param mixed The identifier to use when deleting the instance from the source
+     * @param array Any additional arguments to pass when deleting the instance
+     */
+    public function deleteAction($identifier, array $arguments = array())
     {
         return true;
     }
