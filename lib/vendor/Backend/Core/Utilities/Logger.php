@@ -32,6 +32,11 @@ namespace Backend\Core\Utilities;
  */
 class Logger implements \Backend\Core\Interfaces\LoggingObserver
 {
+    /**
+     * Function to receive an update from a subject
+     *
+     * @param SplSubject The message to log
+     */
     public function update(\SplSubject $message)
     {
         switch ($message->getLevel()) {
