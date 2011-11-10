@@ -58,14 +58,13 @@ class Application
     private static $_namespaces = array('Base');
 
     /**
-     * This contains the router object that will help decide what controller, model and action to execute
-     * @var Core\Router
+     * @var Core\Router This contains the router object that will help decide what controller,
+     * model and action to execute
      */
     private $_router = null;
 
     /**
-     * This contains the view object that display the executed request
-     * @var Core\View
+     * @var Core\View This contains the view object that display the executed request
      */
     private $_view = null;
 
