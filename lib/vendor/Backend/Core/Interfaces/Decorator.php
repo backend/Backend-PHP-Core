@@ -32,4 +32,10 @@ namespace Backend\Core\Interfaces;
  */
 interface Decorator
 {
+    /**
+     * The constructor for the decorator
+     *
+     * @param ModelInterface The model to decorate
+     */
+    function __construct(\Backend\Core\Interfaces\Decorable $decorable);
 }

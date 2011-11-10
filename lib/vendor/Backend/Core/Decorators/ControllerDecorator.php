@@ -33,8 +33,16 @@ namespace Backend\Core\Decorators;
 abstract class ControllerDecorator
     implements \Backend\Core\Interfaces\ControllerInterface, \Backend\Core\Interfaces\Decorator
 {
+    /**
+     * @var ControllerInterface The controller this class is decorating
+     */
     protected $_controller;
 
+    /**
+     * The constructor for the class
+     *
+     * @param ControllerInterface The controller to decorate
+     */
     function __construct(\Backend\Core\Interfaces\ControllerInterface $controller)
     {
         $this->_model = $controller;
