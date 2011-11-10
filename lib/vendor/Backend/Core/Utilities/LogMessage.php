@@ -38,10 +38,29 @@ namespace Backend\Core\Utilities;
  */
 class LogMessage implements \SplSubject
 {
+    /**
+     * @var int Log level for Critical Messages
+     */
     const LEVEL_CRITICAL    = 1;
+
+    /**
+     * @var int Log level for Warning or Alert Messages
+     */
     const LEVEL_WARNING     = 2;
+
+    /**
+     * @var int Log level for Important Messages
+     */
     const LEVEL_IMPORTANT   = 3;
+
+    /**
+     * @var int Log level for Debugging Messages
+     */
     const LEVEL_DEBUGGING   = 4;
+
+    /**
+     * @var int Log level for Informational Messages
+     */
     const LEVEL_INFORMATION = 5;
 
     /**
