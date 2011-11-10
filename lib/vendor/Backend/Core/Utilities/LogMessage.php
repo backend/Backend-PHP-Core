@@ -44,12 +44,27 @@ class LogMessage implements \SplSubject
     const LEVEL_DEBUGGING   = 4;
     const LEVEL_INFORMATION = 5;
 
+    /**
+     * @var array A set of observers for the log message
+     */
     protected $_observers = array();
 
+    /**
+     * @var string The log message level
+     */
     protected $_level;
 
+    /**
+     * @var string The log message
+     */
     protected $_message;
 
+    /**
+     * Constructor for the class
+     *
+     * @param string The log message
+     * @param string The log message level
+     */
     public function __construct($message, $level)
     {
         $this->_message = $message;
@@ -82,19 +97,31 @@ class LogMessage implements \SplSubject
     }
 
     //SplSubject functions
-
+    /**
+     * Attach an observer to the class
+     *
+     * @param SplObserver The observer to attach
+     */
     public function attach(\SplObserver $observer)
     {
         $id = spl_object_hash($observer);
         $this->_observers[$id] = $observer;
     }
 
+    /**
+     * Detach an observer from the class
+     *
+     * @param SplObserver The observer to detach
+     */
     public function detach(\SplObserver $observer)
     {
         $id = spl_object_hash($observer);
         unset($this->_observers[$id]);
     }
 
+    /**
+     * Notify observers of an update to the class
+     */
     public function notify()
     {
         foreach ($this->_observers as $obs) {
@@ -102,6 +129,9 @@ class LogMessage implements \SplSubject
         }
     }
 
+    /**
+     * Return a string representation of the class
+     */
     function __toString()
     {
         return $this->_message;
