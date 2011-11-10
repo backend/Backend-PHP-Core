@@ -32,6 +32,12 @@ namespace Backend\Base\Bindings;
  */
 class MySQLBinding extends DatabaseTableBinding
 {
+    /**
+     * Bind to the specified instance of the resource
+     *
+     * @param mixed The identifier of the instance to bind to
+     * @return MySQLBinding The current binding
+     */
     public function bind($identifier = null)
     {
         $identifier = $this->checkIdentifier($identifier);
