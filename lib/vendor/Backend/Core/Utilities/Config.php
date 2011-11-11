@@ -40,11 +40,12 @@ class Config
     /**
      * Construct the config class.
      *
-     * @param string The name of the config file to use. Defaults to PROJECT_FOLDER . 'config/config.json'
+     * @param string The name of the config file to use. Defaults to PROJECT_FOLDER . 'config/default.yaml'
+     * @todo Allow passing an array of filesnames to parse. This will let you parse default as well as environment
      */
     public function __construct($filename = false)
     {
-        $filename = $filename ? $filename : PROJECT_FOLDER . 'config/config.json';
+        $filename = $filename ? $filename : PROJECT_FOLDER . 'config/default.yaml';
         if (!file_exists($filename)) {
             throw new \Exception('Invalid Config File: ' . $filename);
         }
