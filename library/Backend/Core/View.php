@@ -106,12 +106,13 @@ class View
 
     function render($template, array $values = array())
     {
+        $values = array_merge($this->getVariables(), $values);
         if (is_null($this->_renderer)) {
             $this->_renderer = \Backend\Core\Application::getTool('Render');
             $this->_renderer->setView($this);
         }
         //Render it
-        return $this->_renderer->file($template);
+        return $this->_renderer->file($template, $values);
     }
 
     /**

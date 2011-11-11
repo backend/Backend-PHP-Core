@@ -47,7 +47,7 @@ class Response
      */
     protected $_headers = array();
 
-    public function __construct($content = '', $status = 200, $headers = null)
+    public function __construct($content = '', $status = 200, array $headers = array())
     {
         $this->_content = $content;
         $this->_status  = $status;
@@ -96,17 +96,19 @@ class Response
 
     public function sendContent()
     {
-        echo $this->_content;
+        echo implode(PHP_EOL, $this->_content);
     }
 
     public function send()
     {
         $this->sendHeaders();
-        $this->sendBody();
+        $this->sendContent();
     }
 
     public function __toString()
     {
-        $this->send();
+        ob_start();
+        $this->sendContent();
+        return ob_get_clean();
     }
 }
