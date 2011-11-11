@@ -4,25 +4,24 @@
         {{ result.getMessage }}
     </h3>
     <label class="span-3">Code</label>
-    {{ result.getCode() ?><br>
+    {{ result.getCode() }}<br>
     <label class="span-3">File</label>
-    {{ result.getFile() ?><br>
+    {{ result.getFile() }}<br>
     <label class="span-3">Line</label>
-    {{ result.getLine() ?><br>
+    {{ result.getLine() }}<br>
 </div>
 <div class="notice">
     <h3>Stack Trace</h3>
     <ol class="bottom">
-        <?php foreach ($result->getTrace() as $line): ?>
-            <li>
-                <?php echo $line['file'] . '(' . $line['line'] . ')' ?>
-            </li>
-        <?php endforeach; ?>
+        {% for line in result.getTrace %}
+            <li>{{ line.file }} ({{ line.line }})</li>
+        {% endfor %}
     </ol>
 </div>
-<?php if (!empty($result->xdebug_message)): ?>
+{% if result.xdebug_message is empty %}
+{% else %}
     <div class="notice">
         <h3>XDebug</h3>
-        <table><?php echo $result->xdebug_message ?></table>
+        <table>{{ result.xdebug_message|raw }}</table>
     </div>
-<?php endif; ?>
+{% endif %}

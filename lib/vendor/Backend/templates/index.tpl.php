@@ -13,11 +13,10 @@
         </head>
     <body>
         <div class="container">
-            <h2>Result</h2>
-            {{ content }}
+            {{ content|raw }}
             {% if buffered|length > 0 %}
                 <div class="notice" id="buffered">
-                    {{ buffered }}
+                    {{ buffered|raw }}
                 </div>
             {% endif %}
         </div>
