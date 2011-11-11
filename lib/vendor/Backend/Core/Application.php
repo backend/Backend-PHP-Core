@@ -208,7 +208,7 @@ class Application
             $controllerObj = new $decorator($controllerObj);
         }
 
-        if ($controllerObj instanceof ControllerInterface) {
+        if ($controllerObj instanceof Interfaces\ControllerInterface) {
             //Execute the Application Logic
             $action = $this->_router->getAction() . 'Action';
             $result = $controllerObj->execute(
