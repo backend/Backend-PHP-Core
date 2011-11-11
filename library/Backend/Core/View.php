@@ -106,12 +106,13 @@ class View
 
     function render($template, array $values = array())
     {
+        $values = array_merge($this->getVariables(), $values);
         if (is_null($this->_renderer)) {
             $this->_renderer = \Backend\Core\Application::getTool('Render');
             $this->_renderer->setView($this);
         }
         //Render it
-        return $this->_renderer->file($template);
+        return $this->_renderer->file($template, $values);
     }
 
     /**
@@ -119,10 +120,10 @@ class View
      *
      * This function should be overwritten by other views to change the output
      */
-    function output()
+    function transform(\Backend\Core\Response $response)
     {
-        if (Request::from_cli()) {
-            var_export($this->_variables['result']);
+        if (Request::fromCli()) {
+            var_export($response->getContent());
         } else {
             echo <<< END
 <!DOCTYPE HTML>
@@ -132,9 +133,9 @@ class View
     </head>
     <body>
 END;
+            var_dump('Result', $response->getContent());
         }
-        var_dump('Result', $this->_variables['result']);
-        if (Request::from_cli()) {
+        if (Request::fromCli()) {
             echo PHP_EOL;
         } else {
             echo <<< END

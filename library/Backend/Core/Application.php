@@ -38,11 +38,6 @@ namespace Backend\Core;
 class Application
 {
     /**
-     * @var boolean This property indicates if the application has been bootstrapped yet.
-     */
-    protected $_bootstrapped = false;
-
-    /**
      * @var boolean This static property indicates if the application has been constructed yet.
      */
     protected static $_constructed = false;
@@ -58,17 +53,6 @@ class Application
     private static $_namespaces = array('Base');
 
     /**
-     * @var Core\Router This contains the router object that will help decide what controller,
-     * model and action to execute
-     */
-    private $_router = null;
-
-    /**
-     * @var Core\View This contains the view object that display the executed request
-     */
-    private $_view = null;
-
-    /**
      * @var integer The debugging level. The higher, the more verbose
      */
     protected static $_debugLevel = 3;
@@ -76,9 +60,10 @@ class Application
     /**
      * The constructor for the class
      *
-     * @param Core\View The view for the application
+     * @param mixed The Configuration to be used for the application. Can be a the
+     * path of a config file, or a Config object
      */
-    function __construct(View $view = null)
+    function __construct($config = null)
     {
         if (!self::$_constructed) {
             //Core at the beginning, Application at the end
@@ -115,34 +100,28 @@ class Application
             self::$_constructed = true;
         }
 
-        //Every new instance can have a seperate view
-        //Get the View
-        if ($view instanceof View) {
-            $this->_view = $view;
-        } else {
-            try {
-                $view = Utilities\ViewFactory::build();
-            } catch (\Exception $e) {
-                self::log('View Exception: ' . $e->getMessage(), 2);
-                $view = new View();
+        //Setup the specified tools
+        self::$_toolbox = array();
+        if ($config === null) {
+            if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
+                $config = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
+            } else if (file_exists(PROJECT_FOLDER . 'configs/default.yaml')) {
+                $config = PROJECT_FOLDER . 'configs/default.yaml';
+            } else {
+                throw new \Exception(
+                    'Could not find Configuration file. . Add one to ' . PROJECT_FOLDER . 'configs'
+                );
             }
-            $this->_view = $view;
         }
-        self::log('Showing application with ' . get_class($this->_view));
-
-        return true;
-    }
-
-    /**
-     * Initialize the Application.
-     */
-    protected function bootstrap()
-    {
-        if ($this->_bootstrapped) {
-            return true;
+        if (is_string($config)) {
+            //String specifies that we should parse the file specified
+            $config = new Utilities\Config($config);
         }
+        if (!($config instanceof \Backend\Core\Utilities\Config)) {
+            throw new \Exception('Invalid Configuration');
+        }
+        self::addTool('Config', $config);
 
-        $config = self::getTool('Config');
         //Initiate the Tools
         $tools = $config->tools;
         if ($tools) {
@@ -150,103 +129,47 @@ class Application
                 self::addTool($toolName, $tool);
             }
         }
+        return true;
     }
 
     /**
      * Main function for the application
      *
-     * @param Core\Router The route to execute
-     * @return mixed The result of the call
+     * This function can be executed multiple times in one request, so one request
+     * can be mapped to multiple routes.
+     *
+     * @param Route The route to execute
+     * @return Response The result of the call
      */
-    public function main(Router $router = null)
+    public function main(Route $route = null)
     {
-        $this->bootstrap();
+        $route = $route instanceof Route ? $route : new Route();
 
-        //Get Router
-        $this->_router = is_null($router) ? new Router() : $router;
-
-        $result        = null;
-        $controllerObj = null;
-        $modelObj      = null;
-        try {
-            //Get and check the model
-            $model = self::translateModel($this->_router->getArea());
-            if (!class_exists($model, true)) {
-                throw new Exceptions\UnknownModelException('Unkown Model: ' . $model);
-            }
-            $modelObj = new $model();
-        } catch (\Exception $e) {
-            self::log('Logic Exception: ' . $e->getMessage(), 1);
-            //TODO Get the Error Model, and execute
-            $errorModel = self::getBackendClass('Error', 'Models');
-            $modelObj = new $errorModel();
-            $result = $e;
+        $controllerName = 'Backend\Controllers\\' . class_name($route->getArea());
+        if (!class_exists($controllerName, true)) {
+            //Otherwise check the Bases for a controller
+            $controllerName = self::getBackendClass('Controller');
         }
-        //Decorate the Model
-        foreach ($modelObj->getDecorators() as $decorator) {
-            $modelObj = new $decorator($modelObj);
+        if (!class_exists($controllerName)) {
+            throw new \Exception('Unknown Controller: ' . $controllerName);
         }
 
-        try {
-            //See if a controller exists for this model
-            $controller = self::translateController($this->_router->getArea());
-            if (!class_exists($controller, true)) {
-                //Otherwise check the Bases for a controller
-                $controller = self::getBackendClass('Controller');
-            }
-            if (!class_exists($controller)) {
-                throw new \Exception('Unknown Controller: ' . $controller);
-            }
-
-            $controllerObj = new $controller($modelObj, $this->_view);
-        } catch (\Exception $e) {
-            self::log('Logic Exception: ' . $e->getMessage(), 1);
-            $result = $e;
-        }
+        $controller = new $controllerName($route->getRequest());
         //Decorate the Controller
-        foreach ($controllerObj->getDecorators() as $decorator) {
-            $controllerObj = new $decorator($controllerObj);
+        foreach ($controller->getDecorators() as $decorator) {
+            $controller = new $decorator($controller);
         }
 
-        if ($controllerObj instanceof Interfaces\ControllerInterface) {
-            //No Exceptions, so Execute the Application Logic
-            if (is_null($result)) {
-                $action = $this->_router->getAction() . 'Action';
-                $result = $controllerObj->execute(
-                    $action,
-                    $this->_router->getIdentifier(),
-                    $this->_router->getArguments()
-                );
-            }
-
-            //Output
-            $result = $controllerObj->output($result);
-        }
-        return $result;
-    }
-
-    public function shutdown()
-    {
-        self::log('Shutting down Application', 3);
+        //Execute the controller
+        return $controller->execute();
     }
 
     /**
-     * Set the config to use for the application.
-     *
-     * This function will have no effect if run after the app has been initialized.
-     *
-     * @param mixed Either a string containing the path to the config file, or an existing config object
+     * Shutdown function called when ever the script ends
      */
-    public function setConfig($config)
+    public function shutdown()
     {
-        if ($this->_bootstrapped) {
-            return false;
-        }
-        if (is_string($config)) {
-            //String specifies that we should parse the file specified
-            $config = new Utilities\Config($config);
-        }
-        self::addTool('Config', $config);
+        self::log('Shutting down Application', 3);
     }
 
     /**
@@ -415,32 +338,6 @@ class Application
             }
         }
         return $className;
-    }
-
-    /**
-     * Utility function to translate a URL part to a Controller Name
-     *
-     * All Controllers are plural, and ends with Controller
-     * @param string The resource to translate into a Controller name
-     * @return string The translated Controller Name
-     * @todo We need to define naming standards
-     */
-    public static function translateController($resource)
-    {
-        return 'Backend\Controllers\\' . class_name($resource);
-    }
-
-    /**
-     * Utility function to translate a URL part to a Model Name
-     *
-     * All Models are plural, and ends with Model
-     * @param string The resource to translate into a Model name
-     * @return string The translated Model Name
-     * @todo We need to define naming standards
-     */
-    public static function translateModel($resource)
-    {
-        return 'Backend\Models\\' . class_name($resource);
     }
 
     /**
