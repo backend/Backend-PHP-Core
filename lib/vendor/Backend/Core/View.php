@@ -55,6 +55,11 @@ class View
      */
     function __construct($renderer = null)
     {
+        if (is_null($renderer)) {
+            $renderer = \Backend\Core\Application::getTool('Render');
+            $renderer->setView($this);
+        }
+
         $this->_renderer = $renderer;
     }
 
