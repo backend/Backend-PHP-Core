@@ -165,7 +165,9 @@ class Application
         //Get Router
         $this->_router = is_null($router) ? new Router() : $router;
 
-        $result = null;
+        $result        = null;
+        $controllerObj = null;
+        $modelObj      = null;
         try {
             //Get and check the model
             $model = self::translateModel($this->_router->getArea());
@@ -173,31 +175,40 @@ class Application
                 throw new Exceptions\UnknownModelException('Unkown Model: ' . $model);
             }
             $modelObj = new $model();
+        } catch (\Exception $e) {
+            self::log('Logic Exception: ' . $e->getMessage(), 1);
+            //TODO Get the Error Model, and execute
+            $errorModel = self::getBackendClass('Error', 'Models');
+            $modelObj = new $errorModel();
+            $result = $e;
+        }
+        //Decorate the Model
+        foreach ($modelObj->getDecorators() as $decorator) {
+            $modelObj = new $decorator($modelObj);
+        }
 
-            //TODO Compare this with the Visitor pattern in Controller
-            //TODO Model will have a decorators property which is an array of
-            //Decorators to implement, such as ScaffoldingDecorator, CrudDecorator, etc.
-            foreach ($modelObj->getDecorators() as $decorator) {
-                $modelObj = new $decorator($modelObj);
-            }
-
+        try {
             //See if a controller exists for this model
             $controller = self::translateController($this->_router->getArea());
             if (!class_exists($controller, true)) {
                 //Otherwise check the Bases for a controller
-                $bases = array_reverse(self::getNamespaces());
-                foreach ($bases as $base) {
-                    $controller = 'Backend\\' . $base . '\Controller';
-                    if (class_exists($controller, true)) {
-                        break;
-                    }
-                }
+                $controller = self::getBackendClass('Controller');
             }
-            $controllerObj = new $controller($modelObj, $this->_view);
-            foreach ($controllerObj->getDecorators() as $decorator) {
-                $controllerObj = new $decorator($controllerObj);
+            if (!class_exists($controller)) {
+                throw new \Exception('Unknown Controller: ' . $controller);
             }
 
+            $controllerObj = new $controller($modelObj, $this->_view);
+        } catch (\Exception $e) {
+            self::log('Logic Exception: ' . $e->getMessage(), 1);
+            $result = $e;
+        }
+        //Decorate the Controller
+        foreach ($controllerObj->getDecorators() as $decorator) {
+            $controllerObj = new $decorator($controllerObj);
+        }
+
+        if ($controllerObj instanceof ControllerInterface) {
             //Execute the Application Logic
             $action = $this->_router->getAction() . 'Action';
             $result = $controllerObj->execute(
@@ -205,18 +216,10 @@ class Application
                 $this->_router->getIdentifier(),
                 $this->_router->getArguments()
             );
-        } catch (\Exception $e) {
-            self::log('Logic Exception: ' . $e->getMessage(), 1);
-            //TODO Get the Error Model, and execute
-            //TODO Handle UknownRouteException
-            //TODO Handle UnknownModelException
-            //TODO Handle UnsupportedMethodException
-            $result = $e;
-        }
 
-        //Output
-        $this->_view->bind('result', $result);
-        $this->_view->output();
+            //Output
+            $result = $controllerObj->output($result);
+        }
         return $result;
     }
 
@@ -385,6 +388,31 @@ class Application
             }
         }
         return false;
+    }
+
+    /**
+     * Check the registered bases for a class
+     *
+     * Using this function to retrieve a class name allows the coder to override
+     * Base classes
+     *
+     * @param string The class name to check
+     * @param string The type of class it is
+     */
+    public static function getBackendClass($className, $type = false)
+    {
+        $bases = array_reverse(self::getNamespaces());
+        foreach ($bases as $base) {
+            $class = 'Backend\\' . $base . '\\';
+            if ($type) {
+                $class .= $type . '\\';
+            }
+            $class .= $className;
+            if (class_exists($class, true)) {
+                return $class;
+            }
+        }
+        return $className;
     }
 
     /**
