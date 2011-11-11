@@ -209,13 +209,15 @@ class Application
         }
 
         if ($controllerObj instanceof Interfaces\ControllerInterface) {
-            //Execute the Application Logic
-            $action = $this->_router->getAction() . 'Action';
-            $result = $controllerObj->execute(
-                $action,
-                $this->_router->getIdentifier(),
-                $this->_router->getArguments()
-            );
+            //No Exceptions, so Execute the Application Logic
+            if (is_null($result)) {
+                $action = $this->_router->getAction() . 'Action';
+                $result = $controllerObj->execute(
+                    $action,
+                    $this->_router->getIdentifier(),
+                    $this->_router->getArguments()
+                );
+            }
 
             //Output
             $result = $controllerObj->output($result);
