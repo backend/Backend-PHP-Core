@@ -105,34 +105,48 @@ class Html extends \Backend\Core\View
         $this->bind('SITE_LINK', SITE_LINK);
     }
 
-    function output()
+    function transform(\Backend\Core\Response $response)
     {
-        $result = $this->get('result');
-        //Check for an exception
-        if ($result instanceof \Exception) {
-            $title   = 'Exception: ' . get_class($result);
-            $content = $this->render('exception.tpl.php');
-        } else {
-            //Get a Title
-            $title = $this->get('title');
-            if (empty($title)) {
-                if (is_object($result)) {
-                    $title = get_class($result);
-                } else if (is_array($result)) {
-                    $title = 'Array(' . count($result) . ')';
-                } else {
-                    $title = (string)$result;
+        $title   = $this->get('title');
+        $content = array();
+
+        //Render content blocks, get a title
+        foreach ($response->getContent() as $contentBlock) {
+            //Check for an exception
+            if (is_string($contentBlock)) {
+                $content[] = $contentBlock;
+            } else if ($contentBlock instanceof \Exception) {
+                if (empty($title)) {
+                    $title = 'Exception: ' . get_class($contentBlock);
                 }
-                $this->bind('title', 'Result: ' . $title);
+                $content[] = $this->render('exception.tpl.php');
+            } else {
+                //Get a Title
+                if (empty($title)) {
+                    if (is_object($contentBlock)) {
+                        $title = get_class($contentBlock);
+                    } else if (is_array($contentBlock)) {
+                        $title = 'Array(' . count($contentBlock) . ')';
+                    } else {
+                        $title = (string)$contentBlock;
+                    }
+                }
+                $content[] = $result;
             }
-            $content = $result;
         }
-        $this->bind('content', $content);
+        $this->bind('title', 'Result: ' . ($title ? $title : 'Unknown'));
 
         //Get buffered output
         $buffered = ob_get_clean();
-        $this->bind('buffered', $buffered);
+        $content[] = $this->render('buffered.tpl', array('buffered' => $buffered));
 
-        echo $this->render('index.tpl.php');
+        $content = array(
+            $this->render('index.tpl.php', array('content' => $content))
+        );
+
+        //Replace the current content with the new transformed content
+        $response->setContent($content);
+
+        return $response;
     }
 }

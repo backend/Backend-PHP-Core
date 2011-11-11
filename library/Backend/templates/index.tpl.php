@@ -13,12 +13,13 @@
         </head>
     <body>
         <div class="container">
-            {{ content|raw }}
-            {% if buffered|length > 0 %}
-                <div class="notice" id="buffered">
-                    {{ buffered|raw }}
-                </div>
-            {% endif %}
+            {% for contentBlock in content %}
+                {% if contentBlock is not empty %}
+                <!--ContentBlock-{{ loop.index0 }} -->
+                    {{ contentBlock|raw }}
+                <!--/ContentBlock-{{ loop.index0 }} -->
+                {% endif %}
+            {% endfor %}
         </div>
     </body>
 </html>
