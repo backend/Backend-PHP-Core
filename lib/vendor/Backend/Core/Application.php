@@ -184,8 +184,14 @@ class Application
             //See if a controller exists for this model
             $controller = self::translateController($this->_router->getArea());
             if (!class_exists($controller, true)) {
-                //Otherwise run the core controller
-                $controller = 'Backend\Core\Controller';
+                //Otherwise check the Bases for a controller
+                $bases = array_reverse(self::getNamespaces());
+                foreach($bases as $base) {
+                    $controller = 'Backend\\' . $base . '\Controller';
+                    if (class_exists($controller, true)) {
+                        break;
+                    }
+                }
             }
             $controllerObj = new $controller($modelObj, $this->_view);
             foreach ($controllerObj->getDecorators() as $decorator) {
