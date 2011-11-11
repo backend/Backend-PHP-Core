@@ -24,41 +24,13 @@
  *
  * @package CoreFiles
  */
-define('PROJECT_FOLDER', dirname(getcwd()) . '/');
-define('VENDOR_FOLDER', PROJECT_FOLDER . 'lib/vendor/');
-define('BACKEND_FOLDER', VENDOR_FOLDER . 'Backend/');
-define('APP_FOLDER', BACKEND_FOLDER . 'Application/');
-define('WEB_FOLDER', PROJECT_FOLDER . 'public/');
-//define('SITE_FOLDER', APP_FOLDER . '/sites/liveserver.com');
+require('bootstrap.php');
 
-if (array_key_exists('HTTP_HOST', $_SERVER)) {
-    switch ($_SERVER['HTTP_HOST']) {
-    case 'www.liveserver.com':
-        if (!defined('SITE_STATE')) {
-            define('SITE_STATE', 'production');
-        }
-        break;
-    case 'localhost':
-    default:
-        if (!defined('SITE_STATE')) {
-            define('SITE_STATE', 'development');
-        }
-        break;
-    }
-} else {
-    define('SITE_STATE', 'development');
-}
-if (defined('SITE_STATE') && file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
-    $configFile = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
-} else if (file_exists(PROJECT_FOLDER . 'configs/default.yaml')) {
-    $configFile = PROJECT_FOLDER . 'configs/default.yaml';
-} else {
-    die('Unknown config file. Add one to ' . PROJECT_FOLDER . 'configs');
-}
-
-require(BACKEND_FOLDER . 'Core/Application.php');
+//Setup a new Application
 $application = new Backend\Core\Application();
-$application->setConfig($configFile);
-$application->main();
+//The application generates a response
+$response = $application->main();
+//Which is then outputted to the Client
+echo $response;
 
 //Done

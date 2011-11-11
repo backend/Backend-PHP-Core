@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core;
 /**
- * File defining Core\Router
+ * File defining Route
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -26,40 +26,35 @@ namespace Backend\Core;
  * @package CoreFiles
  */
 /**
- * The Router class that uses the query string to help determine the area, action
+ * The Route class that uses the query string to help determine the area, action
  * and identifier for the request.
  *
  * @package Core
  */
-class Router
+class Route
 {
     /**
-     * This contains the route's request
-     * @var Core\Request
+     * @var Request This contains the route's request
      */
     protected $_request;
 
     /**
-     * This contains the route's model
-     * @var string
+     * @var string This contains the route's model
      */
     protected $_area;
 
     /**
-     * This contains the route's action
-     * @var string
+     * @var string This contains the route's action
      */
     protected $_action;
 
     /**
-     * This contains the route's identifier
-     * @var integer
+     * @var integer This contains the route's identifier
      */
     protected $_identifier;
 
     /**
-     * This contains the route's arguments
-     * @var array
+     * @var array This contains the route's arguments
      */
     protected $_arguments;
 

@@ -121,7 +121,7 @@ class View
      */
     function output()
     {
-        if (Request::from_cli()) {
+        if (Request::fromCli()) {
             var_export($this->_variables['result']);
         } else {
             echo <<< END
@@ -134,7 +134,7 @@ class View
 END;
         }
         var_dump('Result', $this->_variables['result']);
-        if (Request::from_cli()) {
+        if (Request::fromCli()) {
             echo PHP_EOL;
         } else {
             echo <<< END

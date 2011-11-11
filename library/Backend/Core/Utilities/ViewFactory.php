@@ -35,15 +35,13 @@ class ViewFactory
     /**
      * Build a view with the supplied (or current) request
      *
-     * @param Core\Request The Request to use to determine the view
-     * @return Core\View The view that can handle the Request
+     * @param Request The Request to use to determine the view
+     * @return View The view that can handle the Request
      */
-    public static function build(\Backend\Core\Request $request = null)
+    public static function build(\Backend\Core\Request $request)
     {
 
         //Check the View Folder
-        $request = is_null($request) ? new \Backend\Core\Request() : $request;
-
         //Loop through all the available views
         $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
         foreach ($namespaces as $base) {
