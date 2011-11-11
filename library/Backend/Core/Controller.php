@@ -117,15 +117,20 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
             $this->_route->getArguments()
         );
 
-        //Execute the Business Logic
-        if (!is_callable(array($this, $function))) {
+        //Determine the method to call. Application takes precedence over Business Logic
+        if (is_callable(array($this, $function))) {
+            $functionCall = array($this, $function);
+        } else if (is_callable(array($this->_model, $function))) {
+            $functionCall = array($this->_model, $function);
+        } else {
             throw new \BadMethodCallException(
-                'Uncallable Method: ' . get_class($this) . "->$function()"
+                "Uncallable Method: $area::$action()"
             );
         }
 
-        Application::log('Executing ' . get_class($this) . '::' . $function, 4);
-        $result = call_user_func_array(array($this, $function), $parameters);
+        //Execute the requested method
+        Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
+        $result = call_user_func_array($functionCall, $parameters);
 
         $this->_response->content($result);
 
