@@ -90,6 +90,13 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         return $result;
     }
 
+    public function output($result)
+    {
+        $this->_viewObj->bind('result', $result);
+        $this->_viewObj->output();
+        return $result;
+    }
+
     /**
      * Get an array of decorators for the class
      *
