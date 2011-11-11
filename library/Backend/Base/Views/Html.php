@@ -113,25 +113,32 @@ class Html extends \Backend\Core\View
         //Render content blocks, get a title
         foreach ($response->getContent() as $contentBlock) {
             //Check for an exception
-            if (is_string($contentBlock)) {
-                $content[] = $contentBlock;
-            } else if ($contentBlock instanceof \Exception) {
+            if (is_scalar($contentBlock)) {
                 if (empty($title)) {
-                    $title = 'Exception: ' . get_class($contentBlock);
-                }
-                $content[] = $this->render('exception.tpl.php');
-            } else {
-                //Get a Title
-                if (empty($title)) {
-                    if (is_object($contentBlock)) {
-                        $title = get_class($contentBlock);
-                    } else if (is_array($contentBlock)) {
-                        $title = 'Array(' . count($contentBlock) . ')';
+                    if (strlen($contentBlock) > 24) {
+                        $title = substr($contentBlock, 0, 24) . '&hellip;';
                     } else {
-                        $title = (string)$contentBlock;
+                        $title = $contentBlock;
                     }
                 }
-                $content[] = $result;
+                $content[] = $contentBlock;
+            } else {
+                if (is_object($contentBlock)) {
+                    if (empty($title)) {
+                        $title = 'Exception: ' . get_class($contentBlock);
+                    }
+                    if ($contentBlock instanceof \Exception) {
+                        $viewHelper = 'exception.tpl';
+                    } else {
+                        $viewHelper = get_class($contentBlock) . '.tpl';
+                    }
+                } else if (is_array($contentBlock)) {
+                    if (empty($title)) {
+                        $title = 'Array(' . count($contentBlock) . ')';
+                    }
+                    $viewHelper = 'array.tpl';
+                }
+                $content[] = $this->render($viewHelper, array('array' => $contentBlock));
             }
         }
         $this->bind('title', 'Result: ' . ($title ? $title : 'Unknown'));
@@ -141,7 +148,7 @@ class Html extends \Backend\Core\View
         $content[] = $this->render('buffered.tpl', array('buffered' => $buffered));
 
         $content = array(
-            $this->render('index.tpl.php', array('content' => $content))
+            $this->render('index.tpl', array('content' => $content))
         );
 
         //Replace the current content with the new transformed content

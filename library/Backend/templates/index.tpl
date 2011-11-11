@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{{ mainTitle }} - {{ title }}</title>
+        <title>{{ mainTitle|default("Unknown")|striptags|raw }} - {{ title|striptags|raw }}</title>
             <link rel="stylesheet" href="{{ SITE_SUB_FOLDER }}css/blueprint/screen.css"
                 type="text/css" media="screen, projection">
             <link rel="stylesheet" href="{{ SITE_SUB_FOLDER }}css/blueprint/print.css"
