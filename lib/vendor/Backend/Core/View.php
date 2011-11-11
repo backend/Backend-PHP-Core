@@ -55,11 +55,6 @@ class View
      */
     function __construct($renderer = null)
     {
-        if (is_null($renderer)) {
-            $renderer = \Backend\Core\Application::getTool('Render');
-            $renderer->setView($this);
-        }
-
         $this->_renderer = $renderer;
     }
 
@@ -107,6 +102,16 @@ class View
         header('X-Redirector: ' . get_class($this));
         header('Location: ' . $location);
         die;
+    }
+
+    function render($template, array $values = array())
+    {
+        if (is_null($this->_renderer)) {
+            $this->_renderer = \Backend\Core\Application::getTool('Render');
+            $this->_renderer->setView($this);
+        }
+        //Render it
+        return $this->_renderer->file($template);
     }
 
     /**
