@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core;
 /**
- * File defining Core\Controller
+ * File defining Controller
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -33,35 +33,30 @@ namespace Backend\Core;
 class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
 {
     /**
-     * This contains the model on which this controller will execute
-     * @var Core\Model
+     * @var ModelInterface This contains the model on which this controller will execute
      */
     private $_modelObj = null;
 
     /**
-     * This contains the view for which this controller will execute
-     * @var Core\View
+     * @var View This contains the view for which this controller will execute
      */
     private $_viewObj = null;
 
     /**
-     * An array of names of decorators to apply to the controller
-     * @var array
+     * @var array An array of names of decorators to apply to the controller
      */
     protected $_decorators = array();
 
     /**
-     * The class constructor
+     * The constructor for the class
      *
-     * @param Core\Model The Model the controller should execute on
-     * @param Core\View The View the controller should execute with
+     * @param ModelInterface The Model the controller should execute on
+     * @param View The View the controller should execute with
      */
     function __construct(Interfaces\ModelInterface $modelObj, View $viewObj)
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
-
-        $this->_viewObj->bind('modelObj', $this->_modelObj);
     }
 
     /**
@@ -95,16 +90,31 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         return $result;
     }
 
+    /**
+     * Get an array of decorators for the class
+     *
+     * @return array The decorators to apply to the class
+     */
     public function getDecorators()
     {
         return $this->_decorators;
     }
 
+    /**
+     * Add a decorator to the class
+     *
+     * @param string The name of the decorator class to add
+     */
     public function addDecorator($decorator)
     {
         $this->_decorators[] = $decorator;
     }
 
+    /**
+     * Remove a decorator from the class
+     *
+     * @param string The name of the decorator class to remove
+     */
     public function removeDecorator($decorator)
     {
         $key = array_search($decorator, $this->_decorators);

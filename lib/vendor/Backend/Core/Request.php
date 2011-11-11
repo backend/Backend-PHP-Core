@@ -53,7 +53,7 @@ class Request
     private $_extension  = null;
 
     /**
-     * The class constructor
+     * The constructor for the class
      *
      * If no method is supplied, it's determined by one of the following:
      * 1. A _method POST variable
