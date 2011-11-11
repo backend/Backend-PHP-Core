@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core;
 /**
- * File defining Core\Controller
+ * File defining Controller
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -35,12 +35,12 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     /**
      * @var ModelInterface This contains the model on which this controller will execute
      */
-    private $_modelObj = null;
+    protected $_modelObj = null;
 
     /**
      * @var View This contains the view for which this controller will execute
      */
-    private $_viewObj = null;
+    protected $_viewObj = null;
 
     /**
      * @var array An array of names of decorators to apply to the controller
@@ -57,8 +57,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
-
-        $this->_viewObj->bind('modelObj', $this->_modelObj);
     }
 
     /**
@@ -89,6 +87,13 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         Application::log('Executing ' . get_class($function[0]) . '::' . $function[1], 4);
         $result = call_user_func_array($function, $parameters);
 
+        return $result;
+    }
+
+    public function output($result)
+    {
+        $this->_viewObj->bind('result', $result);
+        $this->_viewObj->output();
         return $result;
     }
 

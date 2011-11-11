@@ -50,10 +50,10 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
 }
 if (defined('SITE_STATE') && file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
     $configFile = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
-} else if (file_exists(PROJECT_FOLDER . 'configs/config.yaml')) {
-    $configFile = PROJECT_FOLDER . 'configs/config.yaml';
+} else if (file_exists(PROJECT_FOLDER . 'configs/default.yaml')) {
+    $configFile = PROJECT_FOLDER . 'configs/default.yaml';
 } else {
-    die('Unknown config file. Add one to ' . PROJECT_FOLDER . '/configs');
+    die('Unknown config file. Add one to ' . PROJECT_FOLDER . 'configs');
 }
 
 require(BACKEND_FOLDER . 'Core/Application.php');

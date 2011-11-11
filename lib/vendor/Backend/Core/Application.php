@@ -165,7 +165,9 @@ class Application
         //Get Router
         $this->_router = is_null($router) ? new Router() : $router;
 
-        $result = null;
+        $result        = null;
+        $controllerObj = null;
+        $modelObj      = null;
         try {
             //Get and check the model
             $model = self::translateModel($this->_router->getArea());
@@ -173,44 +175,53 @@ class Application
                 throw new Exceptions\UnknownModelException('Unkown Model: ' . $model);
             }
             $modelObj = new $model();
-
-            //TODO Compare this with the Visitor pattern in Controller
-            //TODO Model will have a decorators property which is an array of
-            //Decorators to implement, such as ScaffoldingDecorator, CrudDecorator, etc.
-            foreach ($modelObj->getDecorators() as $decorator) {
-                $modelObj = new $decorator($modelObj);
-            }
-
-            //See if a controller exists for this model
-            $controller = self::translateController($this->_router->getArea());
-            if (!class_exists($controller, true)) {
-                //Otherwise run the core controller
-                $controller = 'Backend\Core\Controller';
-            }
-            $controllerObj = new $controller($modelObj, $this->_view);
-            foreach ($controllerObj->getDecorators() as $decorator) {
-                $controllerObj = new $decorator($controllerObj);
-            }
-
-            //Execute the Application Logic
-            $action = $this->_router->getAction() . 'Action';
-            $result = $controllerObj->execute(
-                $action,
-                $this->_router->getIdentifier(),
-                $this->_router->getArguments()
-            );
         } catch (\Exception $e) {
             self::log('Logic Exception: ' . $e->getMessage(), 1);
             //TODO Get the Error Model, and execute
-            //TODO Handle UknownRouteException
-            //TODO Handle UnknownModelException
-            //TODO Handle UnsupportedMethodException
+            $errorModel = self::getBackendClass('Error', 'Models');
+            $modelObj = new $errorModel();
             $result = $e;
         }
+        //Decorate the Model
+        foreach ($modelObj->getDecorators() as $decorator) {
+            $modelObj = new $decorator($modelObj);
+        }
 
-        //Output
-        $this->_view->bind('result', $result);
-        $this->_view->output();
+        try {
+            //See if a controller exists for this model
+            $controller = self::translateController($this->_router->getArea());
+            if (!class_exists($controller, true)) {
+                //Otherwise check the Bases for a controller
+                $controller = self::getBackendClass('Controller');
+            }
+            if (!class_exists($controller)) {
+                throw new \Exception('Unknown Controller: ' . $controller);
+            }
+
+            $controllerObj = new $controller($modelObj, $this->_view);
+        } catch (\Exception $e) {
+            self::log('Logic Exception: ' . $e->getMessage(), 1);
+            $result = $e;
+        }
+        //Decorate the Controller
+        foreach ($controllerObj->getDecorators() as $decorator) {
+            $controllerObj = new $decorator($controllerObj);
+        }
+
+        if ($controllerObj instanceof Interfaces\ControllerInterface) {
+            //No Exceptions, so Execute the Application Logic
+            if (is_null($result)) {
+                $action = $this->_router->getAction() . 'Action';
+                $result = $controllerObj->execute(
+                    $action,
+                    $this->_router->getIdentifier(),
+                    $this->_router->getArguments()
+                );
+            }
+
+            //Output
+            $result = $controllerObj->output($result);
+        }
         return $result;
     }
 
@@ -247,9 +258,17 @@ class Application
     public static function addTool($toolName, $tool)
     {
         if (is_string($tool)) {
-            $tool = new $tool();
+            if (class_exists($tool, true)) {
+                $tool = new $tool();
+            } else {
+                self::log('Undefined Tool: ' . $tool);
+            }
         } else if (is_array($tool) && count($tool) == 2) {
-            $tool = new $tool[0]($tool[1]);
+            if (class_exists($tool[0], true)) {
+                $tool = new $tool[0]($tool[1]);
+            } else {
+                self::log('Undefined Tool: ' . $tool[0]);
+            }
         }
         $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
         self::$_toolbox[$toolName] = $tool;
@@ -371,6 +390,31 @@ class Application
             }
         }
         return false;
+    }
+
+    /**
+     * Check the registered bases for a class
+     *
+     * Using this function to retrieve a class name allows the coder to override
+     * Base classes
+     *
+     * @param string The class name to check
+     * @param string The type of class it is
+     */
+    public static function getBackendClass($className, $type = false)
+    {
+        $bases = array_reverse(self::getNamespaces());
+        foreach ($bases as $base) {
+            $class = 'Backend\\' . $base . '\\';
+            if ($type) {
+                $class .= $type . '\\';
+            }
+            $class .= $className;
+            if (class_exists($class, true)) {
+                return $class;
+            }
+        }
+        return $className;
     }
 
     /**

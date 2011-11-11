@@ -44,7 +44,7 @@ class Html extends \Backend\Core\View
      */
     public $templateLocations = array();
 
-    function __construct()
+    function __construct($renderer = null)
     {
         ob_start();
 
@@ -57,7 +57,7 @@ class Html extends \Backend\Core\View
 
         $this->templateLocations = array_filter($this->templateLocations, 'file_exists');
 
-        parent::__construct();
+        parent::__construct($renderer);
     }
 
     /**
@@ -107,12 +107,32 @@ class Html extends \Backend\Core\View
 
     function output()
     {
-        $render = \Backend\Core\Application::getTool('Render');
-        $render->setView($this);
+        $result = $this->get('result');
+        //Check for an exception
+        if ($result instanceof \Exception) {
+            $title   = 'Exception: ' . get_class($result);
+            $content = $this->render('exception.tpl.php');
+        } else {
+            //Get a Title
+            $title = $this->get('title');
+            if (empty($title)) {
+                if (is_object($result)) {
+                    $title = get_class($result);
+                } else if (is_array($result)) {
+                    $title = 'Array(' . count($result) . ')';
+                } else {
+                    $title = (string)$result;
+                }
+                $this->bind('title', 'Result: ' . $title);
+            }
+            $content = $result;
+        }
+        $this->bind('content', $content);
 
+        //Get buffered output
         $buffered = ob_get_clean();
         $this->bind('buffered', $buffered);
-        $index = $render->file('index.tpl.php');
-        echo $index;
+
+        echo $this->render('index.tpl.php');
     }
 }

@@ -104,6 +104,16 @@ class View
         die;
     }
 
+    function render($template, array $values = array())
+    {
+        if (is_null($this->_renderer)) {
+            $this->_renderer = \Backend\Core\Application::getTool('Render');
+            $this->_renderer->setView($this);
+        }
+        //Render it
+        return $this->_renderer->file($template);
+    }
+
     /**
      * Output the request.
      *
