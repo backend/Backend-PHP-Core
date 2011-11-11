@@ -119,10 +119,10 @@ class View
      *
      * This function should be overwritten by other views to change the output
      */
-    function output()
+    function transform(\Backend\Core\Response $response)
     {
         if (Request::fromCli()) {
-            var_export($this->_variables['result']);
+            var_export($response->getContent());
         } else {
             echo <<< END
 <!DOCTYPE HTML>
@@ -132,8 +132,8 @@ class View
     </head>
     <body>
 END;
+            var_dump('Result', $response->getContent());
         }
-        var_dump('Result', $this->_variables['result']);
         if (Request::fromCli()) {
             echo PHP_EOL;
         } else {
