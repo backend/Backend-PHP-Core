@@ -70,7 +70,7 @@ class ViewFactory
         $formats = array_filter(
             array(
                 $request->getSpecifiedFormat(),
-                $request->getExtension().
+                $request->getExtension(),
                 $request->getMimeType(),
             )
         );
