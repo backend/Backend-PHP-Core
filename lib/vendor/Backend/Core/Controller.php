@@ -35,12 +35,12 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     /**
      * @var ModelInterface This contains the model on which this controller will execute
      */
-    private $_modelObj = null;
+    protected $_modelObj = null;
 
     /**
      * @var View This contains the view for which this controller will execute
      */
-    private $_viewObj = null;
+    protected $_viewObj = null;
 
     /**
      * @var array An array of names of decorators to apply to the controller
