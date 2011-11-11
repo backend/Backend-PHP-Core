@@ -76,22 +76,20 @@ class Request
                 $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
                 break;
             default:
-                if (self::from_cli()) {
+                if (self::fromCli()) {
                     //First CL parameter is the method
                     $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
                 } else {
-                    $method = strtoupper($_SERVER['REQUEST_METHOD']);
+                    $method = $_SERVER['REQUEST_METHOD'];
                 }
                 break;
             }
         }
-        if (!in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD'))) {
-            throw new Exceptions\UnsupportedHttpMethodException('Unsupported method ' . $method);
-        }
-        $this->_method  = $method;
+        $this->setMethod($method);
+
         //Set the payload to request initially
         if (empty($request)) {
-            if (self::from_cli()) {
+            if (self::fromCli()) {
                 $this->_payload = array(
                     //Second CL parameter is the query. This will be picked up later
                     count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
@@ -139,7 +137,7 @@ class Request
     public function getSpecifiedFormat()
     {
         //Third CL parameter is the required format
-        if (self::from_cli() && count($_SERVER['argv']) >= 4) {
+        if (self::fromCli() && count($_SERVER['argv']) >= 4) {
             return $_SERVER['argv'][3];
         }
 
@@ -185,7 +183,7 @@ class Request
      */
     public function getMimeType()
     {
-        if (self::from_cli()) {
+        if (self::fromCli()) {
             return 'cli';
         } else if (array_key_exists('HTTP_ACCEPT', $_SERVER)) {
             //No format found, check if there's an Accept Header
@@ -210,6 +208,91 @@ class Request
     }
 
     /**
+     * Set the request's method
+     *
+     * @param string The Request Method
+     */
+    public function setMethod($method)
+    {
+        $method = strtoupper($method);
+        if (!in_array($method, array('DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'))) {
+            throw new Exceptions\UnsupportedHttpMethodException('Unsupported method ' . $method);
+        }
+        $this->_method = $method;
+    }
+
+    /**
+     * Utility function to check if the current method equals the specified method
+     *
+     * @param string The method to check
+     * @return boolean If the current method equals the specified method
+     */
+    private function isMethod($method)
+    {
+        return strtoupper($method) == $this->_method;
+    }
+
+    /**
+     * Check if the current request is a DELETE request
+     *
+     * @return boolean If the current request is a DELETE request
+     */
+    public function isDelete()
+    {
+        return $this->isMethod('DELETE');
+    }
+
+    /**
+     * Check if the current request is a GET request
+     *
+     * @return boolean If the current request is a GET request
+     */
+    public function isGet()
+    {
+        return $this->isMethod('GET');
+    }
+
+    /**
+     * Check if the current request is a HEAD request
+     *
+     * @return boolean If the current request is a HEAD request
+     */
+    public function isHead()
+    {
+        return $this->isMethod('HEAD');
+    }
+
+    /**
+     * Check if the current request is a OPTIONS request
+     *
+     * @return boolean If the current request is a OPTIONS request
+     */
+    public function isOptions()
+    {
+        return $this->isMethod('OPTIONS');
+    }
+
+    /**
+     * Check if the current request is a POST request
+     *
+     * @return boolean If the current request is a POST request
+     */
+    public function isPost()
+    {
+        return $this->isMethod('POST');
+    }
+
+    /**
+     * Check if the current request is a PUT request
+     *
+     * @return boolean If the current request is a PUT request
+     */
+    public function isPut()
+    {
+        return $this->isMethod('PUT');
+    }
+
+    /**
      * Return the request's query.
      *
      * @return string The Request Query
@@ -231,8 +314,10 @@ class Request
 
     /**
      * Check if this requests originates from a CLI.
+     *
+     * @return boolean If this is a CLI request
      */
-    public static function from_cli()
+    public static function fromCli()
     {
         return !array_key_exists('REQUEST_METHOD', $_SERVER) && array_key_exists('argv', $_SERVER);
     }
