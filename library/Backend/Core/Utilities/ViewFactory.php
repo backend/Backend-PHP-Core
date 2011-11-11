@@ -42,7 +42,7 @@ class ViewFactory
     {
 
         //Check the View Folder
-        //Loop through all the available views
+        $views = array();
         $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
         foreach ($namespaces as $base) {
             $viewFolder = BACKEND_FOLDER . $base . '/Views/';
@@ -63,45 +63,39 @@ class ViewFactory
                     continue;
                 }
 
-                //Check if the view can handle the request
-                if (self::checkView($viewName, $request)) {
-                    $renderer = \Backend\Core\Application::getTool('Renderer');
-                    $view = new $viewName($renderer);
-                    if (!($view instanceof \Backend\Core\View)) {
-                        throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
-                    }
+                $views[] = $viewName;
+            }
+        }
+
+        $formats = array_filter(
+            array(
+                $request->getSpecifiedFormat(),
+                $request->getExtension().
+                $request->getMimeType(),
+            )
+        );
+
+        foreach ($formats as $format) {
+            foreach ($views as $viewName) {
+                if ($view = self::checkView($viewName, $format)) {
                     return $view;
                 }
             }
         }
-        throw new \Backend\Core\Exceptions\UnknownViewException('Unrecognized Format');
+
+        throw new \Backend\Core\Exceptions\UnrecognizedRequestException('Unrecognized Format');
         return false;
     }
 
-    /**
-     * Check the View against the supplied request
-     *
-     * This was originally implemented in Core\View, but issues with static variables
-     * and inheritance prevented it from working properly. Non static properties could
-     * not be used, as we do not want to construct each view.
-     */
-    private static function checkView($viewName, $request)
+    private static function checkView($viewName, $format)
     {
-        if ($format = $request->getSpecifiedFormat()) {
-            if (in_array($format, $viewName::$handledFormats)) {
-                return true;
+        if (in_array($format, $viewName::$handledFormats)) {
+            $renderer = \Backend\Core\Application::getTool('Renderer');
+            $view = new $viewName($renderer);
+            if (!($view instanceof \Backend\Core\View)) {
+                throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
             }
-            return false;
-        }
-        if ($extension = $request->getExtension()) {
-            if (in_array($extension, $viewName::$handledFormats)) {
-                return true;
-            }
-        }
-        if ($mimeType = $request->getMimeType()) {
-            if (in_array($mimeType, $viewName::$handledFormats)) {
-                return true;
-            }
+            return $view;
         }
         return false;
     }
