@@ -38,10 +38,13 @@ class Cli extends \Backend\Core\View
      */
     public static $handledFormats = array('cli');
 
-    function output()
+    function transform(\Backend\Core\Response $response)
     {
-        echo 'Result:' . PHP_EOL;
-        var_export($this->_variables['result']);
-        echo PHP_EOL;
+        $contents = array();
+        foreach ($response->getContent() as $key => $contentBlock) {
+            $contents[] = 'Result-' . $key . ': ' . PHP_EOL . var_export($contentBlock, true) . PHP_EOL;
+        }
+        $response->setContent($contents);
+        return $response;
     }
 }

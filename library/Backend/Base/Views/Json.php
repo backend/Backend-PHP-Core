@@ -38,11 +38,10 @@ class Json extends \Backend\Core\View
      */
     public static $handledFormats = array('json', 'text/json');
 
-    function output()
+    function transform(\Backend\Core\Response $response)
     {
-        echo json_encode($this->_variables['result']);
-        if (BERequest::from_cli()) {
-            echo PHP_EOL;
-        }
+        $contents = json_encode($response->getContent());
+        $response->setContent(array($contents));
+        return $response;
     }
 }

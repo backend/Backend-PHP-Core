@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core\Exceptions;
 /**
- * File defining UncallableMethodException
+ * File defining UnrecognizedRequestException
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -26,10 +26,10 @@ namespace Backend\Core\Exceptions;
  * @package ExceptionFiles
  */
 /**
- * UnknownViewException
+ * UnrecognizedRequestException
  *
  * @package Exceptions
  */
-class UnknownViewException extends \Exception
+class UnrecognizedRequestException extends \Exception
 {
 }
