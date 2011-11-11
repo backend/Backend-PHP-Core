@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core;
 /**
- * File defining Core\Controller
+ * File defining Controller
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -57,8 +57,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     {
         $this->_modelObj = $modelObj;
         $this->_viewObj  = $viewObj;
-
-        $this->_viewObj->bind('modelObj', $this->_modelObj);
     }
 
     /**
