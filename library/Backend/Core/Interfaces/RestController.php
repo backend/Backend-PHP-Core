@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core\Interfaces;
 /**
- * File defining RestModel
+ * File defining RestController
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -26,11 +26,11 @@ namespace Backend\Core\Interfaces;
  * @package InterfacesFiles
  */
 /**
- * A Model class that provides basic REST rest functions
+ * A Controller class that provides basic REST rest functions
  *
  * @package Interfaces
  */
-interface RestModel extends ModelInterface
+interface RestController extends ControllerInterface
 {
     /**
      * Create function called by the POST HTTP verb
