@@ -186,7 +186,7 @@ class Application
             if (!class_exists($controller, true)) {
                 //Otherwise check the Bases for a controller
                 $bases = array_reverse(self::getNamespaces());
-                foreach($bases as $base) {
+                foreach ($bases as $base) {
                     $controller = 'Backend\\' . $base . '\Controller';
                     if (class_exists($controller, true)) {
                         break;
@@ -253,9 +253,17 @@ class Application
     public static function addTool($toolName, $tool)
     {
         if (is_string($tool)) {
-            $tool = new $tool();
+            if (class_exists($tool, true)) {
+                $tool = new $tool();
+            } else {
+                self::log('Undefined Tool: ' . $tool);
+            }
         } else if (is_array($tool) && count($tool) == 2) {
-            $tool = new $tool[0]($tool[1]);
+            if (class_exists($tool[0], true)) {
+                $tool = new $tool[0]($tool[1]);
+            } else {
+                self::log('Undefined Tool: ' . $tool[0]);
+            }
         }
         $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
         self::$_toolbox[$toolName] = $tool;
