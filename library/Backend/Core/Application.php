@@ -202,7 +202,7 @@ class Application
 
         $controller = new $controllerName();
         //Decorate the Controller
-        if ($controller instanceof Decorable) {
+        if ($controller instanceof Interfaces\Decorable) {
             foreach ($controller->getDecorators() as $decorator) {
                 $controller = new $decorator($controller);
             }
