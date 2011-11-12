@@ -28,6 +28,19 @@ namespace Backend\Core;
 /**
  * The main application class.
  *
+ * In the traditional PHP setup, you will have one appllication per request. The application
+ * will always have one view associated with it. If not specified, the view will be
+ * deduced from the request.
+ *
+ * If you need to serve multiple views with one request, it is possible to instansiate
+ * Application multiple times.
+ *
+ * If you need to serve multiple routes with one request, instansiate one application,
+ * and execute the main function multiple times with the specified routes. You can also
+ * run {@link Controller::execute} multiple times, although the behaviour around that
+ * might be undefined.
+ *
+ *
  * The application will / should be the only singleton in the framework, acting as
  * a Toolbox. That means that any resource that should be globally accessable (and
  * some times a singleton) should be passed to the Application. Read more at
@@ -58,12 +71,23 @@ class Application
     protected static $_debugLevel = 3;
 
     /**
+     * @var Request This contains the Request that is being handled
+     */
+    private $_request = null;
+
+    /**
+     * @var View This contains the view object that display the executed request
+     */
+    private $_view = null;
+
+    /**
      * The constructor for the class
      *
      * @param mixed The Configuration to be used for the application. Can be a the
      * path of a config file, or a Config object
+     * @param Request The request for the application to handle
      */
-    function __construct($config = null)
+    function __construct($config = null, Request $request = null)
     {
         if (!self::$_constructed) {
             //Core at the beginning, Application at the end
@@ -97,6 +121,7 @@ class Application
                 self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
             }
 
+
             self::$_constructed = true;
         }
 
@@ -129,6 +154,20 @@ class Application
                 self::addTool($toolName, $tool);
             }
         }
+
+        //Application per request
+        $this->_request = is_null($request) ? new \Backend\Core\Request()  : $request;
+
+        //Get the View
+        try {
+            $view = Utilities\ViewFactory::build($this->_request);
+        } catch (\Exception $e) {
+            Application::log('View Exception: ' . $e->getMessage(), 2);
+            $view = new View();
+        }
+        $this->_view = $view;
+        self::log('Running Application in ' . get_class($this->_view) . ' View');
+
         return true;
     }
 
@@ -143,8 +182,7 @@ class Application
      */
     public function main(Route $route = null)
     {
-        $route = $route instanceof Route ? $route : new Route();
-
+        $route = $route instanceof Route ? $route : new Route($this->_request);
         $controllerName = 'Backend\Controllers\\' . class_name($route->getArea());
         if (!class_exists($controllerName, true)) {
             //Otherwise check the Bases for a controller
@@ -154,14 +192,14 @@ class Application
             throw new \Exception('Unknown Controller: ' . $controllerName);
         }
 
-        $controller = new $controllerName($route->getRequest());
+        $controller = new $controllerName();
         //Decorate the Controller
         foreach ($controller->getDecorators() as $decorator) {
             $controller = new $decorator($controller);
         }
 
-        //Execute the controller
-        return $controller->execute();
+        //Execute the route through the controller
+        return $controller->execute($route);
     }
 
     public function output(Response $response)

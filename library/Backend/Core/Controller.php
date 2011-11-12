@@ -39,19 +39,9 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     private $_route = null;
 
     /**
-     * @var Request This contains the Request that is being handled
-     */
-    private $_request = null;
-
-    /**
      * @var Response This contains the Response that will be returned
      */
     private $_response = null;
-
-    /**
-     * @var View This contains the view object that display the executed request
-     */
-    private $_view = null;
 
     /**
      * @var ModelInterface This contains the model on which this controller will execute
@@ -66,41 +56,27 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     /**
      * The constructor for the class
      *
-     * @param Request The request for the controller to handle
-     * @param View The view that determines the format of the response
      * @param Response A response the controller should manipulate and return
      */
-    function __construct(Request $request = null, View $view = null, Response $response = null)
+    function __construct(Response $response = null)
     {
-        //Setup the request and the response
-        $this->_request  = is_null($request)  ? new \Backend\Core\Request()  : $request;
+        //Setup the response
         $this->_response = is_null($response) ? new \Backend\Core\Response() : $response;
-
-        //Get the View
-        if ($view instanceof View) {
-            $this->_view = $view;
-        } else {
-            try {
-                $view = Utilities\ViewFactory::build($this->_request);
-            } catch (\Exception $e) {
-                Application::log('View Exception: ' . $e->getMessage(), 2);
-                $view = new View();
-            }
-            $this->_view = $view;
-        }
-        Application::log('Running Controller in ' . get_class($this->_view) . ' View');
     }
 
     /**
      * The main controller function
      *
+     * This function can be called multiple times, although it's probably better to
+     * run {@link Application::main} to get the desired effect.
+     *
      * @param Route The route the controller should execute
      * @return Response The response to send to the client
      */
-    public function execute(Route $route = null)
+    public function execute(Route $route)
     {
         //Get Route
-        $this->_route = is_null($route) ? new Route($this->_request) : $route;
+        $this->_route = $route;
         $area         = $this->_route->getArea();
         $action       = $this->_route->getAction();
 
