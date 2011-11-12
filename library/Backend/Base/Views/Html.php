@@ -33,16 +33,19 @@ namespace Backend\Base\Views;
 class Html extends \Backend\Core\View
 {
     /**
-     * Handle HTML requests
-     * @var array
+     * @var array Handle HTML requests
      */
     public static $handledFormats = array('html', 'htm', 'text/html', 'application/xhtml+xml');
 
     /**
-     * Location for template files. List them in order of preference
-     * @var array
+     * @var array Location for template files. List them in order of preference
      */
     public $templateLocations = array();
+
+    /**
+     * @var array Content blocks built up to send later
+     */
+    protected $_content = array();
 
     function __construct($renderer = null)
     {
@@ -108,53 +111,57 @@ class Html extends \Backend\Core\View
     function transform(\Backend\Core\Response $response)
     {
         $title   = $this->get('title');
-        $content = array();
+        $this->_content = array();
 
         //Render content blocks, get a title
-        foreach ($response->getContent() as $contentBlock) {
+        foreach ($response->getContent() as $content) {
             //Check for an exception
-            if (is_scalar($contentBlock)) {
-                if (empty($title)) {
-                    if (strlen($contentBlock) > 24) {
-                        $title = substr($contentBlock, 0, 24) . '&hellip;';
-                    } else {
-                        $title = $contentBlock;
-                    }
-                    $title = 'Result: ' . $title;
-                }
-                $content[] = $contentBlock;
-            } else {
-                if (is_object($contentBlock)) {
-                    if (empty($title)) {
-                        $title = 'Object: ' . get_class($contentBlock);
-                    }
-                    if ($contentBlock instanceof \Exception) {
-                        $viewHelper = 'exception.tpl';
-                    } else {
-                        $viewHelper = get_class($contentBlock) . '.tpl';
-                    }
-                    $content[] = $this->render($viewHelper, array('object' => $contentBlock));
-                } else if (is_array($contentBlock)) {
-                    if (empty($title)) {
-                        $title = 'Array(' . count($contentBlock) . ')';
-                    }
-                    $content[] = $this->render('array.tpl', array('array' => $contentBlock));
-                }
-            }
+            $this->transformContent($content);
         }
+        $title = $this->get('title');
         $this->bind('title', $title ? $title : 'Result: Unknown');
 
         //Get buffered output
         $buffered = ob_get_clean();
-        $content[] = $this->render('buffered.tpl', array('buffered' => $buffered));
+        $this->_content[] = $this->render('buffered.tpl', array('buffered' => $buffered));
 
         $content = array(
-            $this->render('index.tpl', array('content' => $content))
+            $this->render('index.tpl', array('content' => $this->_content))
         );
 
         //Replace the current content with the new transformed content
         $response->setContent($content);
 
         return $response;
+    }
+
+    public function transformContent($content)
+    {
+        if (is_scalar($content)) {
+            if (strlen($content) > 24) {
+                $title = substr($content, 0, 24) . '&hellip;';
+            } else {
+                $title = $content;
+            }
+            $this->bind('title', 'Result: ' . $title, false);
+            $this->_content[] = $content;
+        } else {
+            //Set the title
+            if (is_object($content)) {
+                $this->bind('title', 'Object: ' . get_class($content), false);
+            } else if (is_array($content)) {
+                $this->bind('title', 'Array(' . count($content) . ')', false);
+            }
+            if ($content instanceof \Exception) {
+                $this->_content[] = $this->render('exception.tpl', array('object' => $content));
+            } else if ($content instanceof \Traversable || is_array($content)) {
+                $prefix = (is_array($content) ? 'Array' : get_class($content)) . '-';
+                foreach ($content as $key => $value) {
+                    $this->_content[] = '<h3>' . $prefix . $key . '</h3>';
+                    $this->transformContent($value);
+                    $this->_content[] = '<hr>';
+                }
+            }
+        }
     }
 }
