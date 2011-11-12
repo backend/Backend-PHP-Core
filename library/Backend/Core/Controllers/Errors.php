@@ -1,6 +1,7 @@
 <?php
+namespace Backend\Core\Controllers;
 /**
- * Main URL end point
+ * File defining Errors Controller
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -24,13 +25,16 @@
  *
  * @package CoreFiles
  */
-require('bootstrap.php');
-
-//Setup a new Application
-$application = new Backend\Core\Application();
-//The application generates a response
-$response = $application->main();
-//Which is then outputted to the Client
-$application->output($response);
-
-//Done
+/**
+ * Default Error handler
+ *
+ * @package Core
+ */
+class Errors extends \Backend\Core\Controller
+{
+    public function readAction($id, array $arguments)
+    {
+        $payload = $this->_route->getRequest()->getPayload();
+        return $payload[$id];
+    }
+}
