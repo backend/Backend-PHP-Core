@@ -31,7 +31,8 @@ namespace Backend\Core\Decorators;
  * @package Decorators
  */
 abstract class ControllerDecorator
-    implements \Backend\Core\Interfaces\ControllerInterface, \Backend\Core\Interfaces\Decorator
+    extends \Backend\Core\Controller
+        implements \Backend\Core\Interfaces\ControllerInterface, \Backend\Core\Interfaces\Decorator
 {
     /**
      * @var ControllerInterface The controller this class is decorating
@@ -43,8 +44,9 @@ abstract class ControllerDecorator
      *
      * @param ControllerInterface The controller to decorate
      */
-    function __construct(\Backend\Core\Interfaces\ControllerInterface $controller)
+    function __construct(\Backend\Core\Interfaces\Decorable $controller, Response $response = null)
     {
         $this->_model = $controller;
+        parent::__construct($response);
     }
 }

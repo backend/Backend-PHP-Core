@@ -169,6 +169,8 @@ class Application
             $view = new View();
         }
         $this->_view = $view;
+        self::addTool('View', $view);
+
         self::log('Running Application in ' . get_class($this->_view) . ' View');
 
         return true;
@@ -202,7 +204,7 @@ class Application
 
         $controller = new $controllerName();
         //Decorate the Controller
-        if ($controller instanceof Decorable) {
+        if ($controller instanceof Interfaces\Decorable) {
             foreach ($controller->getDecorators() as $decorator) {
                 $controller = new $decorator($controller);
             }

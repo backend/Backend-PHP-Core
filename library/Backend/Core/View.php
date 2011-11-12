@@ -63,10 +63,14 @@ class View
      *
      * @param string The name of the variable
      * @param mixed The value of the variable
+     * @param boolean Set to false to honor previously set values
      */
-    function bind($name, $value)
+    function bind($name, $value, $overwrite = true)
     {
-        $this->_variables[$name] = $value;
+        if ($overwrite || !array_key_exists($name, $this->_variables)) {
+            $this->_variables[$name] = $value;
+        }
+        return $this->_variables[$name];
     }
 
     /**
