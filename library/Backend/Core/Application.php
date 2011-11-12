@@ -169,6 +169,8 @@ class Application
             $view = new View();
         }
         $this->_view = $view;
+        self::addTool('View', $view);
+
         self::log('Running Application in ' . get_class($this->_view) . ' View');
 
         return true;

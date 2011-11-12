@@ -44,8 +44,9 @@ abstract class ControllerDecorator
      *
      * @param ControllerInterface The controller to decorate
      */
-    function __construct(\Backend\Core\Interfaces\Decorable $controller)
+    function __construct(\Backend\Core\Interfaces\Decorable $controller, Response $response = null)
     {
         $this->_model = $controller;
+        parent::__construct($response);
     }
 }
