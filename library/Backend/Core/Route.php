@@ -69,9 +69,16 @@ class Route
      *
      * @param CoreRequest A request object to serve
      */
-    function __construct(Request $request = null)
+    function __construct($request = null, $method = 'GET')
     {
-        $this->_request = is_null($request) ? new Request() : $request;
+        if (is_null($request)) {
+            $this->_request = new Request();
+        } else if ($request instanceof Request) {
+            $this->_request = $request;
+        } else {
+            parse_str($request, $data);
+            $this->_request = new Request($data, $method);
+        }
 
         //Setup and split the query
         $query = $this->_request->getQuery();

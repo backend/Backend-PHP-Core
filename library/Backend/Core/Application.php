@@ -103,6 +103,9 @@ class Application
 
             register_shutdown_function(array($this, 'shutdown'));
 
+            set_exception_handler(array($this, 'exception'));
+            set_error_handler(array($this, 'error'));
+
             //Some constants
             if (!defined('SITE_STATE')) {
                 define('SITE_STATE', 'production');
@@ -183,9 +186,14 @@ class Application
     public function main(Route $route = null)
     {
         $route = $route instanceof Route ? $route : new Route($this->_request);
-        $controllerName = 'Backend\Controllers\\' . class_name($route->getArea());
+        $controllerBase = class_name($route->getArea());
+        $controllerName = 'Backend\Controllers\\' . $controllerBase;
         if (!class_exists($controllerName, true)) {
             //Otherwise check the Bases for a controller
+            $controllerName = self::getBackendClass($controllerBase, 'Controllers');
+        }
+        if (!class_exists($controllerName, true)) {
+            //Otherwise check the Bases for a Default Controller
             $controllerName = self::getBackendClass('Controller');
         }
         if (!class_exists($controllerName)) {
@@ -194,8 +202,10 @@ class Application
 
         $controller = new $controllerName();
         //Decorate the Controller
-        foreach ($controller->getDecorators() as $decorator) {
-            $controller = new $decorator($controller);
+        if ($controller instanceof Decorable) {
+            foreach ($controller->getDecorators() as $decorator) {
+                $controller = new $decorator($controller);
+            }
         }
 
         //Execute the route through the controller
@@ -205,9 +215,8 @@ class Application
     public function output(Response $response)
     {
         //Pass the result to the View
-        $response = $this->_view->transform($this->_response);
+        $response = $this->_view->transform($response);
         echo $response;
-        return $response;
     }
 
 
@@ -217,6 +226,37 @@ class Application
     public function shutdown()
     {
         self::log('Shutting down Application', 3);
+    }
+
+    /**
+     * Error handling function called when ever an error occurs.
+     *
+     * Some types of errors will be converted into excceptions.
+     * Called by set_error_handler.
+     */
+    public function error($errno, $errstr, $errfile, $errline)
+    {
+        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+    }
+
+    /**
+     * Exception handling function called when ever an exception isn't handled.
+     *
+     * Called by set_exception_handler.
+     */
+    public function exception($exception)
+    {
+        $data = array(
+            'error/exception' => '',
+            'exception' => $exception,
+        );
+        try {
+            $response = $this->main(new Route(new Request($data, 'get')));
+            //Which is then outputted to the Client
+            $this->output($response);
+        } catch (\Exception $e) {
+            die('Could not handle exception: ' . $e->getMessage() . PHP_EOL);
+        }
     }
 
     /**
