@@ -31,6 +31,7 @@ namespace Backend\Core\Decorators;
  * @package Decorators
  */
 abstract class ModelDecorator
+    extends \Backend\Core\Model
     implements \Backend\Core\Interfaces\ModelInterface, \Backend\Core\Interfaces\Decorator
 {
     /**
@@ -43,7 +44,7 @@ abstract class ModelDecorator
      *
      * @param ModelInterface The model to decorate
      */
-    function __construct(\Backend\Core\Interfaces\ModelInterface $model)
+    function __construct(\Backend\Core\Interfaces\Decorable $model)
     {
         $this->_model = $model;
     }
