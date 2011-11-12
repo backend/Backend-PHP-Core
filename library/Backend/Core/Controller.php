@@ -36,12 +36,12 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
      * @var Route This contains the route object that will help decide what controller,
      * model and action to execute
      */
-    private $_route = null;
+    protected $_route = null;
 
     /**
      * @var Response This contains the Response that will be returned
      */
-    private $_response = null;
+    protected $_response = null;
 
     /**
      * @var ModelInterface This contains the model on which this controller will execute
