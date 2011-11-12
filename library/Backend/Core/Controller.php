@@ -134,9 +134,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
 
         $this->_response->content($result);
 
-        //Pass the result to the View
-        $this->_response = $this->_view->transform($this->_response);
-
         return $this->_response;
     }
 

@@ -31,6 +31,6 @@ $application = new Backend\Core\Application();
 //The application generates a response
 $response = $application->main();
 //Which is then outputted to the Client
-echo $response;
+$application->output($response);
 
 //Done
