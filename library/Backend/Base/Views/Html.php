@@ -120,28 +120,29 @@ class Html extends \Backend\Core\View
                     } else {
                         $title = $contentBlock;
                     }
+                    $title = 'Result: ' . $title;
                 }
                 $content[] = $contentBlock;
             } else {
                 if (is_object($contentBlock)) {
                     if (empty($title)) {
-                        $title = 'Exception: ' . get_class($contentBlock);
+                        $title = 'Object: ' . get_class($contentBlock);
                     }
                     if ($contentBlock instanceof \Exception) {
                         $viewHelper = 'exception.tpl';
                     } else {
                         $viewHelper = get_class($contentBlock) . '.tpl';
                     }
+                    $content[] = $this->render($viewHelper, array('object' => $contentBlock));
                 } else if (is_array($contentBlock)) {
                     if (empty($title)) {
                         $title = 'Array(' . count($contentBlock) . ')';
                     }
-                    $viewHelper = 'array.tpl';
+                    $content[] = $this->render('array.tpl', array('array' => $contentBlock));
                 }
-                $content[] = $this->render($viewHelper, array('array' => $contentBlock));
             }
         }
-        $this->bind('title', 'Result: ' . ($title ? $title : 'Unknown'));
+        $this->bind('title', $title ? $title : 'Result: Unknown');
 
         //Get buffered output
         $buffered = ob_get_clean();
