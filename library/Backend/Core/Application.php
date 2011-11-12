@@ -164,6 +164,15 @@ class Application
         return $controller->execute();
     }
 
+    public function output(Response $response)
+    {
+        //Pass the result to the View
+        $response = $this->_view->transform($this->_response);
+        echo $response;
+        return $response;
+    }
+
+
     /**
      * Shutdown function called when ever the script ends
      */
