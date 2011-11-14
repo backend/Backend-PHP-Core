@@ -65,68 +65,41 @@ class Request
      */
     function __construct(array $request = null, $method = null)
     {
-        if (!$method) {
-            //Copied the way to determine the method from CakePHP
-            //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
-            switch (true) {
-            case array_key_exists('_method', $_POST):
-                $method = $_POST['_method'];
-                break;
-            case array_key_exists('X_HTTP_METHOD_OVERRIDE', $_SERVER):
-                $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
-                break;
-            default:
-                if (self::fromCli()) {
-                    //First CL parameter is the method
-                    $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
-                } else {
-                    $method = $_SERVER['REQUEST_METHOD'];
-                }
-                break;
-            }
+        if (!is_null($method)) {
+            $this->setMethod($method);
         }
-        $this->setMethod($method);
 
-        //Set the payload to request initially
-        if (empty($request)) {
-            if (self::fromCli()) {
-                $this->_payload = array(
-                    //Second CL parameter is the query. This will be picked up later
-                    count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
-                );
-                if (count($_SERVER['argv']) >= 5) {
-                    //Fourth CL parameter is a query string
-                    parse_str($_SERVER['argv'][4], $queryVars);
-                    if (is_array($queryVars)) {
-                        $this->_payload = array_merge($this->_payload, $queryVars);
-                    }
-                }
-            } else {
-                $this->_payload = $_REQUEST;
-            }
+        if (!is_null($request)) {
+            $this->setPayload($request);
         } else {
-            $this->_payload = $request;
+            $this->getPayload();
         }
 
+        //Get the query
+        $query = null;
         foreach ($this->_payload as $key => $value) {
             if (empty($value) && !empty($key)) {
-                $this->_query   = $key;
+                $query = $key;
                 unset($this->_payload[$key]);
                 break;
             }
         }
-
         //Clean up the query
-        //Decode the URL
-        $this->_query = urldecode($this->_query);
-        //No trailing slash
-        if (substr($this->_query, -1) == '/') {
-            $this->_query = substr($this->_query, 0, strlen($this->_query) - 1);
-        }
-        $this->_extension = $this->getExtension();
+        $this->_query = $this->cleanupQuery($query);
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
         Application::log($message, 4);
+    }
+
+    private function cleanupQuery($query)
+    {
+        //Decode the URL
+        $query = urldecode($query);
+        //No trailing slash
+        if (substr($query, -1) == '/') {
+            $query = substr($query, 0, strlen($query) - 1);
+        }
+        return $query;
     }
 
     /**
@@ -204,6 +177,28 @@ class Request
      */
     public function getMethod()
     {
+        if (!is_null($this->_method)) {
+            return $this->_method;
+        }
+        //Copied the way to determine the method from CakePHP
+        //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
+        switch (true) {
+        case array_key_exists('_method', $_POST):
+            $method = $_POST['_method'];
+            break;
+        case array_key_exists('X_HTTP_METHOD_OVERRIDE', $_SERVER):
+            $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
+            break;
+        default:
+            if (self::fromCli()) {
+                //First CL parameter is the method
+                $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
+            } else {
+                $method = $_SERVER['REQUEST_METHOD'];
+            }
+            break;
+        }
+        $this->setMethod($method);
         return $this->_method;
     }
 
@@ -309,7 +304,37 @@ class Request
      */
     public function getPayload()
     {
+        if (!is_null($this->_payload)) {
+            return $this->_payload;
+        }
+        if (self::fromCli()) {
+            $payload = array(
+                //Second CL parameter is the query. This will be picked up later
+                count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
+            );
+            if (count($_SERVER['argv']) >= 5) {
+                //Fourth CL parameter is a query string
+                parse_str($_SERVER['argv'][4], $queryVars);
+                if (is_array($queryVars)) {
+                    $payload = array_merge($this->_payload, $queryVars);
+                }
+            }
+        }
+        if (!isset($payload)) {
+            $payload = isset($_REQUEST) ? $_REQUEST : array();
+        }
+        $this->setPayload($payload);
         return $this->_payload;
+    }
+
+    /**
+     * Set the request's payload.
+     *
+     * @param array The Request's Payload
+     */
+    public function setPayload(array $payload)
+    {
+        $this->_payload = $payload;
     }
 
     /**
