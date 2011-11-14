@@ -103,9 +103,7 @@ class View
      */
     function redirect($location)
     {
-        header('X-Redirector: ' . get_class($this));
-        header('Location: ' . $location);
-        die;
+        die('GOTO ' . $location);
     }
 
     function render($template, array $values = array())
