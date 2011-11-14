@@ -217,7 +217,9 @@ class Application
     public function output(Response $response)
     {
         //Pass the result to the View
-        $response = $this->_view->transform($response);
+        if ($this->_view instanceof View) {
+            $response = $this->_view->transform($response);
+        }
         echo $response;
     }
 

@@ -104,9 +104,16 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
             );
         }
 
-        //Execute the requested method
+        //Execute the Controller or Model method
         Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
         $result = call_user_func_array($functionCall, $parameters);
+
+        //Execute the View related method
+        $viewMethod = $this->getViewMethod('create');
+        if (is_callable($viewMethod)) {
+            Application::log('Executing ' . get_class($this) . '::' . $viewMethod, 4);
+            $result = $this->$viewMethod($view, $result);
+        }
 
         $this->_response->content($result);
 
@@ -144,5 +151,26 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         if ($key !== false) {
             unset($this->_decorators[$key]);
         }
+    }
+
+    /**
+     * Return a view method for the specified action
+     *
+     * @param string The action to check for
+     */
+    public function getViewMethod($action, View $view = null)
+    {
+        $view = is_null($view) ? \Backend\Core\Application::getTool('View') : $view;
+        if (!$view) {
+            return null;
+        }
+        //Check for a transform for the current view in the controller
+        $viewMethod = strtolower(get_class($view));
+        $viewMethod = substr($viewMethod, strrpos($viewMethod, '\\') + 1);
+        $viewMethod = $action . ucwords($viewMethod);
+        if (!method_exists($this, $viewMethod)) {
+            return null;
+        }
+        return $viewMethod;
     }
 }
