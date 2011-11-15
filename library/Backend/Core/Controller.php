@@ -109,7 +109,7 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         $result = call_user_func_array($functionCall, $parameters);
 
         //Execute the View related method
-        $view = is_null($view) ? \Backend\Core\Application::getTool('View') : $view;
+        $view = \Backend\Core\Application::getTool('View');
         if ($view) {
             $viewMethod = $this->getViewMethod('create', $view);
             if ($viewMethod instanceof \ReflectionMethod) {
