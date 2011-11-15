@@ -109,10 +109,14 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         $result = call_user_func_array($functionCall, $parameters);
 
         //Execute the View related method
-        $viewMethod = $this->getViewMethod('create');
-        if ($viewMethod instanceof \ReflectionMethod) {
-            Application::log('Executing ' . get_class($this) . '::' . $viewMethod, 4);
-            $result = $viewMethod->invoke($this, $view, $result);
+        $view = is_null($view) ? \Backend\Core\Application::getTool('View') : $view;
+        if ($view) {
+            $viewMethod = $this->getViewMethod('create', $view);
+            if ($viewMethod instanceof \ReflectionMethod) {
+                $prototype = $viewMethod->getPrototype();
+                Application::log('Executing ' . $prototype['class'] . '::' . $prototype['name'], 4);
+                $result = $viewMethod->invoke($this, $view, $result);
+            }
         }
 
         $this->_response->content($result);
