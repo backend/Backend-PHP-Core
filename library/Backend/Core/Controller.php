@@ -113,8 +113,7 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         if ($view) {
             $viewMethod = $this->getViewMethod('create', $view);
             if ($viewMethod instanceof \ReflectionMethod) {
-                $prototype = $viewMethod->getPrototype();
-                Application::log('Executing ' . $prototype['class'] . '::' . $prototype['name'], 4);
+                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
                 $result = $viewMethod->invoke($this, $view, $result);
             }
         }
