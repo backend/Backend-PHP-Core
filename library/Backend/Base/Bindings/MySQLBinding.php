@@ -147,4 +147,10 @@ class MySQLBinding extends DatabaseTableBinding
         return true;
     }
 
+    public function fieldNames()
+    {
+        $query = $this->_connection->prepare('DESCRIBE ' . $this->_resource);
+        $query->execute();
+        return $query->fetchAll(\PDO::FETCH_COLUMN);
+    }
 }
