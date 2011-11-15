@@ -111,7 +111,7 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         //Execute the View related method
         $view = \Backend\Core\Application::getTool('View');
         if ($view) {
-            $viewMethod = $this->getViewMethod('create', $view);
+            $viewMethod = $this->getViewMethod($action, $view);
             if ($viewMethod instanceof \ReflectionMethod) {
                 Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
                 $result = $viewMethod->invoke($this, $view, $result);
