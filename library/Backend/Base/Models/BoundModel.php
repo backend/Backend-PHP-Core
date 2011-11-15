@@ -48,6 +48,26 @@ abstract class BoundModel extends \Backend\Core\Model implements \Backend\Core\I
     }
 
     /**
+     * Return the Model's source Binding.
+     *
+     * @return Binding The Model's source Binding
+     */
+    public function getSource()
+    {
+        return $this->_source;
+    }
+
+    /**
+     * Set the Model's source Binding.
+     *
+     * @param Binding The Request Method
+     */
+    public function setSource(Bindings\Binding $source)
+    {
+        $this->_source = $source;
+    }
+
+    /**
      * Create an instance of the model on the source
      *
      * @param mixed The identifier to use when creating the instance on the source

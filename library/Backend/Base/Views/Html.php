@@ -63,6 +63,12 @@ class Html extends \Backend\Core\View
         parent::__construct($renderer);
     }
 
+    function redirect($location)
+    {
+        header('X-Redirector: ' . get_class($this));
+        header('Location: ' . $location);
+        die('<html><body>Redirecting to <a href="' . $location . '">' . $location . '</a></body></html>');
+    }
     /**
      * Set up a number of constants / variables to make creating and parsing templates easier.
      */

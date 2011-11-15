@@ -60,20 +60,25 @@ class Request
      * 2. A X_HTTP_METHOD_OVERRIDE header
      * 3. The REQUEST_METHOD
      *
-     * @param array request The request data. Defaults to the HTTP request data
-     * @param string method The request method. Can be one of GET, POST, PUT, DELETE or HEAD
+     * @param mixed The request data. Defaults to the HTTP request data if not supplied
+     * @param string The request method. Can be one of GET, POST, PUT, DELETE or HEAD
      */
-    function __construct(array $request = null, $method = null)
+    function __construct($request = null, $method = null)
     {
         if (!is_null($method)) {
             $this->setMethod($method);
         }
 
-        if (!is_null($request)) {
-            $this->setPayload($request);
-        } else {
-            $this->getPayload();
+        if (is_null($request)) {
+            $payload = $this->getPayload();
+        } else if (is_string($request)) {
+            $payload = parse_str($request);
+        } else if (is_array($request)) {
+            $payload = $request;
+        } else if (is_object($request)) {
+            $payload = (array)$request;
         }
+        $this->setPayload($payload);
 
         //Get the query
         $query = null;

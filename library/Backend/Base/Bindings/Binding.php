@@ -209,4 +209,13 @@ abstract class Binding
      * @return boolean If the update was succesful or not.
      */
     abstract public function delete();
+
+    /**
+     * Return an array of fields required to create a new instance on the source
+     *
+     * The binding does not need to be bound to use this function.
+     * @return array An array of fields required. The array keys should be the simple names,
+     * with the value containing options.
+     */
+    abstract public function fieldNames();
 }

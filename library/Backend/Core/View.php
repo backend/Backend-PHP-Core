@@ -103,9 +103,7 @@ class View
      */
     function redirect($location)
     {
-        header('X-Redirector: ' . get_class($this));
-        header('Location: ' . $location);
-        die;
+        die('GOTO ' . $location);
     }
 
     function render($template, array $values = array())
@@ -127,7 +125,14 @@ class View
     function transform(\Backend\Core\Response $response)
     {
         if (Request::fromCli()) {
-            var_export($response->getContent());
+            foreach ($response->getContent() as $key => $content) {
+                if ($content instanceof \Exception) {
+                    $content = new Decorators\PrettyExceptionDecorator($content);
+                    var_export((string)$content);
+                } else {
+                    var_export('Result-' . $key, $response->getContent());
+                }
+            }
         } else {
             echo <<< END
 <!DOCTYPE HTML>
@@ -137,7 +142,14 @@ class View
     </head>
     <body>
 END;
-            var_dump('Result', $response->getContent());
+            foreach ($response->getContent() as $key => $content) {
+                if ($content instanceof \Exception) {
+                    $content = new Decorators\PrettyExceptionDecorator($content);
+                    var_dump((string)$content);
+                } else {
+                    var_dump('Result-' . $key, $response->getContent());
+                }
+            }
         }
         if (Request::fromCli()) {
             echo PHP_EOL;

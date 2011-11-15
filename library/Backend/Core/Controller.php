@@ -104,9 +104,19 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
             );
         }
 
-        //Execute the requested method
+        //Execute the Controller or Model method
         Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
         $result = call_user_func_array($functionCall, $parameters);
+
+        //Execute the View related method
+        $view = \Backend\Core\Application::getTool('View');
+        if ($view) {
+            $viewMethod = $this->getViewMethod($action, $view);
+            if ($viewMethod instanceof \ReflectionMethod) {
+                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
+                $result = $viewMethod->invoke($this, $view, $result);
+            }
+        }
 
         $this->_response->content($result);
 
@@ -144,5 +154,30 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         if ($key !== false) {
             unset($this->_decorators[$key]);
         }
+    }
+
+    /**
+     * Return a view method for the specified action
+     *
+     * @param string The action to check for
+     */
+    public function getViewMethod($action, View $view = null)
+    {
+        $view = is_null($view) ? \Backend\Core\Application::getTool('View') : $view;
+        if (!$view) {
+            return null;
+        }
+        //Check for a transform for the current view in the controller
+        $methodName = strtolower(get_class($view));
+        $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
+        $methodName = $action . ucwords($methodName);
+
+        try {
+            $reflector  = new \ReflectionClass(get_class($this));
+            $viewMethod = $reflector->getMethod($methodName);
+        } catch (\Exception $e) {
+            return null;
+        }
+        return $viewMethod;
     }
 }
