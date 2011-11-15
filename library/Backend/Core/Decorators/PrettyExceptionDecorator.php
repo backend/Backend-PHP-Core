@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core\Decorators;
 /**
- * File defining Core\Decorators\ControllerDecorator
+ * File defining Core\Decorators\PrettyExceptionDecorator
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -30,24 +30,38 @@ namespace Backend\Core\Decorators;
  *
  * @package Decorators
  */
-abstract class ControllerDecorator
-    extends \Backend\Core\Controller
-        implements \Backend\Core\Interfaces\ControllerInterface, \Backend\Core\Interfaces\Decorator
+class PrettyExceptionDecorator extends \Exception
 {
-    /**
-     * @var ControllerInterface The controller this class is decorating
-     */
-    protected $_controller;
+    protected $_exception;
 
     /**
      * The constructor for the class
      *
-     * @param ControllerInterface The controller to decorate
-     * @param Response The reponse for the controller
+     * @param Exception The exception to decorate
      */
-    function __construct(\Backend\Core\Interfaces\Decorable $controller, Response $response = null)
+    function __construct(\Exception $exception, $message = null, $code = 0)
     {
-        $this->_controller = $controller;
-        parent::__construct($response);
+        $this->_exception = $exception;
+        parent::__construct($message, $code);
+    }
+
+    /**
+     * Return the exception as a string
+     *
+     * @return string The exception as a string
+     * @todo Use the kohana code to format the exception properly.
+     * * /kohana/system/classes/kohana/kohana/exception.php
+     * * /kohana/system/views/kohana/error.php
+     */
+    public function __toString()
+    {
+        return sprintf(
+            '%s [ %s ]: %s ~ %s [ %d ]',
+            get_class($this->_exception),
+            $this->_exception->getCode(),
+            strip_tags($this->_exception->getMessage()),
+            $this->_exception->getFile(),
+            $this->_exception->getLine()
+        );
     }
 }

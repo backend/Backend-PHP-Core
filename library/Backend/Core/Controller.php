@@ -110,9 +110,9 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
 
         //Execute the View related method
         $viewMethod = $this->getViewMethod('create');
-        if (is_callable($viewMethod)) {
+        if ($viewMethod instanceof \ReflectionMethod) {
             Application::log('Executing ' . get_class($this) . '::' . $viewMethod, 4);
-            $result = $this->$viewMethod($view, $result);
+            $result = $viewMethod->invoke($this, $view, $result);
         }
 
         $this->_response->content($result);
@@ -165,10 +165,14 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
             return null;
         }
         //Check for a transform for the current view in the controller
-        $viewMethod = strtolower(get_class($view));
-        $viewMethod = substr($viewMethod, strrpos($viewMethod, '\\') + 1);
-        $viewMethod = $action . ucwords($viewMethod);
-        if (!method_exists($this, $viewMethod)) {
+        $methodName = strtolower(get_class($view));
+        $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
+        $methodName = $action . ucwords($methodName);
+
+        try {
+            $reflector  = new \ReflectionClass(get_class($this));
+            $viewMethod = $reflector->getMethod($methodName);
+        } catch (\Exception $e) {
             return null;
         }
         return $viewMethod;
