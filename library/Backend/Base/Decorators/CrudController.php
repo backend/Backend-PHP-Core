@@ -3,22 +3,9 @@ namespace Backend\Base\Decorators;
 
 class CrudController extends \Backend\Core\Decorators\ControllerDecorator
 {
-    public function readAction($id, $arguments)
+    public function readHtml($id, $arguments, $result, \Backend\Core\View $view = null)
     {
-        $result = $this->_model->readAction($id, $arguments);
-        $view = \Backend\Core\Application::getTool('View');
-        if ($view) {
-            $viewMethod = strtolower(get_class($view));
-            $viewMethod = substr($viewMethod, strrpos($viewMethod, '\\') + 1);
-            if (method_exists($this, $viewMethod)) {
-                $result = $this->$viewMethod($view, $result);
-            }
-        }
-        return $result;
-    }
-
-    public function html($view, $result)
-    {
+        $view = $view instanceof View ? $view : $view = \Backend\Core\Application::getTool('View');
         return $view->render('crud_display.tpl', array('values' => $result));
     }
 }
