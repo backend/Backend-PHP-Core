@@ -59,7 +59,7 @@ abstract class ControllerDecorator
     public function __call($method, $args)
     {
         return call_user_func_array(
-            array($this->decoratedController, $method),
+            array($this->_decoratedController, $method),
             $args
         );
     }
