@@ -1,10 +1,8 @@
 <?php
-namespace Backend\Core\Decorators;
 /**
  * File defining Core\Decorators\ControllerDecorator
  *
  * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in the
@@ -23,12 +21,19 @@ namespace Backend\Core\Decorators;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package DecoratorFiles
+ * @package   DecoratorFiles
+ * @author    "J Jurgens du Toit" <jrgns@jadeit.co.za>
+ * @copyright 2011 JadeIT cc
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT
  */
+namespace Backend\Core\Decorators;
 /**
  * Abstract base class for Model decorators
  *
- * @package Decorators
+ * @package   Decorators
+ * @author    "J Jurgens du Toit" <jrgns@jadeit.co.za>
+ * @copyright 2011 JadeIT cc
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT
  */
 abstract class ControllerDecorator
     extends \Backend\Core\Controller
@@ -37,17 +42,24 @@ abstract class ControllerDecorator
     /**
      * @var ControllerInterface The controller this class is decorating
      */
-    protected $_controller;
+    protected $_decoratedController;
 
     /**
      * The constructor for the class
      *
-     * @param ControllerInterface The controller to decorate
-     * @param Response The reponse for the controller
+     * @param Decorable $controller The controller to decorate
+     * @param Response  $response   The reponse for the controller
      */
     function __construct(\Backend\Core\Interfaces\Decorable $controller, Response $response = null)
     {
-        $this->_controller = $controller;
+        $this->_decoratedController = $controller;
         parent::__construct($response);
+    }
+
+    public function __call($method, $args) {
+        return call_user_func_array(
+            array($this->decoratedController, $method),
+            $args
+        );
     }
 }

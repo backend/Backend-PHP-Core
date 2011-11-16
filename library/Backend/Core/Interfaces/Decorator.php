@@ -38,4 +38,14 @@ interface Decorator
      * @param ModelInterface The model to decorate
      */
     function __construct(\Backend\Core\Interfaces\Decorable $decorable);
+
+    /**
+     * Function call to catch methods for the decorated instance
+     *
+     * For an example, see {@link http://stackoverflow.com/questions/3857644/php-decorator-writer-script}
+     * @param string The method being called
+     * @param array An array of arguments for the method being called
+     * @return mixed The result of the method called by the decorated instance
+     */
+    public function __call($method, $args);
 }
