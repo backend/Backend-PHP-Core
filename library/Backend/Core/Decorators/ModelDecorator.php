@@ -52,7 +52,7 @@ abstract class ModelDecorator
     public function __call($method, $args)
     {
         return call_user_func_array(
-            array($this->decoratedModel, $method),
+            array($this->_decoratedModel, $method),
             $args
         );
     }
