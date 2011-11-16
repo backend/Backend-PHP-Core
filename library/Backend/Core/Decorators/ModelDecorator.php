@@ -49,7 +49,8 @@ abstract class ModelDecorator
         $this->_decoratedModel = $model;
     }
 
-    public function __call($method, $args) {
+    public function __call($method, $args)
+    {
         return call_user_func_array(
             array($this->decoratedModel, $method),
             $args

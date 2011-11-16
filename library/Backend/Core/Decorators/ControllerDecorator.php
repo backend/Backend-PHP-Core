@@ -56,7 +56,8 @@ abstract class ControllerDecorator
         parent::__construct($response);
     }
 
-    public function __call($method, $args) {
+    public function __call($method, $args)
+    {
         return call_user_func_array(
             array($this->decoratedController, $method),
             $args
