@@ -94,9 +94,9 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         );
 
         //Determine the method to call. Application takes precedence over Business Logic
-        if (is_callable(array($this, $function))) {
+        if (method_exists($this, $function)) {
             $functionCall = array($this, $function);
-        } else if (is_callable(array($this->_model, $function))) {
+        } else if (method_exists($this->_model, $function)) {
             $functionCall = array($this->_model, $function);
         } else {
             throw new \BadMethodCallException(
