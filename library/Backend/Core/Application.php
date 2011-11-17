@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Core;
 /**
- * File defining Core\Application
+ * File defining Application
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -98,9 +98,6 @@ class Application
             require_once(BACKEND_FOLDER . '/modifiers.inc.php');
 
             //PHP Helpers
-            //Prepend the master autoload function to the beginning of the stack
-            spl_autoload_register(array('\Backend\Core\Application', '__autoload'), true, true);
-
             register_shutdown_function(array($this, 'shutdown'));
 
             set_exception_handler(array($this, 'exception'));
@@ -129,6 +126,7 @@ class Application
         }
 
         //Setup the specified tools
+        //TODO Maybe move the Toolbox to a separate class
         self::$_toolbox = array();
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
@@ -350,60 +348,6 @@ class Application
             return false;
         }
         self::$_debugLevel = $level;
-    }
-
-    /**
-     * Function to autoload BackendMVC classes
-     *
-     * It gets set by Core\Application::init
-     * @param string The class name to auto load
-     * @return boolean If the class file was found and included
-     */
-    public static function __autoload($className)
-    {
-        //self::log('Checking for ' . $className, 5);
-
-        $className = ltrim($className, '\\');
-        $parts  = explode('\\', $className);
-        $vendor = false;
-        $base   = false;
-        if (count($parts) > 1) {
-            $vendor = $parts[0];
-            if (count($parts) > 2) {
-                $base = $parts[1];
-            }
-        }
-
-        $fileName  = '';
-        $namespace = '';
-        if ($lastNsPos = strripos($className, '\\')) {
-            $namespace = substr($className, 0, $lastNsPos);
-            $className = substr($className, $lastNsPos + 1);
-            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-        }
-        $bases = self::getNamespaces();
-        if ($vendor && $base && $vendor == 'Backend' && !in_array($base, $bases)) {
-            //Not in a defined Base, check all
-            $bases = array_reverse($bases);
-            foreach ($bases as $base) {
-                $namespace = implode('/', array_slice($parts, 1, count($parts) - 2));
-                if (
-                    file_exists(BACKEND_FOLDER . '/' . $base . '/' . $namespace . '/' . $className . '.php')
-                ) {
-                    require_once(BACKEND_FOLDER . '/' . $base . '/' . $namespace . '/' . $className . '.php');
-                    return true;
-                }
-            }
-        } else {
-            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-            if (file_exists(VENDOR_FOLDER . $fileName)) {
-                require_once(VENDOR_FOLDER . $fileName);
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
     }
 
     /**
