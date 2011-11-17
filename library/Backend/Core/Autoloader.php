@@ -62,7 +62,7 @@ class Autoloader
                 $base = $parts[1];
             }
         }
-        if ($vendor && $vendor == 'Backend' && self::loadBackendClass($className)) {
+        if ($vendor && $vendor == 'Backend' && self::loadBackendClass($base, $className)) {
             return true;
         }
 
@@ -77,8 +77,6 @@ class Autoloader
         if (file_exists(VENDOR_FOLDER . $fileName)) {
             require_once(VENDOR_FOLDER . $fileName);
             return true;
-        } else {
-            return false;
         }
         return false;
     }
@@ -89,23 +87,28 @@ class Autoloader
      * @param string The class name to be loaded
      * @return boolean If a class was loeded or not
      */
-    private static function loadBackendClass($className)
+    private static function loadBackendClass($base, $className)
     {
-        if (!class_exists('Application', false)) {
+        if (!class_exists('\Backend\Core\Application', false)) {
             return false;
         }
         $bases = Application::getNamespaces();
         if (!$base || in_array($base, $bases)) {
             return false;
         }
+
         //Not in a defined Base, check all
-        $bases = array_reverse($bases);
+        $parts     = explode('\\', $className);
+        $bases     = array_reverse($bases);
+        $className = end($parts);
         foreach ($bases as $base) {
             $namespace = implode('/', array_slice($parts, 1, count($parts) - 2));
-            if (
-                file_exists(BACKEND_FOLDER . '/' . $base . '/' . $namespace . '/' . $className . '.php')
-            ) {
-                require_once(BACKEND_FOLDER . '/' . $base . '/' . $namespace . '/' . $className . '.php');
+            $fileName = BACKEND_FOLDER . DIRECTORY_SEPARATOR
+                . $base . DIRECTORY_SEPARATOR
+                . $namespace . DIRECTORY_SEPARATOR
+                . $className . '.php';
+            if (file_exists($fileName)) {
+                require_once($fileName);
                 return true;
             }
         }
