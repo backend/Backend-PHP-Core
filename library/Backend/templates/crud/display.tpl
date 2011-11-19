@@ -1,4 +1,3 @@
-<h3>{{ model.getName() }}</h3>
 {% set values = model.getAttributes %}
 {% for key, value in values %}
     <div>

@@ -22,19 +22,22 @@ class CrudController extends \Backend\Core\Decorators\ControllerDecorator
         return $model;
     }
 
-    public function readHtml($identifier, $arguments, $result, \Backend\Core\View $view = null)
+    public function readHtml(
+        $identifier, $arguments, \Backend\Core\Interfaces\ModelInterface $model, \Backend\Core\View $view = null
+    )
     {
         $view = $view instanceof View ? $view : $view = \Backend\Core\Application::getTool('View');
         if (count($arguments) >= 1 && $arguments[0] == 'input') {
             $template = 'crud/form.tpl';
-
+            $view->bind('title', 'Update ' . $model->getName());
         } else {
             $template = 'crud/display.tpl';
+            $view->bind('title', 'Display ' . $model->getName());
         }
-        return $view->render($template, array('model' => $result));
+        return $view->render($template, array('model' => $model));
     }
 
-    public function createHtml($view, $result)
+    public function createHtml($view, $model)
     {
         //return $view->redirect('display');
     }
