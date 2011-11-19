@@ -56,4 +56,11 @@ abstract class ModelDecorator
             $args
         );
     }
+
+    public function getName()
+    {
+        $class = get_class($this->_decoratedModel);
+        $class = explode('\\', $class);
+        return end($class);
+    }
 }
