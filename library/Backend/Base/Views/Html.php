@@ -116,16 +116,13 @@ class Html extends \Backend\Core\View
 
     function transform(\Backend\Core\Response $response)
     {
-        $title   = $this->get('title');
         $this->_content = array();
-
         //Render content blocks, get a title
         foreach ($response->getContent() as $content) {
             //Check for an exception
             $this->transformContent($content);
         }
-        $title = $this->get('title');
-        $this->bind('title', $title ? $title : 'Result: Unknown');
+        $this->bind('title', 'Result: Unknown', false);
 
         //Get buffered output
         $buffered = ob_get_clean();

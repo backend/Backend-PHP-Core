@@ -49,7 +49,9 @@ class Model implements Interfaces\ModelInterface, Interfaces\Decorable
 
     public function getName()
     {
-        return $this->_name;
+        $class = get_class($this);
+        $class = explode('\\', $class);
+        return end($class);
     }
 
     public function __get($propertyName)

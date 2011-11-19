@@ -1,7 +1,7 @@
-<h3>Something</h3>
+{% set fields = model.getAttributes %}
 {% for key, value in fields %}
     <div>
         <label class="span-4">{{ key }}</label>
-            {{ value }}
+        <input value="{{ value }}">
     </div>
 {% endfor %}

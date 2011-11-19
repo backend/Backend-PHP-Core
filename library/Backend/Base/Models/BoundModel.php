@@ -66,7 +66,9 @@ abstract class BoundModel extends \Backend\Core\Model
      */
     public function __construct(Bindings\Binding $binding = null)
     {
-        $this->_binding = $binding;
+        if (!is_null($binding)) {
+            $this->setBinding($binding);
+        }
     }
 
     public function __get($propertyName)
@@ -156,6 +158,13 @@ abstract class BoundModel extends \Backend\Core\Model
     public function setBinding(\Backend\Base\Bindings\Binding $binding)
     {
         $this->_binding = $binding;
+        $fields = $this->_binding->fieldNames();
+        if ($this->_state == self::BOUND_MODEL_EMPTY) {
+            $this->_attributes = array_combine(
+                array_keys($fields),
+                array_fill(0, count($fields), null)
+            );
+        }
     }
 
     /**
