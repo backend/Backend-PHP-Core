@@ -30,9 +30,10 @@
                 {% endif %}
             {% endfor %}
         </div>
-        <div id="footer">
+        <div id="footer" class="quiet">
             <div class="container">
-                <div class="span-3 right">
+                <div class="span-4 right">
+                    Status Code: {{ response.statusCode|default("Unknown") }}
                 </div>
             </div>
         </div>

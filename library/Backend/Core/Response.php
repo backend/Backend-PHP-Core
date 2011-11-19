@@ -54,6 +54,16 @@ class Response
         $this->_headers = $headers;
     }
 
+    public function statusCode()
+    {
+        return $this->_status;
+    }
+
+    public function setStatusCode($code)
+    {
+        $this->_status = $code;
+    }
+
     public function content($content)
     {
         $this->_content[] = $content;

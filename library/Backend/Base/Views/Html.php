@@ -129,7 +129,12 @@ class Html extends \Backend\Core\View
         $this->_content[] = $this->render('buffered.tpl', array('buffered' => $buffered));
 
         $content = array(
-            $this->render('index.tpl', array('content' => $this->_content))
+            $this->render('index.tpl',
+                array(
+                    'content'  => $this->_content,
+                    'response' => $response,
+                )
+            )
         );
 
         //Replace the current content with the new transformed content
