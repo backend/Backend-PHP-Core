@@ -73,7 +73,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         //Get Route
         $this->_route = $route;
 
-        $area   = $this->_route->getArea();
         $action = $this->_route->getAction();
         $method = $action . 'Action';
 
@@ -189,6 +188,7 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
             $reflector  = new \ReflectionClass(get_class($this));
             $viewMethod = $reflector->getMethod($methodName);
         } catch (\Exception $e) {
+            unset($e);
             return null;
         }
         return $viewMethod;

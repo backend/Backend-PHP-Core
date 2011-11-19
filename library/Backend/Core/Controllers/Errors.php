@@ -32,9 +32,9 @@ namespace Backend\Core\Controllers;
  */
 class Errors extends \Backend\Core\Controller
 {
-    public function readAction($id, array $arguments)
+    public function readAction($identifier, array $arguments)
     {
         $payload = $this->_route->getRequest()->getPayload();
-        return $payload[$id];
+        return $payload[$identifier];
     }
 }
