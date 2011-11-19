@@ -33,9 +33,44 @@ namespace Backend\Core;
 class Model implements Interfaces\ModelInterface, Interfaces\Decorable
 {
     /**
+     * @var array The human friendly name for the model
+     */
+    protected $_name = 'Backend Model';
+
+    /**
+     * @var array The model's attributes
+     */
+    protected $_attributes = array();
+
+    /**
      * @var array An array of names of decorators to apply to the model
      */
     protected $_decorators = array();
+
+    public function getName()
+    {
+        return $this->_name;
+    }
+
+    public function __get($propertyName)
+    {
+        if (array_key_exists($propertyName, $this->_attributes))
+        {
+            return $this->_attributes[$propertyName];
+        }
+        return null;
+    }
+
+    public function __set($propertyName, $value)
+    {
+        $this->_attributes[$propertyName] = $value;
+        return $value;
+    }
+
+    public function setAttributes(array $attributes)
+    {
+        $this->_attributes = $attributes;
+    }
 
     /**
      * Get an array of decorators for the class
