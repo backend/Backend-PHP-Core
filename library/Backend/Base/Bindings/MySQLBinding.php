@@ -26,28 +26,14 @@ namespace Backend\Base\Bindings;
  * @package BindingFiles
  */
 /**
- * Binding for MySQL Tables
+ * Binding for MySQL Tables.
+ *
+ * A Caching implementation can be implemented later using a decorator
  *
  * @package Bindings
  */
 class MySQLBinding extends DatabaseTableBinding
 {
-    /**
-     * Bind to the specified instance of the resource
-     *
-     * @param mixed The identifier of the instance to bind to
-     * @return MySQLBinding The current binding
-     */
-    public function bind($identifier = null)
-    {
-        $identifier = $this->checkIdentifier($identifier);
-        if (is_null($identifier)) {
-            return null;
-        }
-        $this->_resource = $this->read($identifier);
-        return $this;
-    }
-
     /**
      * Find records in the MySQL table according to the specified criteria
      *
@@ -56,13 +42,12 @@ class MySQLBinding extends DatabaseTableBinding
     public function find()
     {
         //Reset the list
-        $this->_list = null;
         $query = 'SELECT * FROM ' . $this->_table;
         $stmt  = $this->_connection->prepare($query);
         if ($stmt->execute()) {
-            $this->_list = $stmt;
+            return $stmt;
         }
-        return $this->_list;
+        return null;
     }
 
     /**
@@ -80,29 +65,16 @@ class MySQLBinding extends DatabaseTableBinding
      * @param mixed The identifier
      * @todo This is a very basic implementation. Flesh it out.
      */
-    public function read($identifier = null)
+    public function read($identifier)
     {
-        //Check if we can return the current resource
-        if (
-            !is_null($this->_resource)
-            && (is_null($identifier) || $identifier == $this->getIdentifier())
-        ) {
-            return $this->_resource;
-        }
-        //Reset the resource
-        $this->_resource = null;
-        $identifier = $this->checkIdentifier($identifier);
-        if (is_null($identifier)) {
-            return null;
-        }
         //Read from the table
         $query = 'SELECT * FROM ' . $this->_table . ' WHERE `id` = :id';
         $stmt  = $this->_connection->prepare($query);
         $stmt->execute(array(':id' => $identifier));
         if ($result = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $this->_resource = $result;
+            return $result;
         }
-        return $this->_resource;
+        return null;
 
     }
 
@@ -111,20 +83,12 @@ class MySQLBinding extends DatabaseTableBinding
      *
      * @todo This hasn't been implemented yet. Implement it.
      */
-    public function update($data)
+    public function update($identifier, $data)
     {
-        $identifier = $this->checkIdentifier();
-        if (!$this->isBound()) {
-            return null;
-        }
-        if (!$this->_modified) {
-            return true;
-        }
         //TODO Update using the data currently in resource
 
         //Succesful update
-        $this->_modifed = false;
-        return $this;
+        return $this->read($identifier);
     }
 
     /**
@@ -133,24 +97,27 @@ class MySQLBinding extends DatabaseTableBinding
      * @param mixed The identifier
      * @todo This is a very basic implementation. Flesh it out.
      */
-    public function delete()
+    public function delete($identifier)
     {
-        if (!$this->isBound()) {
-            return null;
-        }
-        $query = 'DELETE FROM ' . $this->_resource . ' WHERE `id` = :id';
+        $query = 'DELETE FROM ' . $this->_table . ' WHERE `id` = :id';
         $stmt  = $this->_connection->prepare($query);
         if (!$stmt->execute(array(':id' => $identifier))) {
             return false;
         }
-        $this->_resource = null;
         return true;
     }
 
     public function fieldNames()
     {
-        $query = $this->_connection->prepare('DESCRIBE ' . $this->_resource);
+        $query = $this->_connection->prepare('DESCRIBE ' . $this->_table);
         $query->execute();
-        return $query->fetchAll(\PDO::FETCH_COLUMN);
+        $result = array();
+        while($row = $query->fetch(\PDO::FETCH_ASSOC)) {
+            $result[$row['Field']] = array(
+                'type'    => $row['Type'],
+                'default' => $row['Default'],
+            );
+        }
+        return count($result) ? $result : null;
     }
 }
