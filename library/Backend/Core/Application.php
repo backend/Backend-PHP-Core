@@ -398,10 +398,10 @@ class Application
     public static function log($message, $level = Utilities\LogMessage::LEVEL_IMPORTANT, $context = false)
     {
         if (!$context) {
-            $bt = debug_backtrace();
+            $backtrace = debug_backtrace();
             //Remove the call to this function
-            array_shift($bt);
-            if ($caller = reset($bt)) {
+            array_shift($backtrace);
+            if ($caller = reset($backtrace)) {
                 $context = empty($caller['class']) ? $caller['file'] : $caller['class'];
             }
         }
@@ -410,7 +410,7 @@ class Application
             $message = '[' . $context . '] ' . $message;
         }
 
-        $logMessage = new Utilities\LogMessage($message, $level);
+        return new Utilities\LogMessage($message, $level);
     }
 
     /**
