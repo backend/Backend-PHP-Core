@@ -205,6 +205,12 @@ class Application
         if ($controller instanceof Interfaces\Decorable) {
             foreach ($controller->getDecorators() as $decorator) {
                 $controller = new $decorator($controller);
+                if (!($controller instanceof \Backend\Core\Decorators\ControllerDecorator)) {
+                    //TODO Use a specific Exception
+                    throw new \Exception(
+                        'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ControllerDecorator'
+                    );
+                }
             }
         }
 
