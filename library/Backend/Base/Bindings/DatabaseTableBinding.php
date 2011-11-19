@@ -43,10 +43,9 @@ abstract class DatabaseTableBinding extends DatabaseBinding
      * @param PDO The database connection to use in the binding
      * @param string The name of the database table to bind to
      */
-    function __construct(\PDO $connection, $table)
+    public function __construct(\PDO $connection = null, $table = null)
     {
-        parent::__construct($connection);
-
         $this->_table = $table;
+        parent::__construct($connection);
     }
 }

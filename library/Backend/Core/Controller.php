@@ -33,8 +33,8 @@ namespace Backend\Core;
 class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
 {
     /**
-     * @var Route This contains the route object that will help decide what controller,
-     * model and action to execute
+     * @var Route This contains the route object that will help decide what controller
+     * and action to execute
      */
     protected $_route = null;
 
@@ -42,11 +42,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
      * @var Response This contains the Response that will be returned
      */
     protected $_response = null;
-
-    /**
-     * @var ModelInterface This contains the model on which this controller will execute
-     */
-    protected $_model = null;
 
     /**
      * @var array An array of names of decorators to apply to the controller
@@ -77,35 +72,26 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     {
         //Get Route
         $this->_route = $route;
-        $area         = $this->_route->getArea();
-        $action       = $this->_route->getAction();
 
-        //Get and check the model
-        $modelName = 'Backend\Models\\' . class_name($area);
-        if (class_exists($modelName, true)) {
-            $this->_model = new $modelName();
+        $area   = $this->_route->getArea();
+        $action = $this->_route->getAction();
+        $method = $action . 'Action';
+
+        //Determine the method to call
+        if (method_exists($this, $method)) {
+            $functionCall = array($this, $method);
+        } else {
+            throw new \BadMethodCallException(
+                'Uncallable Method: ' . get_class($this) . "::$method()"
+            );
         }
 
-        //Setup the function
-        $function   = $action . 'Action';
+        //Execute the Controller method
+        Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
         $parameters = array(
             $this->_route->getIdentifier(),
             $this->_route->getArguments()
         );
-
-        //Determine the method to call. Application takes precedence over Business Logic
-        if (is_callable(array($this, $function))) {
-            $functionCall = array($this, $function);
-        } else if (is_callable(array($this->_model, $function))) {
-            $functionCall = array($this->_model, $function);
-        } else {
-            throw new \BadMethodCallException(
-                "Uncallable Method: $area::$action()"
-            );
-        }
-
-        //Execute the Controller or Model method
-        Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
         $result = call_user_func_array($functionCall, $parameters);
 
         //Execute the View related method
@@ -113,8 +99,10 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         if ($view) {
             $viewMethod = $this->getViewMethod($action, $view);
             if ($viewMethod instanceof \ReflectionMethod) {
+                $parameters[] = $result;
+                $parameters[] = $view;
                 Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
-                $result = $viewMethod->invoke($this, $view, $result);
+                $result = $viewMethod->invokeArgs($this, $parameters);
             }
         }
 
@@ -154,6 +142,31 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         if ($key !== false) {
             unset($this->_decorators[$key]);
         }
+    }
+
+    /**
+     * @return ModelInterface The model associated with this controller
+     */
+    public function getModel()
+    {
+        //Get and check the model
+        $modelName = 'Backend\Models\\' . class_name($this->_route->getArea());
+        if (!class_exists($modelName, true)) {
+            return null;
+        }
+        $model = new $modelName();
+        if ($model instanceof Interfaces\Decorable) {
+            foreach ($model->getDecorators() as $decorator) {
+                $model = new $decorator($model);
+                if (!($model instanceof \Backend\Core\Decorators\ModelDecorator)) {
+                    //TODO Use a specific Exception
+                    throw new \Exception(
+                        'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ModelDecorator'
+                    );
+                }
+            }
+        }
+        return $model;
     }
 
     /**

@@ -53,7 +53,6 @@ define('APP_FOLDER', BACKEND_FOLDER . 'Application/');
  */
 define('WEB_FOLDER', PROJECT_FOLDER . 'public/');
 
-
 //define('SITE_FOLDER', APP_FOLDER . '/sites/liveserver.com');
 if (array_key_exists('HTTP_HOST', $_SERVER)) {
     switch ($_SERVER['HTTP_HOST']) {
@@ -73,4 +72,5 @@ if (array_key_exists('HTTP_HOST', $_SERVER)) {
     define('SITE_STATE', 'development');
 }
 
-require(BACKEND_FOLDER . 'Core/Application.php');
+require(BACKEND_FOLDER . 'Core/Autoloader.php');
+\Backend\Core\Autoloader::register();

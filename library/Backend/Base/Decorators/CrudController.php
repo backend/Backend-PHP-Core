@@ -1,24 +1,41 @@
 <?php
 namespace Backend\Base\Decorators;
 
+/**
+ * The Crud Controller is a Decorator that provides basic CRUD functionality to controllers
+ *
+ * Executing GET requests on the following special resources modifies the default REST behaviour
+ * * <controller>/<id>/input Return the inputs required to create or update an entity.
+ */
 class CrudController extends \Backend\Core\Decorators\ControllerDecorator
 {
-    public function readAction($id, $arguments)
+    /**
+     * CRUD Read functionality for controllers.
+     */
+    public function readAction($identifier, $arguments)
     {
-        $result = $this->_model->readAction($id, $arguments);
-        $view = \Backend\Core\Application::getTool('View');
-        if ($view) {
-            $viewMethod = strtolower(get_class($view));
-            $viewMethod = substr($viewMethod, strrpos($viewMethod, '\\') + 1);
-            if (method_exists($this, $viewMethod)) {
-                $result = $this->$viewMethod($view, $result);
-            }
+        $model = $this->getModel();
+        if (is_null($model)) {
+            throw new \Exception('Could not find specified Model');
         }
-        return $result;
+        $model->read($identifier);
+        return $model;
     }
 
-    public function html($view, $result)
+    public function readHtml($identifier, $arguments, $result, \Backend\Core\View $view = null)
     {
-        return $view->render('crud_display.tpl', array('values' => $result));
+        $view = $view instanceof View ? $view : $view = \Backend\Core\Application::getTool('View');
+        if (count($arguments) >= 1 && $arguments[0] == 'input') {
+            $template = 'crud/form.tpl';
+
+        } else {
+            $template = 'crud/display.tpl';
+        }
+        return $view->render($template, array('model' => $result));
+    }
+
+    public function createHtml($view, $result)
+    {
+        //return $view->redirect('display');
     }
 }

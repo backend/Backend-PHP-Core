@@ -37,7 +37,7 @@ abstract class ModelDecorator
     /**
      * @var ModelInterface The model this class is decorating
      */
-    protected $_model;
+    protected $_decoratedModel;
 
     /**
      * The constructor for the class
@@ -46,6 +46,14 @@ abstract class ModelDecorator
      */
     function __construct(\Backend\Core\Interfaces\Decorable $model)
     {
-        $this->_model = $model;
+        $this->_decoratedModel = $model;
+    }
+
+    public function __call($method, $args)
+    {
+        return call_user_func_array(
+            array($this->_decoratedModel, $method),
+            $args
+        );
     }
 }

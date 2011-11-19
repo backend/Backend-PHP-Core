@@ -42,7 +42,7 @@ abstract class DatabaseBinding extends Binding
      *
      * @param PDO The database connection to use in the binding
      */
-    function __construct(\PDO $connection)
+    public function __construct(\PDO $connection = null)
     {
         $this->_connection = $connection;
     }
