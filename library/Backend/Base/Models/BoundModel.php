@@ -159,6 +159,9 @@ abstract class BoundModel extends \Backend\Core\Model
     {
         $this->_binding = $binding;
         $fields = $this->_binding->fieldNames();
+        if (!$fields) {
+            throw new \Exception('Cannot retrieve Binding Fields');
+        }
         if ($this->_state == self::BOUND_MODEL_EMPTY) {
             $this->_attributes = array_combine(
                 array_keys($fields),

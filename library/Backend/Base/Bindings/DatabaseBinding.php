@@ -28,6 +28,8 @@ namespace Backend\Base\Bindings;
 /**
  * Interface for bindings to a database
  *
+ * @todo Change this to PdoBinding
+ *
  * @package Interfaces
  */
 abstract class DatabaseBinding extends Binding
