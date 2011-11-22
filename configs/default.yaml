@@ -19,3 +19,12 @@ subjects:
 application:
     values:
         mainTitle: "Backend Core"
+
+# Set DB Connections here
+database:
+    default:
+        # entititesFolder defaults to PROJECT_FOLDER . 'configs/entities'
+        # entitiesFolder: 'configs/entities'
+        connection:
+            driver: pdo_sqlite
+            path: /tmp/backend-core.sqlite
