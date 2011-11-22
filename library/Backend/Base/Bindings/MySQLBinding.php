@@ -1,7 +1,7 @@
 <?php
 namespace Backend\Base\Bindings;
 /**
- * File defining \Base\MySQLBinding
+ * File defining MySQLBinding
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -28,7 +28,7 @@ namespace Backend\Base\Bindings;
 /**
  * Binding for MySQL Tables.
  *
- * A Caching implementation can be implemented later using a decorator
+ * @todo A Caching implementation can be implemented later using a decorator
  *
  * @package Bindings
  */
