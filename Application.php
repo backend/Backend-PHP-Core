@@ -93,9 +93,6 @@ class Application
             self::registerNamespace('Core', true);
             self::registerNamespace('Application');
 
-            //Load extra functions
-            require_once(BACKEND_FOLDER . '/modifiers.inc.php');
-
             //PHP Helpers
             register_shutdown_function(array($this, 'shutdown'));
 
@@ -185,7 +182,7 @@ class Application
     public function main(Route $route = null)
     {
         $route = $route instanceof Route ? $route : new Route($this->_request);
-        $controllerBase = class_name($route->getArea());
+        $controllerBase = Utils::className($route->getArea());
         $controllerName = 'Backend\Controllers\\' . $controllerBase;
         if (!class_exists($controllerName, true)) {
             //Otherwise check the Bases for a controller
@@ -216,16 +213,6 @@ class Application
         //Execute the route through the controller
         return $controller->execute($route);
     }
-
-    public function output(Response $response)
-    {
-        //Pass the result to the View
-        if ($this->_view instanceof View) {
-            $response = $this->_view->transform($response);
-        }
-        echo $response;
-    }
-
 
     /**
      * Shutdown function called when ever the script ends
@@ -260,9 +247,10 @@ class Application
         try {
             $response = $this->main(new Route(new Request($data, 'get')));
             //Which is then outputted to the Client
-            $this->output($response);
+            $response->output();
         } catch (\Exception $e) {
-            die('Could not handle exception: ' . $e->getMessage() . PHP_EOL);
+            $file = $e->getFile() . ': ' . $e->getLine();
+            die('Could not handle exception: ' . $e->getMessage() . PHP_EOL . ' in ' . $file);
         }
     }
 

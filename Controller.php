@@ -79,34 +79,35 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         //Determine the method to call
         if (method_exists($this, $method)) {
             $functionCall = array($this, $method);
-        } else {
-            throw new \BadMethodCallException(
-                'Uncallable Method: ' . get_class($this) . "::$method()"
+            //Execute the Controller method
+            Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
+            $parameters = array(
+                $this->_route->getIdentifier(),
+                $this->_route->getArguments()
             );
+            $response = call_user_func_array($functionCall, $parameters);
+        } else {
+            $response = new Response();
         }
 
-        //Execute the Controller method
-        Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
-        $parameters = array(
-            $this->_route->getIdentifier(),
-            $this->_route->getArguments()
-        );
-        $result = call_user_func_array($functionCall, $parameters);
-
-        //Execute the View related method
-        $view = \Backend\Core\Application::getTool('View');
-        if ($view) {
-            $viewMethod = $this->getViewMethod($action, $view);
-            if ($viewMethod instanceof \ReflectionMethod) {
-                $parameters[] = $result;
-                $parameters[] = $view;
-                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
-                $result = $viewMethod->invokeArgs($this, $parameters);
+        if (!($response instanceof Response)) {
+            //Convert non Response responses to Response
+            $view = \Backend\Core\Application::getTool('View');
+            if ($view) {
+                //Execute the View related method
+                $viewMethod = $this->getViewMethod($action, $view);
+                if ($viewMethod instanceof \ReflectionMethod) {
+                    Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
+                    $response = $viewMethod->invokeArgs($this, array($response));
+                }
             }
         }
 
-        $this->_response->content($result);
+        if (!($response instanceof Response)) {
+            throw new \Exception('Invalid Response');
+        }
 
+        $this->response = $response;
         return $this->_response;
     }
 

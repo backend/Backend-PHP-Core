@@ -47,7 +47,7 @@ class Response
      */
     protected $_headers = array();
 
-    public function __construct($content = '', $status = 200, array $headers = array())
+    public function __construct($content = array(), $status = 200, array $headers = array())
     {
         $this->_content = $content;
         $this->_status  = $status;
@@ -74,7 +74,7 @@ class Response
         return $this->_content;
     }
 
-    public function setContent($content)
+    public function setContent(array $content)
     {
         $this->_content = $content;
     }
@@ -94,6 +94,12 @@ class Response
         $this->_headers = $headers;
     }
 
+    public function output()
+    {
+        $this->sendHeaders();
+        $this->sendContent();
+    }
+
     public function sendHeaders()
     {
         if (headers_sent($file, $line)) {
@@ -107,12 +113,6 @@ class Response
     public function sendContent()
     {
         echo implode(PHP_EOL, $this->_content);
-    }
-
-    public function send()
-    {
-        $this->sendHeaders();
-        $this->sendContent();
     }
 
     public function __toString()
