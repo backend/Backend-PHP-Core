@@ -81,14 +81,8 @@ class Request
         $this->setPayload($payload);
 
         //Get the query
-        $query = null;
-        foreach ($this->_payload as $key => $value) {
-            if (empty($value) && !empty($key)) {
-                $query = $key;
-                unset($this->_payload[$key]);
-                break;
-            }
-        }
+        $query = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+
         //Clean up the query
         $this->_query = $this->cleanupQuery($query);
 

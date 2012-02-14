@@ -38,8 +38,7 @@ namespace Backend\Core;
  * If you need to serve multiple routes with one request, instansiate one application,
  * and execute the main function multiple times with the specified routes. You can also
  * run {@link Controller::execute} multiple times, although the behaviour around that
- * might be undefined.
- *
+ * is undefined.
  *
  * The application will / should be the only singleton in the framework, acting as
  * a Toolbox. That means that any resource that should be globally accessable (and
@@ -157,7 +156,7 @@ class Application
         }
 
         //Application per request
-        $this->_request = is_null($request) ? new \Backend\Core\Request()  : $request;
+        $this->_request = $request ? $request : new Request();
 
         //Get the View
         try {
