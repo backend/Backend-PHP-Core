@@ -111,6 +111,13 @@ class Response
      */
     protected $_headers = array();
 
+    /**
+     * The constructor for the Response class
+     *
+     * @param array The content for the response
+     * @param int The status code for the response
+     * @param array The headers for the response
+     */
     public function __construct($content = array(), $status = 200, array $headers = array())
     {
         $this->_content = $content;
@@ -118,56 +125,104 @@ class Response
         $this->_headers = $headers;
     }
 
+    /**
+     * Return the current status code for the Response
+     *
+     * @return int The status code
+     */
     public function getStatusCode()
     {
         return $this->_status;
     }
 
+    /** 
+     * Set the status code for the Response
+     *
+     * @param int The new status code
+     */
     public function setStatusCode($code)
     {
-        $this->_status = $code;
+        $this->_status = (int)$code;
     }
 
-    public function addContent($content, $append = false)
+    /** 
+     * Add content to the Response
+     *
+     * @param string The content to add
+     * @param boolean If the content should be prepended
+     */
+    public function addContent($content, $prepend = false)
     {
-        if ($append) {
+        if ($prepend) {
             array_unshift($this->_content, $content);
         } else {
             $this->_content[] = $content;
         }
     }
 
+    /**
+     * Return the Response's content
+     * 
+     * @return array An array of string containing the Response's content
+     */
     public function getContent()
     {
         return $this->_content;
     }
 
+    /** 
+     * Set the content for the Response
+     *
+     * @param array The new content
+     */
     public function setContent(array $content)
     {
         $this->_content = $content;
     }
 
+    /** 
+     * Add a header to the Response
+     *
+     * @param string The name of the header
+     * @param string The content of the header
+     */
     public function addHeader($name, $content)
     {
         $this->_headers[$name] = $content;
     }
 
+    /**
+     * Return the Response's headers
+     * 
+     * @return array An array containing the Response's headers
+     */
     public function getHeaders()
     {
         return $this->_headers;
     }
 
+    /** 
+     * Set the headers for the Response
+     *
+     * @param array The new headers
+     */
     public function setHeaders(array $headers)
     {
         $this->_headers = $headers;
     }
 
+    /**
+     * Output the Response to the client
+     */
     public function output()
     {
         $this->sendHeaders();
         $this->sendContent();
     }
 
+    /**
+     * Send the Response's headers to the client
+     */
     public function sendHeaders()
     {
         if (headers_sent($file, $line)) {
@@ -178,16 +233,31 @@ class Response
         if (!array_key_exists('X-Application', $this->_headers)) {
             header('X-Application: Backend-PHP (Core)');
         }
+        //TODO: die somewhere if the location header was sent
+        $haveLocation = false;
         foreach ($this->_headers as $name => $content) {
+            if ('location' == strtolower($name)) {
+                $haveLocation = true;
+            }
             header($name . ': ' . $content);
         }
+
     }
 
+    /**
+     * Send the Response's content to the client
+     */
     public function sendContent()
     {
         echo implode(PHP_EOL, $this->_content);
     }
     
+    /**
+     * Get the text associated with a status code
+     *
+     * @param int The status code to get the text for
+     * @return string The status code text
+     */
     public function getStatusText($code)
     {
         if (array_key_exists($code, self::$messages)) {
@@ -196,6 +266,11 @@ class Response
         return 'Unknown Status';
     }
 
+    /**
+     * Convert the Response to a string
+     *
+     * @return string The response as a string
+     */
     public function __toString()
     {
         ob_start();

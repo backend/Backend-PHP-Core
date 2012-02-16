@@ -84,13 +84,12 @@ class Application
      *
      * @param mixed The Configuration to be used for the application. Can be a the
      * path of a config file, or a Config object
-     * @param Request The request for the application to handle
      */
-    function __construct($config = null, Request $request = null)
+    function __construct($config = null)
     {
         if (!self::$_constructed) {
             //Core at the beginning, Application at the end
-            //TODO This will probably need to change
+            //TODO: Refactor it so that it can check all components in the libraries and app folder
             self::registerNamespace('Core', true);
             self::registerNamespace('Application');
 
@@ -123,7 +122,7 @@ class Application
         }
 
         //Setup the specified tools
-        //TODO Maybe move the Toolbox to a separate class
+        //TODO: Maybe move the Toolbox to a separate class
         self::$_toolbox = array();
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
@@ -185,7 +184,6 @@ class Application
             foreach ($controller->getDecorators() as $decorator) {
                 $controller = new $decorator($controller);
                 if (!($controller instanceof \Backend\Core\Decorators\ControllerDecorator)) {
-                    //TODO Use a specific Exception
                     throw new \Exception(
                         'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ControllerDecorator'
                     );
@@ -206,6 +204,12 @@ class Application
         return $this->handleResult($result);
     }
     
+    /**
+     * Handle the result from the executed controller
+     *
+     * @param mixed The result returned from the controller
+     * @return Response The response object to be outputted
+     */
     private function handleResult($result)
     {
         //Return if we already have a Response
@@ -222,6 +226,7 @@ class Application
         }
         self::log('Running Application in ' . get_class($this->_view) . ' View');
 
+        //Convert the result to a Respose
         $response = $view->transform($result);
 
         if (!($response instanceof Response)) {
@@ -230,7 +235,6 @@ class Application
         return $response;
 
         //TODO: Do we want to allow the use of viewMethods?
-        //Convert the result to a Respose
         if ($view) {
             //Execute the View related method
             $viewMethod = $this->getViewMethod($action, $view);
@@ -273,7 +277,6 @@ class Application
             'exception' => $exception,
         );
         try {
-            //TODO
             $response = $this->main(new Request($data, 'get'));
             //Which is then outputted to the Client
             $response->output();
@@ -397,7 +400,7 @@ class Application
             return $className;
         }
         
-        //TODO
+        //TODO: Check the different locations for the Class
         return $className;
     }
 
