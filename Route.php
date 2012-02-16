@@ -26,161 +26,111 @@ namespace Backend\Core;
  * @package CoreFiles
  */
 /**
- * The Route class that uses the query string to help determine the area, action
- * and identifier for the request.
+ * The Route class that uses the query string to help determine the controller, action
+ * and arguments for the request.
  *
  * @package Core
  */
 class Route
 {
     /**
-     * @var Request This contains the route's request
+     * @var array An array of predefined routes
      */
-    protected $_request;
-
-    /**
-     * @var string This contains the route's model
-     */
-    protected $_area;
-
-    /**
-     * @var string This contains the route's action
-     */
-    protected $_action;
-
-    /**
-     * @var integer This contains the route's identifier
-     */
-    protected $_identifier;
-
-    /**
-     * @var array This contains the route's arguments
-     */
-    protected $_arguments;
-
+    protected $_routes;
+    
+    public function addRoute($name, $route)
+    {
+        $this->_routes[$name] = $route;
+    }
+    
+    public function getRoute($name)
+    {
+        return array_key_exists($name, $this->_routes) ? $this->_routes[$name] : null;
+    }
 
     /**
      * The constructor for the class
      *
-     * We use REST URI's, so the following structure should be followed.
-     * $resource/$identifier/$extra/$parameters
-     * See the CoreRequest class for how the action on the resource is determined
-     * *
-     *
-     * @param CoreRequest A request object to serve
+     * @param Request A request object to serve
      */
-    function __construct($request = null, $method = 'GET')
+    function __construct($routesFile = false)
     {
-        if (is_null($request)) {
-            $this->_request = new Request();
-        } else if ($request instanceof Request) {
-            $this->_request = $request;
-        } else {
-            parse_str($request, $data);
-            $this->_request = new Request($data, $method);
+        $routesFile = $routesFile ?: PROJECT_FOLDER . 'configs/routes.yaml';
+        if (!file_exists($routesFile)) {
+            return false;
         }
-
+        $routes = array();
+        
+        $ext  = pathinfo($routesFile, PATHINFO_EXTENSION);
+        $info = pathinfo($routesFile);
+        switch ($ext) {
+        case 'json':
+            $routes = json_decode(file_get_contents($routesFile), true);
+            break;
+        case 'yaml':
+            if (function_exists('yaml_parse_file')) {
+                $routes = \yaml_parse_file($routesFile);
+            } else if (class_exists('\sfYamlParser')) {
+                $yaml   = new \sfYamlParser();
+                $routes = $yaml->parse(file_get_contents($routesFile));
+            }
+        }
+        if (!array_key_exists('routes', $routes)) {
+            $routes['routes'] = array();
+        }
+        if (!array_key_exists('controllers', $routes)) {
+            $routes['controllers'] = array();
+        }
+        $this->_routes = $routes;
+    }
+    
+    public function resolve($request)
+    {
         //Setup and split the query
-        $query = $this->_request->getQuery();
-        if ($query == '') {
-            //TODO Make the default query configurable
-            $query = 'home';
+        if ($routePath = $this->checkDefinedRoutes($request)) {
+            return $routePath;
         }
-        $query = explode('/', $query);
-
-        //Set the area
-        $this->_area = $query[0];
-
-        //Map the REST verbs to CRUD
-        switch ($this->_request->getMethod()) {
-        case 'GET':
-            $action = 'read';
-            break;
-        case 'PUT':
-            $action = 'update';
-            break;
-        case 'POST':
-            $action = 'create';
-            break;
-        case 'DELETE':
-            $action = 'delete';
-            break;
+        return $this->checkGeneratedRoutes($request);
+    }
+    
+    function checkGeneratedRoutes($request) {
+        $query = explode('/', ltrim($request->getQuery(), '/'));
+        
+        //Resolve the controller
+        $controller = $query[0];
+        if (array_key_exists($controller, $this->_routes['controllers'])) {
+            $controller  = $this->_routes['controllers'][$controller];
+        } else {
+            $controller = Utils::className($query[0]);
         }
-        $this->_action = $action;
-
-        //Determine the resource identifier
-        if (count($query) == 1) {
-            //A zero identifier indicates that the action refers to the whole collection
-            $query[1] = 0;
+        
+        return new Utilities\RoutePath(
+            $controller,
+            strtolower($request->getMethod()),
+            count($query) > 1 ? array_slice($query, 1) : array()
+        );
+    }
+    
+    function checkDefinedRoutes($request)
+    {
+        $query = $request->getQuery();
+        foreach($this->_routes['routes'] as $name => $routeInfo) {
+            //If the verb is defined, and it doesn't match, skip
+            if (
+                array_key_exists('_verb', $routeInfo) &&
+                $request->getMethod() != strtoupper($routeInfo['_verb'])
+            ) {
+                continue;
+            }
+            //Try to match the route
+            if ($routeInfo['route'] == $query) {
+                return new Utilities\RoutePath(
+                    $routeInfo['controller'],
+                    $routeInfo['action'],
+                    array() //TODO
+                );
+            } //TODO Add regex support
         }
-        $this->_identifier = $query[1];
-
-        //Determine the additional arguments
-        $this->_arguments = count($query) > 2 ? array_slice($query, 2) : array();
-
-        $message = 'Route: ' . $this->_request->getMethod() . ': ' . $this->getQuery();
-        Application::log($message, 4);
-    }
-
-    /**
-     * Return the Request Query String
-     *
-     * @return string The query string for the request
-     */
-    function getQuery()
-    {
-        $result = $this->_area . '/' . $this->_action . '/' . $this->_identifier
-            . implode('/', $this->_arguments);
-        return $result;
-    }
-
-    /**
-     * Return the Request
-     *
-     * @return CoreRequest The Route's Request
-     */
-    function getRequest()
-    {
-        return $this->_request;
-    }
-
-    /**
-     * Return the Area component of the Request
-     *
-     * @return string The area component of the Request
-     */
-    function getArea()
-    {
-        return $this->_area;
-    }
-
-    /**
-     * Return the Action component of the Request
-     *
-     * @return string The action component of the Request
-     */
-    function getAction()
-    {
-        return $this->_action;
-    }
-
-    /**
-     * Return the Identifier of the Request
-     *
-     * @return string The identifier of the Request
-     */
-    function getIdentifier()
-    {
-        return $this->_identifier;
-    }
-
-    /**
-     * Return the Arguments of the Request
-     *
-     * @return array The arguments of the Request
-     */
-    function getArguments()
-    {
-        return $this->_arguments;
+        return false;
     }
 }

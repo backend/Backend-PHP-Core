@@ -90,6 +90,7 @@ class Application
     {
         if (!self::$_constructed) {
             //Core at the beginning, Application at the end
+            //TODO This will probably need to change
             self::registerNamespace('Core', true);
             self::registerNamespace('Application');
 
@@ -173,30 +174,28 @@ class Application
     /**
      * Main function for the application
      *
-     * This function can be executed multiple times in one request, so one request
-     * can be mapped to multiple routes.
-     *
-     * @param Route The route to execute
+     * @param Request The request to handle
      * @return Response The result of the call
      */
-    public function main(Route $route = null)
+    public function main(Request $request = null)
     {
-        $route = $route instanceof Route ? $route : new Route($this->_request);
-        $controllerBase = Utils::className($route->getArea());
-        $controllerName = 'Backend\Controllers\\' . $controllerBase;
-        if (!class_exists($controllerName, true)) {
-            //Otherwise check the Bases for a controller
-            $controllerName = self::getBackendClass($controllerBase, 'Controllers');
-        }
-        if (!class_exists($controllerName, true)) {
-            //Otherwise check the Bases for a Default Controller
-            $controllerName = self::getBackendClass('Controller');
-        }
-        if (!class_exists($controllerName)) {
-            throw new \Exception('Unknown Controller: ' . $controllerName);
+        //Resolve the Route
+        $request     = $request instanceof Request ? $request : new Request();
+        $this->route = new Route();
+        $routePath   = $this->route->resolve($request);
+        if (!($routePath instanceof Utilities\RoutePath)) {
+            throw new Exceptions\UnknownRouteException($request->getQuery());
         }
 
-        $controller = new $controllerName();
+        $controller = $routePath->getController();
+        $action     = $routePath->getAction();
+        $arguments  = $routePath->getArguments();
+        
+        //Determine the Call
+        $controller = self::resolveClass($controller, 'controller');
+        $method     = Utils::camelCase($action . ' Action');
+        
+        $controller = new $controller($request);
         //Decorate the Controller
         if ($controller instanceof Interfaces\Decorable) {
             foreach ($controller->getDecorators() as $decorator) {
@@ -210,8 +209,41 @@ class Application
             }
         }
 
-        //Execute the route through the controller
-        return $controller->execute($route);
+        //Make the Call
+        if (method_exists($controller, $method)) {
+            $functionCall = array($controller, $method);
+            //Execute the Controller method
+            Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
+            $result = call_user_func_array($functionCall, $arguments);
+        } else {
+            throw new \Exception('Unknown call ' . get_class($controller) . '::' . $method);
+        }
+        
+        //Return if we already have a Response
+        if ($result instanceof Response) {
+            return $result;
+        }
+        
+        $view = self::getTool('View');
+        $response = $view->transform($result);
+
+        if (!($response instanceof Response)) {
+            throw new \Exception('Unrecognized Response');
+        }
+        return $response;
+        
+        die('TODO: Do we want to allow the use of viewMethods?');
+        //Convert the result to a Respose
+        if ($view) {
+            //Execute the View related method
+            $viewMethod = $this->getViewMethod($action, $view);
+            if ($viewMethod instanceof \ReflectionMethod) {
+                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
+                $response = $viewMethod->invokeArgs($this, array($response));
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -245,11 +277,14 @@ class Application
             'exception' => $exception,
         );
         try {
-            $response = $this->main(new Route(new Request($data, 'get')));
+            //TODO
+            //$response = $this->main(new Route(new Request($data, 'get')));
             //Which is then outputted to the Client
+            throw $exception;
             $response->output();
         } catch (\Exception $e) {
             $file = $e->getFile() . ': ' . $e->getLine();
+            var_dump($e->getTrace());
             die('Could not handle exception: ' . $e->getMessage() . PHP_EOL . ' in ' . $file);
         }
     }
@@ -300,12 +335,13 @@ class Application
      */
     public static function registerNamespace($namespace, $prepend = false)
     {
-        if (!in_array($namespace, self::$_namespaces)) {
-            if ($prepend) {
-                array_unshift(self::$_namespaces, $namespace);
-            } else {
-                self::$_namespaces[] = $namespace;
-            }
+        if (in_array($namespace, self::$_namespaces)) {
+            return;
+        }
+        if ($prepend) {
+            array_unshift(self::$_namespaces, $namespace);
+        } else {
+            self::$_namespaces[] = $namespace;
         }
     }
 
@@ -344,27 +380,25 @@ class Application
     }
 
     /**
-     * Check the registered bases for a class
+     * Check the code bases for a class
      *
-     * Using this function to retrieve a class name allows the coder to override
-     * Base classes
+     * Packages can be in two locations, PROJECT_FOLDER . libraries and PROJECT_FOLDER . app.
+     * This function checks the packages in the two locations for the specified class
      *
      * @param string The class name to check
      * @param string The type of class it is
      */
-    public static function getBackendClass($className, $type = false)
+    public static function resolveClass($className, $type = false)
     {
-        $bases = array_reverse(self::getNamespaces());
-        foreach ($bases as $base) {
-            $class = 'Backend\\' . $base . '\\';
-            if ($type) {
-                $class .= $type . '\\';
-            }
-            $class .= $className;
-            if (class_exists($class, true)) {
-                return $class;
-            }
+        //If it's a specified class, return
+        if (
+            substr($className, 0, 1) == '\\'
+            && class_exists($className, true)
+        ) {
+            return $className;
         }
+        
+        //TODO
         return $className;
     }
 

@@ -39,9 +39,9 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     protected $_route = null;
 
     /**
-     * @var Response This contains the Response that will be returned
+     * @var Request This contains the Request that's being actioned
      */
-    protected $_response = null;
+    protected $_request = null;
 
     /**
      * @var array An array of names of decorators to apply to the controller
@@ -51,12 +51,12 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     /**
      * The constructor for the class
      *
-     * @param Response A response the controller should manipulate and return
+     * @param Request The request object for the execution of the action
      */
-    function __construct(Response $response = null)
+    function __construct(Request $request)
     {
-        //Setup the response
-        $this->_response = is_null($response) ? new \Backend\Core\Response() : $response;
+        //Setup the request
+        $this->_request = $request;
     }
 
     /**
@@ -68,39 +68,13 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
      * @param Route The route the controller should execute
      * @return Response The response to send to the client
      */
-    public function execute(Route $route)
+    public function execute()
     {
         //Get Route
         $this->_route = $route;
 
-        $action = $this->_route->getAction();
-        $method = $action . 'Action';
-
-        //Determine the method to call
-        if (method_exists($this, $method)) {
-            $functionCall = array($this, $method);
-            //Execute the Controller method
-            Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
-            $parameters = array(
-                $this->_route->getIdentifier(),
-                $this->_route->getArguments()
-            );
-            $response = call_user_func_array($functionCall, $parameters);
-        } else {
-            $response = new Response();
-        }
-
         if (!($response instanceof Response)) {
             //Convert non Response responses to Response
-            $view = \Backend\Core\Application::getTool('View');
-            if ($view) {
-                //Execute the View related method
-                $viewMethod = $this->getViewMethod($action, $view);
-                if ($viewMethod instanceof \ReflectionMethod) {
-                    Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
-                    $response = $viewMethod->invokeArgs($this, array($response));
-                }
-            }
         }
 
         if (!($response instanceof Response)) {

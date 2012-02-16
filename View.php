@@ -33,18 +33,6 @@ namespace Backend\Core;
 class View
 {
     /**
-     * This contains the variables bound to the view
-     * @var array
-     */
-    protected $_variables = array();
-
-    /**
-     * Object to render the view with
-     * @var object
-     */
-    protected $_renderer = null;
-
-    /**
      * Define the formats this view can handle
      * @var array
      */
@@ -53,68 +41,8 @@ class View
     /**
      * The View constructor
      */
-    function __construct($renderer = null)
+    function __construct()
     {
-        $this->_renderer = $renderer;
-    }
-
-    /**
-     * Bind a variable to the view
-     *
-     * @param string The name of the variable
-     * @param mixed The value of the variable
-     * @param boolean Set to false to honor previously set values
-     */
-    function bind($name, $value, $overwrite = true)
-    {
-        if ($overwrite || !array_key_exists($name, $this->_variables)) {
-            $this->_variables[$name] = $value;
-        }
-        return $this->_variables[$name];
-    }
-
-    /**
-     * Get the value of a variable
-     *
-     * @param string The name of the variable
-     * @return mixed The value of the variable
-     */
-    function get($name)
-    {
-        return array_key_exists($name, $this->_variables) ? $this->_variables[$name] : null;
-    }
-
-    /**
-     * Get all of the bound variables
-     *
-     * @return array An array of all the variables bound to the view
-     */
-    function getVariables()
-    {
-        return $this->_variables;
-    }
-
-    /**
-     * Redirect the application to another location
-     *
-     * Views are welcome to overwrite this to customize the way we redirect
-     *
-     * @param string The new location
-     */
-    function redirect($location)
-    {
-        die('GOTO ' . $location);
-    }
-
-    function render($template, array $values = array())
-    {
-        $values = array_merge($this->getVariables(), $values);
-        if (is_null($this->_renderer)) {
-            $this->_renderer = \Backend\Core\Application::getTool('Render');
-            $this->_renderer->setView($this);
-        }
-        //Render it
-        return $this->_renderer->file($template, $values);
     }
 
     /**
@@ -122,42 +50,46 @@ class View
      *
      * This function should be overwritten by other views to change the output
      */
-    function transform(\Backend\Core\Response $response)
+    function transform($result)
     {
-        if (Request::fromCli()) {
-            foreach ($response->getContent() as $key => $content) {
-                if ($content instanceof \Exception) {
-                    $content = new Decorators\PrettyExceptionDecorator($content);
-                    var_export((string)$content);
-                } else {
-                    var_export('Result-' . $key, $response->getContent());
-                }
-            }
-        } else {
-            echo <<< END
+        $response = new \Backend\Core\Response();
+        switch (gettype($result)) {
+        case 'object':
+            if ($result instanceof \Exception) {
+                $result = new Decorators\PrettyExceptionDecorator($result);
+                $result = (string)$result;
+            } 
+            //NO break;
+        case 'array':
+            $result = var_export($result, true);
+            //NO break;
+        case 'string':
+        default:
+            $response->addContent('Result: ' . $result);
+            break;
+        }
+        
+        //Add some default formatting
+        if (!Request::fromCli()) {
+            $header = <<< END
 <!DOCTYPE HTML>
 <html>
     <head>
         <title>Backend-Core</title>
     </head>
     <body>
+        <pre>
 END;
-            foreach ($response->getContent() as $key => $content) {
-                if ($content instanceof \Exception) {
-                    $content = new Decorators\PrettyExceptionDecorator($content);
-                    var_dump((string)$content);
-                } else {
-                    var_dump('Result-' . $key, $response->getContent());
-                }
-            }
-        }
-        if (Request::fromCli()) {
-            echo PHP_EOL;
-        } else {
-            echo <<< END
+            $footer = <<< END
+        </pre>
     </body>
 </html>
 END;
+            $response->addContent($header, true);
+            $response->addContent($footer);
+        } else {
+            $response->addContent(PHP_EOL);
         }
+        return $response;
     }
 }

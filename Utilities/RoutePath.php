@@ -1,7 +1,7 @@
 <?php
-namespace Backend\Core;
+namespace Backend\Core\Utilities;
 /**
- * File defining Utils
+ * File defining RoutePath
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -25,21 +25,63 @@ namespace Backend\Core;
  *
  * @package CoreFiles
  */
-class Utils
+/**
+ * The RoutePath class stores and manages information about a single Route
+ *
+ * @package Core
+ */
+class RoutePath
 {
-    public static function className($string)
-    {
-        return str_replace(" ", "", ucwords(strtr($string, "_-", "  ")));
-    }
+    /**
+     * @var string The route path's controller
+     */
+    protected $_controller;
     
-    public static function tableName($string)
-    {
-        return strtolower(preg_replace('~(?<=\\w)([A-Z])~', '_$1', $string));
-    }
+    /**
+     * @var string The route path's action
+     */
+    protected $_action;
     
-    public static function camelCase($string)
+    /**
+     * @var string The route path's arguments
+     */
+    protected $_arguments;
+    
+    function __construct($controller, $action, array $arguments)
     {
-        return lcfirst(self::className($string));
+        $this->_controller = $controller;
+        $this->_action     = $action;
+        $this->_arguments  = $arguments;
     }
 
+    /**
+     * Get the RoutePath's controller
+     *
+     * @return string The controller for the route path
+     */
+    public function getController()
+    {
+        return $this->_controller;
+    }    
+
+    /**
+     * Get the RoutePath's action
+     *
+     * @return string The action for the route path
+     */
+    public function getAction()
+    {
+        return $this->_action;
+    }    
+
+    /**
+     * Get the RoutePath's arguments
+     *
+     * @return array The arguments for the route path
+     */
+    public function getArguments()
+    {
+        return $this->_arguments;
+    }    
 }
+

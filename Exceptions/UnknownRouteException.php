@@ -1,7 +1,7 @@
 <?php
-namespace Backend\Core;
+namespace Backend\Core\Exceptions;
 /**
- * File defining Utils
+ * File defining UnknownRouteException
  *
  * Copyright (c) 2011 JadeIT cc
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -23,23 +23,13 @@ namespace Backend\Core;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
  * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * @package CoreFiles
+ * @package ExceptionFiles
  */
-class Utils
+/**
+ * UnknownRouteException
+ *
+ * @package Exceptions
+ */
+class UnknownRouteException extends \Exception
 {
-    public static function className($string)
-    {
-        return str_replace(" ", "", ucwords(strtr($string, "_-", "  ")));
-    }
-    
-    public static function tableName($string)
-    {
-        return strtolower(preg_replace('~(?<=\\w)([A-Z])~', '_$1', $string));
-    }
-    
-    public static function camelCase($string)
-    {
-        return lcfirst(self::className($string));
-    }
-
 }

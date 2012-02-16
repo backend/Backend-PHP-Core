@@ -45,6 +45,7 @@ class Autoloader
      * Function to autoload Backend-CoreFiles classes
      *
      * Register this function for use by calling \Backend\Core\Autoloader::register()
+     *
      * @param string The class name to auto load
      * @return boolean If the class file was found and included
      */
@@ -75,6 +76,10 @@ class Autoloader
         }
         $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
         if (file_exists(VENDOR_FOLDER . $fileName)) {
+            require_once(VENDOR_FOLDER . $fileName);
+            return true;
+        }
+        if (file_exists(SOURCE_FOLDER . $fileName)) {
             require_once(VENDOR_FOLDER . $fileName);
             return true;
         }

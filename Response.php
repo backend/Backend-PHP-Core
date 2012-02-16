@@ -54,7 +54,7 @@ class Response
         $this->_headers = $headers;
     }
 
-    public function statusCode()
+    public function getStatusCode()
     {
         return $this->_status;
     }
@@ -64,9 +64,13 @@ class Response
         $this->_status = $code;
     }
 
-    public function content($content)
+    public function addContent($content, $append = false)
     {
-        $this->_content[] = $content;
+        if ($append) {
+            array_unshift($this->_content, $content);
+        } else {
+            $this->_content[] = $content;
+        }
     }
 
     public function getContent()
@@ -79,7 +83,7 @@ class Response
         $this->_content = $content;
     }
 
-    public function header($name, $content)
+    public function addHeader($name, $content)
     {
         $this->_headers[$name] = $content;
     }

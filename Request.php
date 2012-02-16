@@ -98,6 +98,9 @@ class Request
         if (substr($query, -1) == '/') {
             $query = substr($query, 0, strlen($query) - 1);
         }
+        if (substr($query, 0, 1) != '/') {
+            $query = '/' . $query;
+        }
         return $query;
     }
 

@@ -40,7 +40,6 @@ class ViewFactory
      */
     public static function build(\Backend\Core\Request $request)
     {
-
         //Check the View Folder
         $views = array();
         $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
@@ -90,8 +89,8 @@ class ViewFactory
     private static function checkView($viewName, $format)
     {
         if (in_array($format, $viewName::$handledFormats)) {
-            $renderer = \Backend\Core\Application::getTool('Renderer');
-            $view = new $viewName($renderer);
+            //$renderer = \Backend\Core\Application::getTool('Renderer');
+            $view = new $viewName();
             if (!($view instanceof \Backend\Core\View)) {
                 throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
             }
