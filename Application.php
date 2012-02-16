@@ -152,22 +152,6 @@ class Application
                 self::addTool($toolName, $tool);
             }
         }
-
-        //Application per request
-        $this->_request = $request ? $request : new Request();
-
-        //Get the View
-        try {
-            $view = Utilities\ViewFactory::build($this->_request);
-        } catch (\Exception $e) {
-            Application::log('View Exception: ' . $e->getMessage(), 2);
-            $view = new View();
-        }
-        $this->_view = $view;
-        self::addTool('View', $view);
-
-        self::log('Running Application in ' . get_class($this->_view) . ' View');
-
         return true;
     }
 
@@ -219,20 +203,33 @@ class Application
             throw new \Exception('Unknown call ' . get_class($controller) . '::' . $method);
         }
         
+        return $this->handleResult($result);
+    }
+    
+    private function handleResult($result)
+    {
         //Return if we already have a Response
         if ($result instanceof Response) {
             return $result;
         }
         
-        $view = self::getTool('View');
+        //Get the View
+        try {
+            $view = Utilities\ViewFactory::build($this->_request);
+        } catch (\Exception $e) {
+            Application::log('View Exception: ' . $e->getMessage(), 2);
+            $view = new View();
+        }
+        self::log('Running Application in ' . get_class($this->_view) . ' View');
+
         $response = $view->transform($result);
 
         if (!($response instanceof Response)) {
             throw new \Exception('Unrecognized Response');
         }
         return $response;
-        
-        die('TODO: Do we want to allow the use of viewMethods?');
+
+        //TODO: Do we want to allow the use of viewMethods?
         //Convert the result to a Respose
         if ($view) {
             //Execute the View related method
@@ -242,8 +239,6 @@ class Application
                 $response = $viewMethod->invokeArgs($this, array($response));
             }
         }
-
-        return $response;
     }
 
     /**
@@ -272,21 +267,25 @@ class Application
      */
     public function exception($exception)
     {
-        $data = array(
+        //TODO: Let the Application be able to handle (and pretty up) Exceptions
+        /*$data = array(
             'error/exception' => '',
             'exception' => $exception,
         );
         try {
             //TODO
-            //$response = $this->main(new Route(new Request($data, 'get')));
+            $response = $this->main(new Request($data, 'get'));
             //Which is then outputted to the Client
-            throw $exception;
             $response->output();
-        } catch (\Exception $e) {
-            $file = $e->getFile() . ': ' . $e->getLine();
-            var_dump($e->getTrace());
-            die('Could not handle exception: ' . $e->getMessage() . PHP_EOL . ' in ' . $file);
-        }
+        } catch (\Exception $e) {*/
+            ob_start();
+            $file = $exception->getFile() . ': ' . $exception->getLine();
+            var_dump($exception->getTrace());
+            echo 'Could not handle exception: ' . $exception->getMessage() . PHP_EOL . 'in ' . $file;
+            $response = $this->handleResult(ob_get_clean());
+            $response->setStatusCode(500);
+            $response->output();
+        //}
     }
 
     /**

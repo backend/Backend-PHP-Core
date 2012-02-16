@@ -81,6 +81,7 @@ class Request
         $this->setPayload($payload);
 
         //Get the query
+        //TODO This doesn't take into account the request passed down
         $query = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
 
         //Clean up the query
