@@ -45,7 +45,7 @@ class Response
     /**
      * @var string The HTTP version
      */
-    protected $_http_version = 'HTTP/1.1';
+    protected $_http_version = null;
 
     /**
      * @var array A list of HTTP Response Codes with their default texts
@@ -118,11 +118,12 @@ class Response
      * @param int The status code for the response
      * @param array The headers for the response
      */
-    public function __construct($content = array(), $status = 200, array $headers = array())
+    public function __construct(array $content = array(), $status = 200, array $headers = array())
     {
         $this->_content = $content;
         $this->_status  = $status;
         $this->_headers = $headers;
+        $this->_http_version = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
     }
 
     /**
