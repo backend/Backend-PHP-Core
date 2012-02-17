@@ -43,27 +43,20 @@ class ViewFactory
         //Check the View Folder
         $views = array();
         $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
+        $viewFiles = array();
         foreach ($namespaces as $base) {
-            $viewFolder = BACKEND_FOLDER . $base . '/Views/';
-            if (
-                !file_exists($viewFolder)
-                || !($handle = opendir($viewFolder))
-            ) {
+            $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
+            $files  = glob(PROJECT_FOLDER . '*' . $folder . '/Views/*.php');
+            $viewFiles = array_merge($viewFiles, $files);
+        }
+        foreach ($viewFiles as $file) {
+            //Check the view class
+            $viewName = str_replace(array(SOURCE_FOLDER, VENDOR_FOLDER), '', $file);
+            $viewName = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', substr($viewName, 0, strlen($viewName) - 4));
+            if (!class_exists($viewName, true)) {
                 continue;
             }
-            while (false !== ($file = readdir($handle))) {
-                if ($file == '.' || $file == '..' || substr($file, -4) != '.php') {
-                    continue;
-                }
-
-                //Check the view class
-                $viewName = '\Backend\\' . $base . '\Views\\' . substr($file, 0, strlen($file) - 4);
-                if (!class_exists($viewName, true)) {
-                    continue;
-                }
-
-                $views[] = $viewName;
-            }
+            $views[] = $viewName;
         }
 
         $formats = array_filter(

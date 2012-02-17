@@ -62,7 +62,7 @@ class Application
     /**
      * @var array This contains all the namespaces for the application
      */
-    private static $_namespaces = array('Base');
+    private static $_namespaces = array();
 
     /**
      * @var integer The debugging level. The higher, the more verbose
@@ -75,11 +75,6 @@ class Application
     private $_request = null;
 
     /**
-     * @var View This contains the view object that display the executed request
-     */
-    private $_view = null;
-
-    /**
      * The constructor for the class
      *
      * @param mixed The Configuration to be used for the application. Can be a the
@@ -88,10 +83,26 @@ class Application
     function __construct($config = null)
     {
         if (!self::$_constructed) {
-            //Core at the beginning, Application at the end
-            //TODO: Refactor it so that it can check all components in the libraries and app folder
-            self::registerNamespace('Core', true);
-            self::registerNamespace('Application');
+            //Register Core Namespace
+            self::registerNamespace('\Backend\Core', true);
+
+            //Register all Vendor Namespaces
+            $checkFolder = function($param) { return !(preg_match('/^[_.]/', $param) || !is_dir(VENDOR_FOLDER . $param)); };
+            if (file_exists(VENDOR_FOLDER)) {
+                foreach (glob(VENDOR_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
+                    $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(VENDOR_FOLDER, '', $folder));
+                    self::registerNamespace($namespace);
+                }
+            }
+            
+            //Register all Application Namespaces
+            $checkFolder = function($param) { return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param)); };
+            if (file_exists(SOURCE_FOLDER)) {
+                foreach (glob(SOURCE_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
+                    $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(SOURCE_FOLDER, '', $folder));
+                    self::registerNamespace($namespace);
+                }
+            }
 
             //PHP Helpers
             register_shutdown_function(array($this, 'shutdown'));
@@ -171,7 +182,7 @@ class Application
         //Determine the View
         try {
             $view = Utilities\ViewFactory::build($request);
-        } catch (\Exception $e) {
+        } catch (Exceptions\UnrecognizedRequestException $e) {
             Application::log('View Exception: ' . $e->getMessage(), 2);
             $view = new View();
         }

@@ -63,6 +63,8 @@ class Autoloader
                 $base = $parts[1];
             }
         }
+        //This allows us to define a class as \Backend\Something, which can be loaded from
+        // \Backend\Base\Something, or if that doesn't exist, \Backend\Core\Something
         if ($vendor && $vendor == 'Backend' && self::loadBackendClass($base, $className)) {
             return true;
         }
@@ -97,6 +99,9 @@ class Autoloader
         if (!class_exists('\Backend\Core\Application', false)) {
             return false;
         }
+        return false;
+        var_dump($base, $className);
+        throw new \Exception('TODO: This has been broken by the new namespace implementation');
         $bases = Application::getNamespaces();
         if (!$base || in_array($base, $bases)) {
             return false;
