@@ -124,6 +124,10 @@ class Application
         //Setup the specified tools
         //TODO: Maybe move the Toolbox to a separate class
         self::$_toolbox = array();
+
+        //Use the default view until we have a request to use
+        self::addTool('View', new View());
+
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
                 $config = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
@@ -162,19 +166,30 @@ class Application
      */
     public function main(Request $request = null)
     {
+        $request = $request instanceof Request ? $request : new Request();
+
+        //Determine the View
+        try {
+            $view = Utilities\ViewFactory::build($request);
+        } catch (\Exception $e) {
+            Application::log('View Exception: ' . $e->getMessage(), 2);
+            $view = new View();
+        }
+        self::log('Running Application in ' . get_class($view) . ' View');
+        self::addTool('View', $view);
+        
         //Resolve the Route
-        $request     = $request instanceof Request ? $request : new Request();
         $this->route = new Route();
         $routePath   = $this->route->resolve($request);
         if (!($routePath instanceof Utilities\RoutePath)) {
             throw new Exceptions\UnknownRouteException($request->getQuery());
         }
 
+        //Determine the Call
         $controller = $routePath->getController();
         $action     = $routePath->getAction();
         $arguments  = $routePath->getArguments();
         
-        //Determine the Call
         $controller = self::resolveClass($controller, 'controller');
         $method     = Utils::camelCase($action . ' Action');
         
@@ -217,14 +232,7 @@ class Application
             return $result;
         }
         
-        //Get the View
-        try {
-            $view = Utilities\ViewFactory::build($this->_request);
-        } catch (\Exception $e) {
-            Application::log('View Exception: ' . $e->getMessage(), 2);
-            $view = new View();
-        }
-        self::log('Running Application in ' . get_class($this->_view) . ' View');
+        $view = self::getTool('View');
 
         //Convert the result to a Respose
         $response = $view->transform($result);
@@ -281,11 +289,7 @@ class Application
             //Which is then outputted to the Client
             $response->output();
         } catch (\Exception $e) {*/
-            ob_start();
-            $file = $exception->getFile() . ': ' . $exception->getLine();
-            var_dump($exception->getTrace());
-            echo 'Could not handle exception: ' . $exception->getMessage() . PHP_EOL . 'in ' . $file;
-            $response = $this->handleResult(ob_get_clean());
+            $response = $this->handleResult($exception);
             $response->setStatusCode(500);
             $response->output();
         //}
