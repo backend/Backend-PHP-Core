@@ -46,7 +46,7 @@ class View
     }
 
     /**
-     * Output the request.
+     * Transform the result into a Response Object.
      *
      * This function should be overwritten by other views to change the output
      */

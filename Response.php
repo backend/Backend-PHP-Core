@@ -118,11 +118,11 @@ class Response
      * @param int The status code for the response
      * @param array The headers for the response
      */
-    public function __construct(array $content = array(), $status = 200, array $headers = array())
+    public function __construct($content = array(), $status = 200, array $headers = array())
     {
-        $this->_content = $content;
-        $this->_status  = $status;
-        $this->_headers = $headers;
+        $this->setContent($content);
+        $this->setStatusCode($status);
+        $this->setHeaders($headers);
         $this->_http_version = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
     }
 
@@ -176,9 +176,9 @@ class Response
      *
      * @param array The new content
      */
-    public function setContent(array $content)
+    public function setContent($content)
     {
-        $this->_content = $content;
+        $this->_content = is_array($content) ? $content : array($content);
     }
 
     /** 
