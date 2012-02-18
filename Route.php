@@ -101,12 +101,17 @@ class Route
         if (array_key_exists($controller, $this->_routes['controllers'])) {
             $controller  = $this->_routes['controllers'][$controller];
         } else {
-            $controller = Utils::className($query[0]);
+            $controller = Utilities\Strings::className($query[0]);
+        }
+        
+        $action = strtolower($request->getMethod());
+        if ($action == 'get' && count($query) == 1) {
+            $action = 'list';
         }
         
         return new Utilities\RoutePath(
             $controller,
-            strtolower($request->getMethod()),
+            $action,
             count($query) > 1 ? array_slice($query, 1) : array()
         );
     }
