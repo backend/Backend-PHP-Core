@@ -30,6 +30,6 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface LoggingObserver extends \SplObserver
+interface LoggingObserverInterface extends \SplObserver
 {
 }

@@ -30,7 +30,7 @@ namespace Backend\Core;
  *
  * @package Core
  */
-class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
+class Controller implements Interfaces\ControllerInterface, Interfaces\DecorableInterface
 {
     /**
      * @var Route This contains the route object that will help decide what controller

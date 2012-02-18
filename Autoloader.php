@@ -51,7 +51,9 @@ class Autoloader
      */
     public static function __autoload($className)
     {
-        //Application::log('Checking for ' . $className, 5);
+        if ($className != 'Backend\Core\Application') {
+            //Application::log('Checking for ' . $className, 5);
+        }
 
         $className = ltrim($className, '\\');
         $parts  = explode('\\', $className);
@@ -82,12 +84,12 @@ class Autoloader
             return true;
         }
         if (file_exists(SOURCE_FOLDER . $fileName)) {
-            require_once(VENDOR_FOLDER . $fileName);
+            require_once(SOURCE_FOLDER . $fileName);
             return true;
         }
         return false;
     }
-
+    
     /**
      * Load backend specific classes
      *

@@ -30,7 +30,7 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface Decorator
+interface DecoratorInterface
 {
     /**
      * The constructor for the decorator

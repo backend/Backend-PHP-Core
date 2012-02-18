@@ -30,7 +30,7 @@ namespace Backend\Core;
  *
  * @package Core
  */
-class Model implements Interfaces\ModelInterface, Interfaces\Decorable
+class Model implements Interfaces\ModelInterface, Interfaces\DecorableInterface
 {
     /**
      * @var array The human friendly name for the model

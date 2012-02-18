@@ -30,7 +30,7 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface Decorable
+interface DecorableInterface
 {
     /**
      * Get an array of decorators for the class

@@ -201,10 +201,14 @@ class Application
         $action     = $routePath->getAction();
         $arguments  = $routePath->getArguments();
         
-        $controller = self::resolveClass($controller, 'controller');
-        $method     = Utils::camelCase($action . ' Action');
+        $controllerClass = self::resolveClass($controller, 'controller');
+        $methodName      = Utils::camelCase($action . ' Action');
         
-        $controller = new $controller($request);
+        if (!class_exists($controllerClass, true)) {
+            throw new \Exception('Unknown Controller: ' . $controllerClass);
+        }
+        
+        $controller = new $controllerClass($request);
         //Decorate the Controller
         if ($controller instanceof Interfaces\Decorable) {
             foreach ($controller->getDecorators() as $decorator) {
@@ -218,13 +222,13 @@ class Application
         }
 
         //Make the Call
-        if (method_exists($controller, $method)) {
-            $functionCall = array($controller, $method);
+        if (method_exists($controller, $methodName)) {
+            $functionCall = array($controller, $methodName);
             //Execute the Controller method
             Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
             $result = call_user_func_array($functionCall, $arguments);
         } else {
-            throw new \Exception('Unknown call ' . get_class($controller) . '::' . $method);
+            throw new \Exception('Unknown call ' . $controllerClass . '::' . $methodName);
         }
         
         return $this->handleResult($result);
@@ -415,8 +419,39 @@ class Application
             return $className;
         }
         
-        //TODO: Check the different locations for the Class
-        return $className;
+        if ($type) {
+            $className = Utils::className($className . ' ' . $type);
+            switch (strtolower($type)) {
+            case 'controller':
+                $className = 'Controllers/' . $className;
+                break;
+            case 'interface':
+                $className = 'Interfaces/' . $className;
+                break;
+            case 'exception':
+                $className = 'Exceptions/' . $className;
+                break;
+            }
+        }
+        $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
+        //No namespace, so go through the namespaces to find the class
+        foreach ($namespaces as $base) {
+            $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
+            if ($files  = glob(PROJECT_FOLDER . '*' . $folder . '/' . $className . '.php')) {
+                $className = $base . '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $className);
+                include($files[0]);
+                return $className;
+            }
+        }
+
+
+        //Try the type
+        $className = Utils::className($className . ' ' . $type);
+        if (class_exists($className, true)) {
+            return $className;
+        }
+
+        return false;
     }
 
     /**
@@ -435,6 +470,10 @@ class Application
      */
     public static function log($message, $level = Utilities\LogMessage::LEVEL_IMPORTANT, $context = false)
     {
+        /*if (!self::$_constructed || !class_exists('Backend\Core\Utilities\LogMessage', true)) {
+            return false;
+        }*/
+        
         if (!$context) {
             $backtrace = debug_backtrace();
             //Remove the call to this function

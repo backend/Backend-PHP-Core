@@ -30,7 +30,7 @@ namespace Backend\Core\Utilities;
  *
  * @package Utilities
  */
-class Logger implements \Backend\Core\Interfaces\LoggingObserver
+class Logger implements \Backend\Core\Interfaces\LoggingObserverInterface
 {
     /**
      * Function to receive an update from a subject

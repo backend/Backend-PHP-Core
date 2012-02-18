@@ -34,7 +34,7 @@ namespace Backend\Core\Interfaces;
  *
  * @package Interfaces
  */
-interface RestController extends ControllerInterface
+interface RestControllerInterface extends ControllerInterface
 {
     /**
      * Create function called by the POST HTTP verb
