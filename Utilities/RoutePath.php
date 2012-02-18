@@ -33,45 +33,52 @@ namespace Backend\Core\Utilities;
 class RoutePath
 {
     /**
-     * @var string The route path's controller
+     * @var string The route path's callback
      */
-    protected $_controller;
-    
-    /**
-     * @var string The route path's action
-     */
-    protected $_action;
+    protected $_callback;
     
     /**
      * @var string The route path's arguments
      */
     protected $_arguments;
     
-    function __construct($controller, $action, array $arguments)
+    function __construct($callback, array $arguments)
     {
-        $this->_controller = $controller;
-        $this->_action     = $action;
-        $this->_arguments  = $arguments;
+        if (is_array($callback)) {
+            $controllerClass = \Backend\Core\Application::resolveClass($callback[0], 'controller');
+            $methodName      = Strings::camelCase($callback[1] . ' Action');
+
+            if (!class_exists($controllerClass, true)) {
+                throw new \Exception('Unknown Controller: ' . $callback[0]);
+            }
+            $callback[0] = new $controllerClass();
+
+            //Decorate the Controller
+            if ($callback[0] instanceof Interfaces\Decorable) {
+                foreach ($callback[0]->getDecorators() as $decorator) {
+                    $callback[0] = new $decorator($callback[0]);
+                    if (!($callback[0] instanceof \Backend\Core\Decorators\ControllerDecorator)) {
+                        throw new \Exception(
+                            'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ControllerDecorator'
+                        );
+                    }
+                }
+            }
+
+            $callback[1] = $methodName;
+        }
+        $this->_callback  = $callback;
+        $this->_arguments = $arguments;
     }
 
     /**
-     * Get the RoutePath's controller
+     * Get the RoutePath's callback
      *
-     * @return string The controller for the route path
+     * @return callback The callback for the route path
      */
-    public function getController()
+    public function getCallback()
     {
-        return $this->_controller;
-    }    
-
-    /**
-     * Get the RoutePath's action
-     *
-     * @return string The action for the route path
-     */
-    public function getAction()
-    {
-        return $this->_action;
+        return $this->_callback;
     }    
 
     /**

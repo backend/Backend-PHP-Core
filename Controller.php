@@ -53,36 +53,10 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
      *
      * @param Request The request object for the execution of the action
      */
-    function __construct(Request $request)
+    function __construct(Request $request = null)
     {
         //Setup the request
         $this->_request = $request;
-    }
-
-    /**
-     * The main controller function
-     *
-     * This function can be called multiple times, although it's probably better to
-     * run {@link Application::main} to get the desired effect.
-     *
-     * @param Route The route the controller should execute
-     * @return Response The response to send to the client
-     */
-    public function execute()
-    {
-        //Get Route
-        $this->_route = $route;
-
-        if (!($response instanceof Response)) {
-            //Convert non Response responses to Response
-        }
-
-        if (!($response instanceof Response)) {
-            throw new \Exception('Invalid Response');
-        }
-
-        $this->response = $response;
-        return $this->_response;
     }
 
     /**
@@ -116,6 +90,11 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
         if ($key !== false) {
             unset($this->_decorators[$key]);
         }
+    }
+
+    public function setRequest(Request $request)
+    {
+        $this->_request = $request;
     }
 
     /**

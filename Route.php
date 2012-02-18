@@ -110,8 +110,7 @@ class Route
         }
         
         return new Utilities\RoutePath(
-            $controller,
-            $action,
+            array($controller, $action),
             count($query) > 1 ? array_slice($query, 1) : array()
         );
     }
@@ -127,14 +126,40 @@ class Route
             ) {
                 continue;
             }
+
+            //Check the Callback
+            $callback = explode('::', $routeInfo['callback']);
+            if (count($callback) == 1) {
+                $callback = $callback[0];
+            } else if (count($callback) != 2) {
+                throw new \Exception('Invalid Callback: ' . $routeInfo['callback']);
+            }
+
             //Try to match the route
+            preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9]*)>/', $routeInfo['route'], $matches);
             if ($routeInfo['route'] == $query) {
+                //Straight match, no arguments
                 return new Utilities\RoutePath(
-                    $routeInfo['controller'],
-                    $routeInfo['action'],
-                    array() //TODO
+                    $callback,
+                    array()
                 );
-            } //TODO Add regex support
+            } else if (count($matches[0])) {
+                //Compile the Regex
+                $varNames = $matches[1];
+                $search   = $matches[0];
+                $replace  = '/(.*)';
+                $regex    = str_replace('/', '\/', str_replace($search, $replace, $routeInfo['route']));
+                if (preg_match_all('/' . $regex . '/', $query, $matches, \PREG_SET_ORDER)) {
+                    //Regex Match
+                    $matches = $matches[0];
+                    array_shift($matches);
+                    $arguments = array_combine($varNames, $matches);
+                    return new Utilities\RoutePath(
+                        $callback,
+                        $arguments
+                    );
+                }
+            }
         }
         return false;
     }

@@ -197,40 +197,24 @@ class Application
         }
 
         //Determine the Call
-        $controller = $routePath->getController();
-        $action     = $routePath->getAction();
-        $arguments  = $routePath->getArguments();
-        
-        $controllerClass = self::resolveClass($controller, 'controller');
-        $methodName      = Utilities\Strings::camelCase($action . ' Action');
-        
-        if (!class_exists($controllerClass, true)) {
-            throw new \Exception('Unknown Controller: ' . $controllerClass);
+        $callback  = $routePath->getCallback();
+        $arguments = $routePath->getArguments();
+
+        if (is_array($callback)) {
+            $callback[0]->setRequest($request);
+            $refMethod = new \ReflectionMethod($callback[0], $callback[1]);
+        } else {
+            $refMethod = new \ReflectionFunction($callback);
         }
-        
-        $controller = new $controllerClass($request);
-        //Decorate the Controller
-        if ($controller instanceof Interfaces\Decorable) {
-            foreach ($controller->getDecorators() as $decorator) {
-                $controller = new $decorator($controller);
-                if (!($controller instanceof \Backend\Core\Decorators\ControllerDecorator)) {
-                    throw new \Exception(
-                        'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ControllerDecorator'
-                    );
-                }
+        //Get the parameters in the correct order
+        $parameters = array();
+        foreach ($refMethod->getParameters() as $param) {
+            if (array_key_exists($param->getName(), $arguments)) {
+                $parameters[] = $arguments[$param->getName()];
             }
         }
-
-        //Make the Call
-        if (method_exists($controller, $methodName)) {
-            $functionCall = array($controller, $methodName);
-            //Execute the Controller method
-            Application::log('Executing ' . get_class($functionCall[0]) . '::' . $functionCall[1], 4);
-            $result = call_user_func_array($functionCall, $arguments);
-        } else {
-            throw new \Exception('Unknown call ' . $controllerClass . '::' . $methodName);
-        }
         
+        $result = call_user_func_array($callback, $parameters);
         return $this->handleResult($result);
     }
     

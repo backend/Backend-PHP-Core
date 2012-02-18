@@ -32,4 +32,5 @@ namespace Backend\Core\Interfaces;
  */
 interface ControllerInterface
 {
+    public function setRequest(\Backend\Core\Request $request);
 }
