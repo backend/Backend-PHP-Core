@@ -202,7 +202,7 @@ class Application
         $arguments  = $routePath->getArguments();
         
         $controllerClass = self::resolveClass($controller, 'controller');
-        $methodName      = Utils::camelCase($action . ' Action');
+        $methodName      = Utilities\Strings::camelCase($action . ' Action');
         
         if (!class_exists($controllerClass, true)) {
             throw new \Exception('Unknown Controller: ' . $controllerClass);
@@ -420,7 +420,7 @@ class Application
         }
         
         if ($type) {
-            $className = Utils::className($className . ' ' . $type);
+            $className = Utilities\Strings::className($className . ' ' . $type);
             switch (strtolower($type)) {
             case 'controller':
                 $className = 'Controllers/' . $className;
@@ -446,7 +446,7 @@ class Application
 
 
         //Try the type
-        $className = Utils::className($className . ' ' . $type);
+        $className = Utilities\Strings::className($className . ' ' . $type);
         if (class_exists($className, true)) {
             return $className;
         }

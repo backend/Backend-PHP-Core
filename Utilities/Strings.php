@@ -1,5 +1,5 @@
 <?php
-namespace Backend\Core;
+namespace Backend\Core\Utilities;
 /**
  * File defining Utils
  *
@@ -25,7 +25,7 @@ namespace Backend\Core;
  *
  * @package CoreFiles
  */
-class Utils
+class Strings
 {
     public static function className($string)
     {

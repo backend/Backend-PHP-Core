@@ -1,5 +1,5 @@
 <?php
-namespace Backend\Core;
+namespace Backend\Core\Utilities;
 /**
  * File defining Autoloader
  *
@@ -38,7 +38,7 @@ class Autoloader
     public static function register()
     {
         //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('\Backend\Core\Autoloader', '__autoload'), true, true);
+        spl_autoload_register(array('\Backend\Core\Utilities\Autoloader', '__autoload'), true, true);
     }
 
     /**
