@@ -37,12 +37,12 @@ class Route
      * @var array An array of predefined routes
      */
     protected $_routes;
-    
+
     public function addRoute($name, $route)
     {
         $this->_routes[$name] = $route;
     }
-    
+
     public function getRoute($name)
     {
         return array_key_exists($name, $this->_routes) ? $this->_routes[$name] : null;
@@ -60,7 +60,7 @@ class Route
             return false;
         }
         $routes = array();
-        
+
         $ext  = pathinfo($routesFile, PATHINFO_EXTENSION);
         $info = pathinfo($routesFile);
         switch ($ext) {
@@ -83,7 +83,7 @@ class Route
         }
         $this->_routes = $routes;
     }
-    
+
     public function resolve($request)
     {
         //Setup and split the query
@@ -92,73 +92,42 @@ class Route
         }
         return $this->checkGeneratedRoutes($request);
     }
-    
+
     function checkGeneratedRoutes($request) {
-        $query = explode('/', ltrim($request->getQuery(), '/'));
-        
+        $query    = ltrim($request->getQuery(), '/');
+        $queryArr = explode('/', $query);
+
         //Resolve the controller
-        $controller = $query[0];
+        $controller = $queryArr[0];
         if (array_key_exists($controller, $this->_routes['controllers'])) {
             $controller  = $this->_routes['controllers'][$controller];
         } else {
-            $controller = Utilities\Strings::className($query[0]);
+            $controller = Utilities\Strings::className($queryArr[0]);
         }
-        
+
         $action = strtolower($request->getMethod());
-        if ($action == 'get' && count($query) == 1) {
+        if ($action == 'get' && count($queryArr) == 1) {
             $action = 'list';
         }
-        
-        return new Utilities\RoutePath(
-            array($controller, $action),
-            count($query) > 1 ? array_slice($query, 1) : array()
+
+        $options = array(
+            'route'    => $request->getQuery(),
+            'callback' => $controller . '::' . $action,
         );
+
+        $routePath = new Utilities\RoutePath($options);
+        if ($routePath->check($request)) {
+            return $routePath;
+        }
+        return false;
     }
-    
+
     function checkDefinedRoutes($request)
     {
-        $query = $request->getQuery();
         foreach($this->_routes['routes'] as $name => $routeInfo) {
-            //If the verb is defined, and it doesn't match, skip
-            if (
-                array_key_exists('_verb', $routeInfo) &&
-                $request->getMethod() != strtoupper($routeInfo['_verb'])
-            ) {
-                continue;
-            }
-
-            //Check the Callback
-            $callback = explode('::', $routeInfo['callback']);
-            if (count($callback) == 1) {
-                $callback = $callback[0];
-            } else if (count($callback) != 2) {
-                throw new \Exception('Invalid Callback: ' . $routeInfo['callback']);
-            }
-
-            //Try to match the route
-            preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9]*)>/', $routeInfo['route'], $matches);
-            if ($routeInfo['route'] == $query) {
-                //Straight match, no arguments
-                return new Utilities\RoutePath(
-                    $callback,
-                    array()
-                );
-            } else if (count($matches[0])) {
-                //Compile the Regex
-                $varNames = $matches[1];
-                $search   = $matches[0];
-                $replace  = '/(.*)';
-                $regex    = str_replace('/', '\/', str_replace($search, $replace, $routeInfo['route']));
-                if (preg_match_all('/' . $regex . '/', $query, $matches, \PREG_SET_ORDER)) {
-                    //Regex Match
-                    $matches = $matches[0];
-                    array_shift($matches);
-                    $arguments = array_combine($varNames, $matches);
-                    return new Utilities\RoutePath(
-                        $callback,
-                        $arguments
-                    );
-                }
+            $routePath = new Utilities\RoutePath($routeInfo);
+            if ($routePath->check($request)) {
+                return $routePath;
             }
         }
         return false;

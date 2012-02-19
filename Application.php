@@ -94,7 +94,7 @@ class Application
                     self::registerNamespace($namespace);
                 }
             }
-            
+
             //Register all Application Namespaces
             $checkFolder = function($param) { return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param)); };
             if (file_exists(SOURCE_FOLDER)) {
@@ -188,7 +188,7 @@ class Application
         }
         self::log('Running Application in ' . get_class($view) . ' View');
         self::addTool('View', $view);
-        
+
         //Resolve the Route
         $this->route = new Route();
         $routePath   = $this->route->resolve($request);
@@ -201,23 +201,18 @@ class Application
         $arguments = $routePath->getArguments();
 
         if (is_array($callback)) {
+            //Set the request for the callback
             $callback[0]->setRequest($request);
-            $refMethod = new \ReflectionMethod($callback[0], $callback[1]);
         } else {
-            $refMethod = new \ReflectionFunction($callback);
+            //The first argument for the callback is the request
+            array_unshift($request, $arguments);
         }
-        //Get the parameters in the correct order
-        $parameters = array();
-        foreach ($refMethod->getParameters() as $param) {
-            if (array_key_exists($param->getName(), $arguments)) {
-                $parameters[] = $arguments[$param->getName()];
-            }
-        }
-        
-        $result = call_user_func_array($callback, $parameters);
+
+        $result = call_user_func_array($callback, $arguments);
+
         return $this->handleResult($result);
     }
-    
+
     /**
      * Handle the result from the executed controller
      *
@@ -230,7 +225,7 @@ class Application
         if ($result instanceof Response) {
             return $result;
         }
-        
+
         $view = self::getTool('View');
 
         //Convert the result to a Respose
@@ -402,7 +397,7 @@ class Application
         ) {
             return $className;
         }
-        
+
         if ($type) {
             $className = Utilities\Strings::className($className . ' ' . $type);
             switch (strtolower($type)) {
@@ -457,7 +452,7 @@ class Application
         /*if (!self::$_constructed || !class_exists('Backend\Core\Utilities\LogMessage', true)) {
             return false;
         }*/
-        
+
         if (!$context) {
             $backtrace = debug_backtrace();
             //Remove the call to this function

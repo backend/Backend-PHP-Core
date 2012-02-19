@@ -33,25 +33,94 @@ namespace Backend\Core\Utilities;
 class RoutePath
 {
     /**
-     * @var string The route path's callback
+     * @var string The route for this RoutePath
+     */
+    protected $_route;
+
+    /**
+     * @var callback The RoutePath's callback
      */
     protected $_callback;
-    
+
     /**
-     * @var string The route path's arguments
+     * @var string The HTTP verb for this RoutePath
      */
-    protected $_arguments;
-    
-    function __construct($callback, array $arguments)
+    protected $_verb;
+
+    /**
+     * @var array Defaults for the arguments of this RoutePath
+     */
+    protected $_defaults;
+
+    /**
+     * @var array The RoutePath's arguments
+     */
+    protected $_arguments = array();
+
+    function __construct(array $options)
     {
-        if (is_array($callback)) {
-            $controllerClass = \Backend\Core\Application::resolveClass($callback[0], 'controller');
-            $methodName      = Strings::camelCase($callback[1] . ' Action');
+        $this->_route    = $options['route'];
+
+        //Construct the Callback
+        $this->_callback = $this->constructCallback($options['callback']);
+
+        $this->_verb     = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
+
+        $this->_defaults = array_key_exists('defaults', $options) ? $options['defaults'] : array();
+    }
+
+    public function check($request)
+    {
+        //If the verb is defined, and it doesn't match, skip
+        if ($this->_verb && $request->getMethod() != $this->_verb) {
+            return false;
+        }
+
+        //Try to match the route
+        $query = $request->getQuery();
+        if ($this->_route == $query) {
+            //Straight match, no arguments
+            return $this;
+        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9]*)>/', $this->_route, $matches)) {
+            //Compile the Regex
+            $varNames = $matches[1];
+            $search   = $matches[0];
+            $replace  = '(/([^/]*))?';
+            $regex    = str_replace('/', '\/', str_replace($search, $replace, $this->_route));
+            if (preg_match_all('/' . $regex . '/', $query, $matches)) {
+                $arguments = array();
+                $i = 2;
+                foreach($varNames as $name) {
+                    $arguments[$name] = $matches[$i][0];
+                    $i = $i + 2;
+                }
+                //Regex Match
+                $this->_arguments = $this->constructArguments($arguments);
+                return $this;
+            }
+        }
+        return false;
+    }
+
+    protected function constructCallback($callback)
+    {
+        $callbackArray = explode('::', $callback);
+        if (count($callbackArray) == 1) {
+            $callback = $callback[0];
+        } else if (count($callbackArray) != 2) {
+            throw new \Exception('Invalid Callback: ' . $callback);
+        } else {
+            $controllerClass = \Backend\Core\Application::resolveClass($callbackArray[0], 'controller');
+            $methodName      = Strings::camelCase($callbackArray[1] . ' Action');
 
             if (!class_exists($controllerClass, true)) {
-                throw new \Exception('Unknown Controller: ' . $callback[0]);
+                throw new \Exception('Unknown Controller: ' . $callbackArray[0]);
             }
-            $callback[0] = new $controllerClass();
+
+            $callback = array(
+                new $controllerClass(),
+                $methodName
+            );
 
             //Decorate the Controller
             if ($callback[0] instanceof Interfaces\Decorable) {
@@ -64,11 +133,29 @@ class RoutePath
                     }
                 }
             }
-
-            $callback[1] = $methodName;
         }
-        $this->_callback  = $callback;
-        $this->_arguments = $arguments;
+        return $callback;
+    }
+
+    protected function constructArguments($arguments)
+    {
+        if (is_array($this->_callback)) {
+            $refMethod = new \ReflectionMethod($this->_callback[0], $this->_callback[1]);
+        } else {
+            $refMethod = new \ReflectionFunction($this->_callback);
+        }
+        //Get the parameters in the correct order
+        $parameters = array();
+        foreach ($refMethod->getParameters() as $param) {
+            if (!empty($arguments[$param->getName()])) {
+                $parameters[] = $arguments[$param->getName()];
+            } else if (isset($this->_defaults[$param->getName()])) {
+                $parameters[] = $this->_defaults[$param->getName()];
+            } else if (!$param->isOptional()) {
+                throw new \Exception('Missing argument ' . $param->getName());
+            }
+        }
+        return $parameters;
     }
 
     /**
@@ -79,7 +166,7 @@ class RoutePath
     public function getCallback()
     {
         return $this->_callback;
-    }    
+    }
 
     /**
      * Get the RoutePath's arguments
@@ -89,6 +176,5 @@ class RoutePath
     public function getArguments()
     {
         return $this->_arguments;
-    }    
+    }
 }
-
