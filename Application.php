@@ -87,7 +87,9 @@ class Application
             self::registerNamespace('\Backend\Core', true);
 
             //Register all Vendor Namespaces
-            $checkFolder = function($param) { return !(preg_match('/^[_.]/', $param) || !is_dir(VENDOR_FOLDER . $param)); };
+            $checkFolder = function($param) {
+                return !(preg_match('/^[_.]/', $param) || !is_dir(VENDOR_FOLDER . $param));
+            };
             if (file_exists(VENDOR_FOLDER)) {
                 foreach (glob(VENDOR_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
                     $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(VENDOR_FOLDER, '', $folder));
@@ -96,7 +98,9 @@ class Application
             }
 
             //Register all Application Namespaces
-            $checkFolder = function($param) { return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param)); };
+            $checkFolder = function($param) {
+                return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param));
+            };
             if (file_exists(SOURCE_FOLDER)) {
                 foreach (glob(SOURCE_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
                     $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(SOURCE_FOLDER, '', $folder));
@@ -145,9 +149,8 @@ class Application
             } else if (file_exists(PROJECT_FOLDER . 'configs/default.yaml')) {
                 $config = PROJECT_FOLDER . 'configs/default.yaml';
             } else {
-                throw new \Exception(
-                    'Could not find Configuration file. . Add one to ' . PROJECT_FOLDER . 'configs'
-                );
+                $string = 'Could not find Configuration file. . Add one to ' . PROJECT_FOLDER . 'configs';
+                throw new \Exception($string);
             }
         }
         if (is_string($config)) {
