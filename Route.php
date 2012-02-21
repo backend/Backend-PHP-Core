@@ -106,8 +106,22 @@ class Route
         }
 
         $action = strtolower($request->getMethod());
-        if ($action == 'get' && count($queryArr) == 1) {
-            $action = 'list';
+        switch ($action) {
+        case 'get':
+            if (count($queryArr) == 1) {
+                $action = 'list';
+            } else {
+                $action = 'read';
+            }
+            break;
+        case 'post':
+            $action = 'create';
+            break;
+        case 'put':
+            $action = 'update';
+            break;
+        case 'delete':
+            break;
         }
 
         $options = array(
