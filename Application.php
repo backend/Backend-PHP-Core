@@ -421,7 +421,7 @@ class Application
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
             if ($files  = glob(PROJECT_FOLDER . '*' . $folder . '/' . $className . '.php')) {
                 $className = $base . '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $className);
-                include($files[0]);
+                require_once($files[0]);
                 return $className;
             }
         }
