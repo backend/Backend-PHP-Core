@@ -63,7 +63,7 @@ class Config
             if (function_exists('yaml_parse_file')) {
                 $this->_values = \yaml_parse_file($filename);
             } else if (fopen('SymfonyComponents/YAML/sfYamlParser.php', 'r', true)) {
-                include('SymfonyComponents/YAML/sfYamlParser.php');
+                require_once('SymfonyComponents/YAML/sfYamlParser.php');
                 $yaml = new \sfYamlParser();
                 $this->_values = $yaml->parse(file_get_contents($filename));
             }
