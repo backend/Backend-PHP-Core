@@ -52,23 +52,28 @@ class View
      */
     function transform($result)
     {
+        if ($result instanceof \Backend\Core\Response) {
+            return $result;
+        }
         $response = new \Backend\Core\Response();
+        $response->addHeader('X-Backend-View', get_class($this));
+        $body  = '';
         switch (gettype($result)) {
         case 'object':
             if ($result instanceof \Exception) {
                 $result = new Decorators\PrettyExceptionDecorator($result);
                 $result = (string)$result;
-            } 
+            }
             //NO break;
         case 'array':
             $result = var_export($result, true);
             //NO break;
         case 'string':
         default:
-            $response->addContent('Result: ' . $result);
+            $body = 'Result: ' . $result;
             break;
         }
-        
+
         //Add some default formatting
         if (!Request::fromCli()) {
             $header = <<< END
@@ -85,11 +90,11 @@ END;
     </body>
 </html>
 END;
-            $response->addContent($header, true);
-            $response->addContent($footer);
+            $body = $header . PHP_EOL . $body . PHP_EOL . $footer;
         } else {
-            $response->addContent(PHP_EOL);
+            $body .= PHP_EOL;
         }
+        $response->setBody($body);
         return $response;
     }
 }

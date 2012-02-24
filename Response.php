@@ -35,17 +35,17 @@ class Response
     /**
      * @var array An array containing response components
      */
-    protected $_content = array();
+    protected $_body = array();
 
     /**
      * @var int The HTTP response code
      */
     protected $_status  = 200;
-    
+
     /**
      * @var string The HTTP version
      */
-    protected $_http_version = null;
+    protected $_httpVersion = null;
 
     /**
      * @var array A list of HTTP Response Codes with their default texts
@@ -105,7 +105,7 @@ class Response
         505 => 'HTTP Version Not Supported',
         509 => 'Bandwidth Limit Exceeded'
     );
-    
+
     /**
      * @var array An associative array containing headers to be sent along with the response
      */
@@ -114,16 +114,16 @@ class Response
     /**
      * The constructor for the Response class
      *
-     * @param array The content for the response
+     * @param array The body for the response
      * @param int The status code for the response
      * @param array The headers for the response
      */
-    public function __construct($content = array(), $status = 200, array $headers = array())
+    public function __construct($body = '', $status = 200, array $headers = array())
     {
-        $this->setContent($content);
         $this->setStatusCode($status);
         $this->setHeaders($headers);
-        $this->_http_version = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
+        $this->setBody($body);
+        $this->_httpVersion = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
     }
 
     /**
@@ -136,7 +136,7 @@ class Response
         return $this->_status;
     }
 
-    /** 
+    /**
      * Set the status code for the Response
      *
      * @param int The new status code
@@ -146,42 +146,27 @@ class Response
         $this->_status = (int)$code;
     }
 
-    /** 
-     * Add content to the Response
+    /**
+     * Return the Response's body
      *
-     * @param string The content to add
-     * @param boolean If the content should be prepended
+     * @return mixed The Response's body
      */
-    public function addContent($content, $prepend = false)
+    public function getBody()
     {
-        if ($prepend) {
-            array_unshift($this->_content, $content);
-        } else {
-            $this->_content[] = $content;
-        }
+        return $this->_body;
     }
 
     /**
-     * Return the Response's content
-     * 
-     * @return array An array of string containing the Response's content
-     */
-    public function getContent()
-    {
-        return $this->_content;
-    }
-
-    /** 
-     * Set the content for the Response
+     * Set the body for the Response
      *
-     * @param array The new content
+     * @param mixed The new body
      */
-    public function setContent($content)
+    public function setBody($body)
     {
-        $this->_content = is_array($content) ? $content : array($content);
+        $this->_body = $body;
     }
 
-    /** 
+    /**
      * Add a header to the Response
      *
      * @param string The name of the header
@@ -194,7 +179,7 @@ class Response
 
     /**
      * Return the Response's headers
-     * 
+     *
      * @return array An array containing the Response's headers
      */
     public function getHeaders()
@@ -202,7 +187,7 @@ class Response
         return $this->_headers;
     }
 
-    /** 
+    /**
      * Set the headers for the Response
      *
      * @param array The new headers
@@ -218,7 +203,7 @@ class Response
     public function output()
     {
         $this->sendHeaders();
-        $this->sendContent();
+        $this->sendBody();
     }
 
     /**
@@ -230,7 +215,7 @@ class Response
             throw new \Exception('Headers already sent in ' . $file . ', line ' . $line);
         }
         //Always send the HTTP status header first
-        header($this->_http_version . ' ' . $this->_status . ' ' . $this->getStatusText($this->_status));
+        header($this->_httpVersion . ' ' . $this->_status . ' ' . $this->getStatusText($this->_status));
         if (!array_key_exists('X-Application', $this->_headers)) {
             header('X-Application: Backend-PHP (Core)');
         }
@@ -246,13 +231,13 @@ class Response
     }
 
     /**
-     * Send the Response's content to the client
+     * Send the Response's body to the client
      */
-    public function sendContent()
+    public function sendBody()
     {
-        echo implode(PHP_EOL, $this->_content);
+        echo $this->_body;
     }
-    
+
     /**
      * Get the text associated with a status code
      *
@@ -275,7 +260,7 @@ class Response
     public function __toString()
     {
         ob_start();
-        $this->sendContent();
+        $this->sendBody();
         return ob_get_clean();
     }
 }
