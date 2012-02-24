@@ -59,14 +59,16 @@ class RoutePath
 
     function __construct(array $options)
     {
-        $this->_route    = $options['route'];
+        $this->_route     = $options['route'];
 
         //Construct the Callback
-        $this->_callback = $this->constructCallback($options['callback']);
+        $this->_callback  = $this->constructCallback($options['callback']);
 
-        $this->_verb     = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
+        $this->_verb      = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
 
-        $this->_defaults = array_key_exists('defaults', $options) ? $options['defaults'] : array();
+        $this->_defaults  = array_key_exists('defaults', $options) ? $options['defaults'] : array();
+
+        $this->_arguments = array_key_exists('arguments', $options) ? $options['arguments'] : array();
     }
 
     public function check($request)
@@ -123,7 +125,7 @@ class RoutePath
             );
 
             //Decorate the Controller
-            if ($callback[0] instanceof Interfaces\Decorable) {
+            if ($callback[0] instanceof Interfaces\DecorableInterface) {
                 foreach ($callback[0]->getDecorators() as $decorator) {
                     $callback[0] = new $decorator($callback[0]);
                     if (!($callback[0] instanceof \Backend\Core\Decorators\ControllerDecorator)) {

@@ -125,8 +125,9 @@ class Route
         }
 
         $options = array(
-            'route'    => $request->getQuery(),
-            'callback' => $controller . '::' . $action,
+            'route'     => $request->getQuery(),
+            'callback'  => $controller . '::' . $action,
+            'arguments' => array_slice($queryArr, 1),
         );
 
         $routePath = new Utilities\RoutePath($options);
