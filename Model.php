@@ -28,19 +28,16 @@ namespace Backend\Core;
 /**
  * The main Model class.
  *
+ * Normal / bindable properties should NOT start with an underscore. Meta properties should.
+ *
  * @package Core
  */
-class Model implements Interfaces\ModelInterface, Interfaces\DecorableInterface
+class Model extends Decorable implements Interfaces\ModelInterface
 {
     /**
      * @var array The human friendly name for the model
      */
     protected $_name = 'Backend Model';
-
-    /**
-     * @var array The model's attributes
-     */
-    protected $_attributes = array();
 
     /**
      * @var array An array of names of decorators to apply to the model
@@ -56,54 +53,57 @@ class Model implements Interfaces\ModelInterface, Interfaces\DecorableInterface
 
     public function __get($propertyName)
     {
-        if (array_key_exists($propertyName, $this->_attributes))
-        {
-            return $this->_attributes[$propertyName];
+        $funcName = 'get' . Utilities\Strings::className($propertyName);
+        if (method_exists($this, $funcName)) {
+            $this->$funcName($value);
+        } else if (property_exists($this, $propertyName)) {
+            return $this->$propertyName;
         }
         return null;
     }
 
     public function __set($propertyName, $value)
     {
-        $this->_attributes[$propertyName] = $value;
-        return $value;
-    }
-
-    public function setAttributes(array $attributes)
-    {
-        $this->_attributes = $attributes;
-    }
-
-    /**
-     * Get an array of decorators for the class
-     *
-     * @return array The decorators to apply to the class
-     */
-    public function getDecorators()
-    {
-        return $this->_decorators;
-    }
-
-    /**
-     * Add a decorator to the class
-     *
-     * @param string The name of the decorator class to add
-     */
-    public function addDecorator($decorator)
-    {
-        $this->_decorators[] = $decorator;
-    }
-
-    /**
-     * Remove a decorator from the class
-     *
-     * @param string The name of the decorator class to remove
-     */
-    public function removeDecorator($decorator)
-    {
-        $key = array_search($decorator, $this->_decorators);
-        if ($key !== false) {
-            unset($this->_decorators[$key]);
+        $funcName = 'set' . Utilities\Strings::className($propertyName);
+        if (method_exists($this, $funcName)) {
+            $this->$funcName($value);
+        } else {
+            $this->$propertyName = $value;
         }
+        return $this;
+    }
+
+    /**
+     * Populate the Model with the specified properties.
+     *
+     * The function will use any `set` functions defined.
+     * @param array An array containing the properties for the model
+     * @return Object The object that was populated
+     */
+    public function populate(array $properties)
+    {
+        foreach ($properties as $name => $value) {
+            $funcName = 'set' . Utilities\Strings::className($name);
+            if (method_exists($this, $funcName)) {
+                $this->$funcName($value);
+            } else if (property_exists($this, $name)) {
+                $this->$name = $value;
+            } else {
+                throw new \Exception('Undefined property ' . $name . ' for ' . get_class($this));
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Get the normal properties of the Model
+     */
+    public function getProperties()
+    {
+        $properties = get_object_vars($this);
+        $filter     = function($value) { return substr($value, 0, 1) != '_'; };
+        $allowed    = array_filter(array_keys($properties), $filter);
+        $properties = array_intersect_key($properties, array_flip($allowed));
+        return $properties;
     }
 }
