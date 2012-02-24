@@ -224,11 +224,6 @@ class Application
      */
     private function handleResult($result)
     {
-        //Return if we already have a Response
-        if ($result instanceof Response) {
-            return $result;
-        }
-
         $view = self::getTool('View');
 
         //Convert the result to a Respose
