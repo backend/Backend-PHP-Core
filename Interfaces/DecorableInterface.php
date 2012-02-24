@@ -1,5 +1,4 @@
 <?php
-namespace Backend\Core\Interfaces;
 /**
  * File defining Core\Interfaces\Decorable
  *
@@ -25,6 +24,7 @@ namespace Backend\Core\Interfaces;
  *
  * @package InterfaceFiles
  */
+namespace Backend\Core\Interfaces;
 /**
  * Interface for all classes that are decorable
  *
@@ -52,4 +52,12 @@ interface DecorableInterface
      * @param string The name of the decorator class to remove
      */
     public function removeDecorator($decorator);
+
+
+    /**
+     * Decorate the given object
+     *
+     * @param object The object to decorate
+     */
+    public static function decorate($object);
 }

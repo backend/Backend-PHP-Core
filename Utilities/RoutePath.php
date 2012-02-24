@@ -125,16 +125,7 @@ class RoutePath
             );
 
             //Decorate the Controller
-            if ($callback[0] instanceof Interfaces\DecorableInterface) {
-                foreach ($callback[0]->getDecorators() as $decorator) {
-                    $callback[0] = new $decorator($callback[0]);
-                    if (!($callback[0] instanceof \Backend\Core\Decorators\ControllerDecorator)) {
-                        throw new \Exception(
-                            'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ControllerDecorator'
-                        );
-                    }
-                }
-            }
+            $callback[0] = \Backend\Core\Decorable::decorate($callback[0]);
         }
         return $callback;
     }

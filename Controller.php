@@ -30,7 +30,7 @@ namespace Backend\Core;
  *
  * @package Core
  */
-class Controller implements Interfaces\ControllerInterface, Interfaces\DecorableInterface
+class Controller extends Decorable implements Interfaces\ControllerInterface
 {
     /**
      * @var Route This contains the route object that will help decide what controller
@@ -44,11 +44,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     protected $_request = null;
 
     /**
-     * @var array An array of names of decorators to apply to the controller
-     */
-    protected $_decorators = array();
-
-    /**
      * The constructor for the class
      *
      * @param Request The request object for the execution of the action
@@ -57,39 +52,6 @@ class Controller implements Interfaces\ControllerInterface, Interfaces\Decorable
     {
         //Setup the request
         $this->_request = $request;
-    }
-
-    /**
-     * Get an array of decorators for the class
-     *
-     * @return array The decorators to apply to the class
-     */
-    public function getDecorators()
-    {
-        return $this->_decorators;
-    }
-
-    /**
-     * Add a decorator to the class
-     *
-     * @param string The name of the decorator class to add
-     */
-    public function addDecorator($decorator)
-    {
-        $this->_decorators[] = $decorator;
-    }
-
-    /**
-     * Remove a decorator from the class
-     *
-     * @param string The name of the decorator class to remove
-     */
-    public function removeDecorator($decorator)
-    {
-        $key = array_search($decorator, $this->_decorators);
-        if ($key !== false) {
-            unset($this->_decorators[$key]);
-        }
     }
 
     public function setRequest(Request $request)
