@@ -37,7 +37,7 @@ namespace Backend\Core\Decorators;
  */
 abstract class ControllerDecorator
     extends \Backend\Core\Controller
-        implements \Backend\Core\Interfaces\ControllerInterface, \Backend\Core\Interfaces\Decorator
+        implements \Backend\Core\Interfaces\ControllerInterface, \Backend\Core\Interfaces\DecoratorInterface
 {
     /**
      * @var ControllerInterface The controller this class is decorating
@@ -50,7 +50,7 @@ abstract class ControllerDecorator
      * @param Decorable $controller The controller to decorate
      * @param Response  $response   The reponse for the controller
      */
-    function __construct(\Backend\Core\Interfaces\Decorable $controller, Response $response = null)
+    function __construct(\Backend\Core\Interfaces\DecorableInterface $controller, Response $response = null)
     {
         $this->_decoratedController = $controller;
         parent::__construct($response);

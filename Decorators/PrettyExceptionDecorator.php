@@ -1,5 +1,4 @@
 <?php
-namespace Backend\Core\Decorators;
 /**
  * File defining Core\Decorators\PrettyExceptionDecorator
  *
@@ -25,6 +24,7 @@ namespace Backend\Core\Decorators;
  *
  * @package DecoratorFiles
  */
+namespace Backend\Core\Decorators;
 /**
  * Abstract base class for Model decorators
  *

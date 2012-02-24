@@ -37,7 +37,7 @@ interface DecoratorInterface
      *
      * @param ModelInterface The model to decorate
      */
-    function __construct(\Backend\Core\Interfaces\Decorable $decorable);
+    function __construct(\Backend\Core\Interfaces\DecorableInterface $decorable);
 
     /**
      * Function call to catch methods for the decorated instance

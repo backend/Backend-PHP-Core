@@ -1,5 +1,4 @@
 <?php
-namespace Backend\Core\Decorators;
 /**
  * File defining Core\Decorators\ModelDecorator
  *
@@ -25,6 +24,7 @@ namespace Backend\Core\Decorators;
  *
  * @package DecoratorFiles
  */
+namespace Backend\Core\Decorators;
 /**
  * Abstract base class for Model decorators
  *
@@ -32,7 +32,7 @@ namespace Backend\Core\Decorators;
  */
 abstract class ModelDecorator
     extends \Backend\Core\Model
-    implements \Backend\Core\Interfaces\ModelInterface, \Backend\Core\Interfaces\Decorator
+    implements \Backend\Core\Interfaces\ModelInterface, \Backend\Core\Interfaces\DecoratorInterface
 {
     /**
      * @var ModelInterface The model this class is decorating
@@ -44,7 +44,7 @@ abstract class ModelDecorator
      *
      * @param ModelInterface The model to decorate
      */
-    function __construct(\Backend\Core\Interfaces\Decorable $model)
+    function __construct(\Backend\Core\Interfaces\DecorableInterface $model)
     {
         $this->_decoratedModel = $model;
     }
