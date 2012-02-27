@@ -1,51 +1,42 @@
 <?php
-namespace Backend\Core;
 /**
  * File defining Response
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package CoreFiles
+ * @category  Backend
+ * @package   Core
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core;
 /**
  * The response that will be sent back to the client
  *
- * @package Core
+ * @category Backend
+ * @package  Core
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
 class Response
 {
     /**
      * @var array An array containing response components
      */
-    protected $_body = array();
+    protected $body = array();
 
     /**
      * @var int The HTTP response code
      */
-    protected $_status  = 200;
+    protected $status  = 200;
 
     /**
      * @var string The HTTP version
      */
-    protected $_httpVersion = null;
+    protected $httpVersion = null;
 
     /**
      * @var array A list of HTTP Response Codes with their default texts
@@ -109,21 +100,21 @@ class Response
     /**
      * @var array An associative array containing headers to be sent along with the response
      */
-    protected $_headers = array();
+    protected $headers = array();
 
     /**
      * The constructor for the Response class
      *
-     * @param array The body for the response
-     * @param int The status code for the response
-     * @param array The headers for the response
+     * @param string $body    The body for the response
+     * @param int    $status  The status code for the response
+     * @param array  $headers The headers for the response
      */
     public function __construct($body = '', $status = 200, array $headers = array())
     {
         $this->setStatusCode($status);
         $this->setHeaders($headers);
         $this->setBody($body);
-        $this->_httpVersion = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
+        $this->httpVersion = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
     }
 
     /**
@@ -133,17 +124,20 @@ class Response
      */
     public function getStatusCode()
     {
-        return $this->_status;
+        return $this->status;
     }
 
     /**
      * Set the status code for the Response
      *
-     * @param int The new status code
+     * @param int $code The new status code
+     *
+     * @return Response The current object
      */
     public function setStatusCode($code)
     {
-        $this->_status = (int)$code;
+        $this->status = (int)$code;
+        return $this;
     }
 
     /**
@@ -153,28 +147,34 @@ class Response
      */
     public function getBody()
     {
-        return $this->_body;
+        return $this->body;
     }
 
     /**
      * Set the body for the Response
      *
-     * @param mixed The new body
+     * @param mixed $body The new body
+     *
+     * @return Response The current object
      */
     public function setBody($body)
     {
-        $this->_body = $body;
+        $this->body = $body;
+        return $this;
     }
 
     /**
      * Add a header to the Response
      *
-     * @param string The name of the header
-     * @param string The content of the header
+     * @param string $name    The name of the header
+     * @param string $content The content of the header
+     *
+     * @return Response The current object
      */
     public function addHeader($name, $content)
     {
-        $this->_headers[$name] = $content;
+        $this->headers[$name] = $content;
+        return $this;
     }
 
     /**
@@ -184,30 +184,37 @@ class Response
      */
     public function getHeaders()
     {
-        return $this->_headers;
+        return $this->headers;
     }
 
     /**
      * Set the headers for the Response
      *
-     * @param array The new headers
+     * @param array $headers The new headers
+     *
+     * @return Response The current object
      */
     public function setHeaders(array $headers)
     {
-        $this->_headers = $headers;
+        $this->headers = $headers;
+        return $this;
     }
 
     /**
      * Output the Response to the client
+     *
+     * @return null
      */
     public function output()
     {
-        $this->sendHeaders();
-        $this->sendBody();
+        $this->sendHeaders()
+            ->sendBody();
     }
 
     /**
      * Send the Response's headers to the client
+     *
+     * @return Response The current object
      */
     public function sendHeaders()
     {
@@ -215,33 +222,37 @@ class Response
             throw new \Exception('Headers already sent in ' . $file . ', line ' . $line);
         }
         //Always send the HTTP status header first
-        header($this->_httpVersion . ' ' . $this->_status . ' ' . $this->getStatusText($this->_status));
-        if (!array_key_exists('X-Application', $this->_headers)) {
+        header($this->httpVersion . ' ' . $this->status . ' ' . $this->getStatusText($this->status));
+        if (!array_key_exists('X-Application', $this->headers)) {
             header('X-Application: Backend-PHP (Core)');
         }
         //TODO: die somewhere if the location header was sent
         $haveLocation = false;
-        foreach ($this->_headers as $name => $content) {
+        foreach ($this->headers as $name => $content) {
             if ('location' == strtolower($name)) {
                 $haveLocation = true;
             }
             header($name . ': ' . $content);
         }
-
+        return $this;
     }
 
     /**
      * Send the Response's body to the client
+     *
+     * @return Response The current object
      */
     public function sendBody()
     {
-        echo $this->_body;
+        echo $this->body;
+        return $this;
     }
 
     /**
      * Get the text associated with a status code
      *
-     * @param int The status code to get the text for
+     * @param int $code The status code to get the text for
+     *
      * @return string The status code text
      */
     public function getStatusText($code)

@@ -113,6 +113,11 @@ class Application
         return true;
     }
 
+    /**
+     * Define some Core Application constants and hooks
+     *
+     * @return null
+     */
     protected function constructApplication()
     {
         //Register Core Namespace

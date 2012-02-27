@@ -1,34 +1,25 @@
 <?php
-namespace Backend\Core;
 /**
  * File defining Controller
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package CoreFiles
+ * @category  Backend
+ * @package   Core
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core;
 /**
  * The main controller class.
  *
- * @package Core
+ * @category Backend
+ * @package  Core
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
 class Controller extends Decorable implements Interfaces\ControllerInterface
 {
@@ -36,36 +27,44 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
      * @var Route This contains the route object that will help decide what controller
      * and action to execute
      */
-    protected $_route = null;
+    protected $route = null;
 
     /**
-     * @var Request This contains the Request that's being actioned
+     * @var \Backend\Core\Request This contains the Request that's being actioned
      */
-    protected $_request = null;
+    protected $request = null;
 
     /**
-     * The constructor for the class
+     * The constructor for the object
      *
-     * @param Request The request object for the execution of the action
+     * @param \Backend\Core\Request $request The request object for the execution of the action
      */
     function __construct(Request $request = null)
     {
         //Setup the request
-        $this->_request = $request;
+        $this->request = $request;
     }
 
+    /**
+     * Set the Request for the Controller
+     *
+     * @param \Backend\Core\Request $request The request for the Controller
+     *
+     * @return \Backend\Core\Controller The current object
+     */
     public function setRequest(Request $request)
     {
-        $this->_request = $request;
+        $this->request = $request;
+        return $this;
     }
 
     /**
      * Create a redirection Response
      *
-     * @param string $location The location to redirect to
-     * @param int $responseCode The HTTP status code to use
+     * @param string $location     The location to redirect to
+     * @param int    $responseCode The HTTP status code to use
      *
-     * @return Response The Response object
+     * @return \Backend\Core\Response The Response object
      */
     public function redirect($location, $responseCode = 302)
     {
@@ -75,12 +74,14 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     }
 
     /**
+     * Use the current Route to generate the Model name and return it
+     *
      * @return ModelInterface The model associated with this controller
      */
     public function getModel()
     {
         //Get and check the model
-        $modelName = 'Backend\Models\\' . class_name($this->_route->getArea());
+        $modelName = 'Backend\Models\\' . class_name($this->route->getArea());
         if (!class_exists($modelName, true)) {
             return null;
         }

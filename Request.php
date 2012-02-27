@@ -1,34 +1,25 @@
 <?php
-namespace Backend\Core;
 /**
- * File defining Core\Request
+ * File defining Request
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package CoreFiles
+ * @category  Backend
+ * @package   Core
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core;
 /**
  * The Request class which helps determine the Query string and request format.
  *
- * @package Core
+ * @category Backend
+ * @package  Core
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
 class Request
 {
@@ -60,8 +51,8 @@ class Request
      * 2. A X_HTTP_METHOD_OVERRIDE header
      * 3. The REQUEST_METHOD
      *
-     * @param mixed The request data. Defaults to the HTTP request data if not supplied
-     * @param string The request method. Can be one of GET, POST, PUT, DELETE or HEAD
+     * @param mixed  $request The request data. Defaults to the HTTP request data if not supplied
+     * @param string $method  The request method. Can be one of GET, POST, PUT, DELETE or HEAD
      */
     function __construct($request = null, $method = null)
     {
@@ -91,7 +82,17 @@ class Request
         Application::log($message, 4);
     }
 
-    private function cleanupQuery($query)
+    /**
+     * Standarize the query
+     *
+     * This is done by removing the trailing slash, and ensuring that the query
+     * starts with a slash
+     *
+     * @param string $query The query to clean up
+     *
+     * @return string The cleaned up query
+     */
+    protected function cleanupQuery($query)
     {
         //Decode the URL
         $query = urldecode($query);
@@ -208,7 +209,9 @@ class Request
     /**
      * Set the request's method
      *
-     * @param string The Request Method
+     * @param string $method The Request Method
+     *
+     * @return Request The current object
      */
     public function setMethod($method)
     {
@@ -217,15 +220,17 @@ class Request
             throw new Exceptions\UnsupportedHttpMethodException('Unsupported method ' . $method);
         }
         $this->_method = $method;
+        return $this;
     }
 
     /**
      * Utility function to check if the current method equals the specified method
      *
-     * @param string The method to check
+     * @param string $method The method to check
+     *
      * @return boolean If the current method equals the specified method
      */
-    private function isMethod($method)
+    protected function isMethod($method)
     {
         return strtoupper($method) == $this->_method;
     }
@@ -333,11 +338,14 @@ class Request
     /**
      * Set the request's payload.
      *
-     * @param array The Request's Payload
+     * @param array $payload The Request's Payload
+     *
+     * @return The current object
      */
     public function setPayload(array $payload)
     {
         $this->_payload = $payload;
+        return $this;
     }
 
     /**
