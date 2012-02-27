@@ -2,79 +2,92 @@
 /**
  * File defining Core\Decorators\ModelDecorator
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package DecoratorFiles
+ * @category  Backend
+ * @package   Core/Decorators
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core\Decorators;
+use \Backend\Core\Interfaces\DecorableInterface;
 /**
  * Give custom JSON encoding functionality to objects
  *
- * @package Decorators
+ * @category Backend
+ * @package  Core/Decorators
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
-namespace Backend\Core\Decorators;
 class JsonDecorator implements \Backend\Core\Interfaces\DecoratorInterface
 {
     /**
      * @var Object The object this class is decorating
      */
-    protected $_object;
+    protected $object;
 
     /**
      * The constructor for the class
      *
-     * @param ModelInterface The model to decorate
+     * @param DecorableInterface $object The model to decorate
      */
-    function __construct(\Backend\Core\Interfaces\DecorableInterface $object)
+    function __construct(DecorableInterface $object)
     {
-        $this->_object = $object;
+        $this->object = $object;
     }
 
+    /**
+     * The magic _call function.
+     *
+     * This is used to call the specified function on the original object
+     *
+     * @param string $method The name of the method to call
+     * @param array  $args   The arguments to pass to the method
+     *
+     * @return mixed The result of the called method
+     */
     public function __call($method, $args)
     {
-        return call_user_func_array(array($this->_object, $method), $args);
+        return call_user_func_array(array($this->object, $method), $args);
     }
 
     /**
      * Get the normal properties of the Object
+     *
+     * Normal is defined as all public and protected properties that does not start with an underscore
+     *
+     * @return array The normal properties of the object
      */
     public function getProperties()
     {
-        if (function_exists($this->_object, 'getProperties')) {
-            return $this->_object->getProperties();
+        if (function_exists($this->object, 'getProperties')) {
+            return $this->object->getProperties();
         }
-        $properties = get_object_vars($this);
-        $filter     = function($value) { return substr($value, 0, 1) != '_'; };
-        $allowed    = array_filter(array_keys($properties), $filter);
-        $properties = array_intersect_key($properties, array_flip($allowed));
-        return $properties;
+        $reflector  = new \ReflectionClass($this);
+        $properties = $reflector->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED);
+        $result     = array();
+        foreach ($properties as $property) {
+            if ($property->isPrivate() || substr($property->getName(), 0, 1) == '_') {
+                continue;
+            }
+            $result[$property->getName()] = $this->{$property->getName()};
+        }
+        return $result;
     }
 
     /**
      * JSON encode the object, including all properties
+     *
+     * @return string The json encoded object
      */
-    public function _toJson()
+    public function toJson()
     {
-        $properties     = $this->_object->getProperties();
+        $properties     = $this->object->getProperties();
         $object         = new \StdClass();
-        $object->_class = get_class($this->_object);
+        $object->_class = get_class($this->object);
         foreach ($properties as $name => $value) {
             $object->$name = $value;
         }

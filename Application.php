@@ -1,30 +1,17 @@
 <?php
-namespace Backend\Core;
 /**
  * File defining Application
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package CoreFiles
+ * @category  Backend
+ * @package   Core
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core;
 /**
  * The main application class.
  *
@@ -45,14 +32,18 @@ namespace Backend\Core;
  * some times a singleton) should be passed to the Application. Read more at
  * {@link http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3}
  *
- * @package Core
+ * @category Backend
+ * @package  Core
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
 class Application
 {
     /**
      * @var boolean This static property indicates if the application has been constructed yet.
      */
-    protected static $_constructed = false;
+    protected static $constructed = false;
 
     /**
      * @var array This contains all tools that should be globally accessable. Use this wisely.
@@ -67,7 +58,7 @@ class Application
     /**
      * @var integer The debugging level. The higher, the more verbose
      */
-    protected static $_debugLevel = 3;
+    protected static $debugLevel = 3;
 
     /**
      * @var Request This contains the Request that is being handled
@@ -77,12 +68,12 @@ class Application
     /**
      * The constructor for the class
      *
-     * @param mixed The Configuration to be used for the application. Can be a the
+     * @param mixed $config The Configuration to be used for the application. Can be a the
      * path of a config file, or a Config object
      */
     function __construct($config = null)
     {
-        if (!self::$_constructed) {
+        if (!self::$constructed) {
             //Register Core Namespace
             self::registerNamespace('\Backend\Core', true);
 
@@ -133,7 +124,7 @@ class Application
             }
 
 
-            self::$_constructed = true;
+            self::$constructed = true;
         }
 
         //Setup the specified tools
@@ -173,14 +164,38 @@ class Application
     }
 
     /**
+     * Get the current Request
+     *
+     * @return Request The current Request
+     */
+    public function getRequest()
+    {
+        return $this->_request;
+    }
+
+    /**
+     * Set the Request for the Application
+     *
+     * @param Request $request The request for the Application
+     *
+     * @return null
+     */
+    public function setRequest(Request $request)
+    {
+        $this->_request = $request;
+    }
+
+    /**
      * Main function for the application
      *
-     * @param Request The request to handle
-     * @return Response The result of the call
+     * @param Request $request The request to handle
+     *
+     * @return mixed The result of the call
      */
     public function main(Request $request = null)
     {
-        $request = $request instanceof Request ? $request : new Request();
+        $this->setRequest($request instanceof Request ? $request : new Request());
+        $request = $this->getRequest();
 
         //Determine the View
         try {
@@ -199,6 +214,20 @@ class Application
             throw new Exceptions\UnknownRouteException($request->getQuery());
         }
 
+        return $this->executeRoutePath($routePath);
+    }
+
+    /**
+     * Execute the identified routePath.
+     *
+     * @param Utilities\RoutePath $routePath The RoutePath to execute
+     *
+     * @return mixed The result of the callback
+     */
+    protected function executeRoutePath(Utilities\RoutePath $routePath)
+    {
+        $request = $this->getRequest();
+
         //Determine the Call
         $callback  = $routePath->getCallback();
         $arguments = $routePath->getArguments();
@@ -206,23 +235,38 @@ class Application
         if (is_array($callback)) {
             //Set the request for the callback
             $callback[0]->setRequest($request);
+            Application::log('Executing ' . get_class($callback[0]) . '::' . $callback[1], 4);
         } else {
             //The first argument for the callback is the request
+            Application::log('Executing ' . $callback, 4);
             array_unshift($request, $arguments);
         }
 
         $result = call_user_func_array($callback, $arguments);
 
+        //Execute the View related method
+        if (is_array($callback)) {
+            $view = self::getTool('View');
+            try {
+                $viewMethod = $this->getViewMethod($callback, $view);
+                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
+                $result = $viewMethod->invokeArgs($callback[0], array($result));
+            } catch (\Exception $e) {
+                unset($e);
+            }
+        }
+
         return $this->handleResult($result);
     }
 
     /**
-     * Handle the result from the executed controller
+     * Handle the result from the executed callback
      *
-     * @param mixed The result returned from the controller
+     * @param mixed $result The result returned from the callback
+     *
      * @return Response The response object to be outputted
      */
-    private function handleResult($result)
+    protected function handleResult($result)
     {
         $view = self::getTool('View');
 
@@ -232,21 +276,35 @@ class Application
         if (!($response instanceof Response)) {
             throw new \Exception('Unrecognized Response');
         }
-        return $response;
 
-        //TODO: Do we want to allow the use of viewMethods?
-        if ($view) {
-            //Execute the View related method
-            $viewMethod = $this->getViewMethod($action, $view);
-            if ($viewMethod instanceof \ReflectionMethod) {
-                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
-                $response = $viewMethod->invokeArgs($this, array($response));
-            }
-        }
+        return $response;
+    }
+
+    /**
+     * Return a view method for the specified action
+     *
+     * @param array $callback The callback to check for
+     * @param View  $view     The view to use
+     *
+     * @return ReflectionMethod The method to execute
+     */
+    public function getViewMethod(array $callback, View $view = null)
+    {
+        $view = is_null($view) ? self::getTool('View') : $view;
+
+        //Check for a transform for the current view in the controller
+        $methodName = get_class($view);
+        $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
+        $methodName = preg_replace('/Action$/', $methodName, $callback[1]);
+
+        $reflector  = new \ReflectionClass(get_class($callback[0]));
+        return $reflector->getMethod($methodName);
     }
 
     /**
      * Shutdown function called when ever the script ends
+     *
+     * @return null
      */
     public function shutdown()
     {
@@ -256,8 +314,14 @@ class Application
     /**
      * Error handling function called when ever an error occurs.
      *
-     * Some types of errors will be converted into excceptions.
-     * Called by set_error_handler.
+     * Called by set_error_handler. Some types of errors will be converted into excceptions.
+     *
+     * @param int    $errno   The error number
+     * @param string $errstr  The error string
+     * @param string $errfile The file the error occured in
+     * @param int    $errline The line number the errro occured on
+     *
+     * @return null
      */
     public function error($errno, $errstr, $errfile, $errline)
     {
@@ -268,8 +332,12 @@ class Application
      * Exception handling function called when ever an exception isn't handled.
      *
      * Called by set_exception_handler.
+     *
+     * @param \Exception $exception The thrown exception
+     *
+     * @return null
      */
-    public function exception($exception)
+    public function exception(\Exception $exception)
     {
         //TODO: Let the Application be able to handle (and pretty up) Exceptions
         /*$data = array(
@@ -290,8 +358,10 @@ class Application
     /**
      * Add a tool to the application
      *
-     * @param mixed The tool to add. Can also be the name of a class to instansiate
-     * @param array The parameters to pass to the constructor of the Tool
+     * @param mixed $toolName The tool to add. Can also be the name of a class to instansiate
+     * @param array $tool     The parameters to pass to the constructor of the Tool
+     *
+     * @return null
      */
     public static function addTool($toolName, $tool)
     {
@@ -315,7 +385,8 @@ class Application
     /**
      * Get a tool from the application
      *
-     * @param string The class of the tool to retrieve
+     * @param string $className The class of the tool to retrieve
+     *
      * @return mixed The requested Tool, or null if it doesn't exist
      */
     public static function getTool($className)
@@ -329,7 +400,10 @@ class Application
     /**
      * Register a namespace with the application
      *
-     * @param string The namespace
+     * @param string  $namespace The namespace
+     * @param boolean $prepend   If the namespace should be prepended to the list
+     *
+     * @return null
      */
     public static function registerNamespace($namespace, $prepend = false)
     {
@@ -361,20 +435,22 @@ class Application
      */
     public function getDebugLevel()
     {
-        return self::$_debugLevel;
+        return self::$debugLevel;
     }
 
     /**
      * Public setter for the Debug Level
      *
-     * @param integer The debugging levels
+     * @param integer $level The debugging levels
+     *
+     * @return null
      */
     public function setDebugLevel($level)
     {
         if ($level <= 0) {
             return false;
         }
-        self::$_debugLevel = $level;
+        self::$debugLevel = $level;
     }
 
     /**
@@ -383,14 +459,15 @@ class Application
      * Packages can be in two locations, PROJECT_FOLDER . libraries and PROJECT_FOLDER . app.
      * This function checks the packages in the two locations for the specified class
      *
-     * @param string The class name to check
-     * @param string The type of class it is
+     * @param string $className The class name to check
+     * @param string $type      The type of class it is
+     *
+     * @return null
      */
     public static function resolveClass($className, $type = false)
     {
         //If it's a specified class, return
-        if (
-            substr($className, 0, 1) == '\\'
+        if (substr($className, 0, 1) == '\\'
             && class_exists($className, true)
         ) {
             return $className;
@@ -416,7 +493,7 @@ class Application
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
             if ($files  = glob(PROJECT_FOLDER . '*' . $folder . '/' . $className . '.php')) {
                 $className = $base . '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', $className);
-                require_once($files[0]);
+                include_once $files[0];
                 return $className;
             }
         }
@@ -441,13 +518,15 @@ class Application
      * 4. Debugging Messages
      * 5. Informative Messages
      *
-     * @param string message The message
-     * @param integer level The logging level of the message
-     * @param string context The context of the message
+     * @param string  $message The message
+     * @param integer $level   The logging level of the message
+     * @param string  $context The context of the message
+     *
+     * @return Utilities\LogMessage The log message
      */
     public static function log($message, $level = Utilities\LogMessage::LEVEL_IMPORTANT, $context = false)
     {
-        /*if (!self::$_constructed || !class_exists('Backend\Core\Utilities\LogMessage', true)) {
+        /*if (!self::$constructed || !class_exists('Backend\Core\Utilities\LogMessage', true)) {
             return false;
         }*/
 
@@ -470,10 +549,12 @@ class Application
     /**
      * Mail function hook. This will call the provided Mailer to do the mailing.
      *
-     * @param string The recipient of the email
-     * @param string The subject of the email
-     * @param string The content of the email
-     * @param array Extra email options
+     * @param string $recipient The recipient of the email
+     * @param string $subject   The subject of the email
+     * @param string $message   The content of the email
+     * @param array  $options   Extra email options
+     *
+     * @return boolean If the mail was succesfully scheduled
      */
     public static function mail($recipient, $subject, $message, array $options = array())
     {

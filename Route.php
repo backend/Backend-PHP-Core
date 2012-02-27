@@ -53,7 +53,7 @@ class Route
      *
      * @param Request A request object to serve
      */
-    function __construct($routesFile = false)
+    public function __construct($routesFile = false)
     {
         $routesFile = $routesFile ?: PROJECT_FOLDER . 'configs/routes.yaml';
         if (!file_exists($routesFile)) {
@@ -93,7 +93,8 @@ class Route
         return $this->checkGeneratedRoutes($request);
     }
 
-    function checkGeneratedRoutes($request) {
+    protected function checkGeneratedRoutes($request)
+    {
         $query    = ltrim($request->getQuery(), '/');
         $queryArr = explode('/', $query);
 
@@ -137,9 +138,9 @@ class Route
         return false;
     }
 
-    function checkDefinedRoutes($request)
+    protected function checkDefinedRoutes($request)
     {
-        foreach($this->_routes['routes'] as $name => $routeInfo) {
+        foreach ($this->_routes['routes'] as $name => $routeInfo) {
             $routePath = new Utilities\RoutePath($routeInfo);
             if ($routePath->check($request)) {
                 return $routePath;

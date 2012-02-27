@@ -1,109 +1,120 @@
 <?php
-namespace Backend\Core\Utilities;
 /**
  * File defining RoutePath
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package CoreFiles
+ * @category  Backend
+ * @package   Core/Utilities
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core\Utilities;
+use \Backend\Core\Request;
 /**
  * The RoutePath class stores and manages information about a single Route
  *
- * @package Core
+ * @category Backend
+ * @package  Core/Utilities
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
 class RoutePath
 {
     /**
      * @var string The route for this RoutePath
      */
-    protected $_route;
+    protected $route;
 
     /**
      * @var callback The RoutePath's callback
      */
-    protected $_callback;
+    protected $callback;
 
     /**
      * @var string The HTTP verb for this RoutePath
      */
-    protected $_verb;
+    protected $verb;
 
     /**
      * @var array Defaults for the arguments of this RoutePath
      */
-    protected $_defaults;
+    protected $defaults;
 
     /**
      * @var array The RoutePath's arguments
      */
-    protected $_arguments = array();
+    protected $arguments = array();
 
-    function __construct(array $options)
+    /**
+     * The constructor
+     *
+     * @param array $options The options to use to construct the RoutePath
+     */
+    public function __construct(array $options)
     {
-        $this->_route     = $options['route'];
+        $this->route     = $options['route'];
 
         //Construct the Callback
-        $this->_callback  = $this->constructCallback($options['callback']);
+        $this->callback  = $this->constructCallback($options['callback']);
 
-        $this->_verb      = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
+        $this->verb      = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
 
-        $this->_defaults  = array_key_exists('defaults', $options) ? $options['defaults'] : array();
+        $this->defaults  = array_key_exists('defaults', $options) ? $options['defaults'] : array();
 
-        $this->_arguments = array_key_exists('arguments', $options) ? $options['arguments'] : array();
+        $this->arguments = array_key_exists('arguments', $options) ? $options['arguments'] : array();
     }
 
-    public function check($request)
+    /**
+     * Check this RoutePath against the given Request for a match
+     *
+     * @param \Backend\Core\Request $request The Request to check against
+     *
+     * @return mixed Return this RoutePath if there's a match, false otherwise
+     */
+    public function check(Request $request)
     {
         //If the verb is defined, and it doesn't match, skip
-        if ($this->_verb && $request->getMethod() != $this->_verb) {
+        if ($this->verb && $request->getMethod() != $this->verb) {
             return false;
         }
 
         //Try to match the route
         $query = $request->getQuery();
-        if ($this->_route == $query) {
+        if ($this->route == $query) {
             //Straight match, no arguments
             return $this;
-        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9]*)>/', $this->_route, $matches)) {
+        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9]*)>/', $this->route, $matches)) {
             //Compile the Regex
             $varNames = $matches[1];
             $search   = $matches[0];
             $replace  = '(/([^/]*))?';
-            $regex    = str_replace('/', '\/', str_replace($search, $replace, $this->_route));
+            $regex    = str_replace('/', '\/', str_replace($search, $replace, $this->route));
             if (preg_match_all('/' . $regex . '/', $query, $matches)) {
                 $arguments = array();
                 $i = 2;
-                foreach($varNames as $name) {
+                foreach ($varNames as $name) {
                     $arguments[$name] = $matches[$i][0];
                     $i = $i + 2;
                 }
                 //Regex Match
-                $this->_arguments = $this->constructArguments($arguments);
+                $this->arguments = $this->constructArguments($arguments);
                 return $this;
             }
         }
         return false;
     }
 
+    /**
+     * Construct the callback from the given string
+     *
+     * @param string $callback The callback defined as a string
+     *
+     * @return callback The callback
+     */
     protected function constructCallback($callback)
     {
         $callbackArray = explode('::', $callback);
@@ -130,20 +141,27 @@ class RoutePath
         return $callback;
     }
 
-    protected function constructArguments($arguments)
+    /**
+     * Construct the arguments for the current callback
+     *
+     * @param array $arguments The arguments to check against
+     *
+     * @return array The parameters for the callback
+     */
+    protected function constructArguments(array $arguments)
     {
-        if (is_array($this->_callback)) {
-            $refMethod = new \ReflectionMethod($this->_callback[0], $this->_callback[1]);
+        if (is_array($this->callback)) {
+            $refMethod = new \ReflectionMethod($this->callback[0], $this->callback[1]);
         } else {
-            $refMethod = new \ReflectionFunction($this->_callback);
+            $refMethod = new \ReflectionFunction($this->callback);
         }
         //Get the parameters in the correct order
         $parameters = array();
         foreach ($refMethod->getParameters() as $param) {
             if (!empty($arguments[$param->getName()])) {
                 $parameters[] = $arguments[$param->getName()];
-            } else if (isset($this->_defaults[$param->getName()])) {
-                $parameters[] = $this->_defaults[$param->getName()];
+            } else if (isset($this->defaults[$param->getName()])) {
+                $parameters[] = $this->defaults[$param->getName()];
             } else if (!$param->isOptional()) {
                 throw new \Exception('Missing argument ' . $param->getName());
             }
@@ -158,7 +176,7 @@ class RoutePath
      */
     public function getCallback()
     {
-        return $this->_callback;
+        return $this->callback;
     }
 
     /**
@@ -168,6 +186,6 @@ class RoutePath
      */
     public function getArguments()
     {
-        return $this->_arguments;
+        return $this->arguments;
     }
 }

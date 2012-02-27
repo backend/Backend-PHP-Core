@@ -60,6 +60,21 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     }
 
     /**
+     * Create a redirection Response
+     *
+     * @param string $location The location to redirect to
+     * @param int $responseCode The HTTP status code to use
+     *
+     * @return Response The Response object
+     */
+    public function redirect($location, $responseCode = 302)
+    {
+        $response = new Response('Redirecting to ' . $location, $responseCode);
+        $response->addHeader('Location', $location);
+        return $response;
+    }
+
+    /**
      * @return ModelInterface The model associated with this controller
      */
     public function getModel()
@@ -82,31 +97,5 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
             }
         }
         return $model;
-    }
-
-    /**
-     * Return a view method for the specified action
-     *
-     * @param string The action to check for
-     */
-    public function getViewMethod($action, View $view = null)
-    {
-        $view = is_null($view) ? \Backend\Core\Application::getTool('View') : $view;
-        if (!$view) {
-            return null;
-        }
-        //Check for a transform for the current view in the controller
-        $methodName = strtolower(get_class($view));
-        $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
-        $methodName = $action . ucwords($methodName);
-
-        try {
-            $reflector  = new \ReflectionClass(get_class($this));
-            $viewMethod = $reflector->getMethod($methodName);
-        } catch (\Exception $e) {
-            unset($e);
-            return null;
-        }
-        return $viewMethod;
     }
 }
