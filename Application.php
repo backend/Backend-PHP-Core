@@ -74,57 +74,7 @@ class Application
     function __construct($config = null)
     {
         if (!self::$constructed) {
-            //Register Core Namespace
-            self::registerNamespace('\Backend\Core', true);
-
-            //Register all Vendor Namespaces
-            $checkFolder = function($param) {
-                return !(preg_match('/^[_.]/', $param) || !is_dir(VENDOR_FOLDER . $param));
-            };
-            if (file_exists(VENDOR_FOLDER)) {
-                foreach (glob(VENDOR_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
-                    $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(VENDOR_FOLDER, '', $folder));
-                    self::registerNamespace($namespace);
-                }
-            }
-
-            //Register all Application Namespaces
-            $checkFolder = function($param) {
-                return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param));
-            };
-            if (file_exists(SOURCE_FOLDER)) {
-                foreach (glob(SOURCE_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
-                    $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(SOURCE_FOLDER, '', $folder));
-                    self::registerNamespace($namespace);
-                }
-            }
-
-            //PHP Helpers
-            register_shutdown_function(array($this, 'shutdown'));
-
-            set_exception_handler(array($this, 'exception'));
-            set_error_handler(array($this, 'error'));
-
-            //Some constants
-            if (!defined('SITE_STATE')) {
-                define('SITE_STATE', 'production');
-            }
-
-            if (empty($_SERVER['DEBUG_LEVEL'])) {
-                switch (SITE_STATE) {
-                case 'development':
-                    self::setDebugLevel(5);
-                    break;
-                case 'production':
-                    self::setDebugLevel(1);
-                    break;
-                }
-            } else {
-                self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
-            }
-
-
-            self::$constructed = true;
+            self::constructApplication();
         }
 
         //Setup the specified tools
@@ -161,6 +111,60 @@ class Application
             }
         }
         return true;
+    }
+
+    protected function constructApplication()
+    {
+        //Register Core Namespace
+        self::registerNamespace('\Backend\Core', true);
+
+        //Register all Vendor Namespaces
+        $checkFolder = function($param) {
+            return !(preg_match('/^[_.]/', $param) || !is_dir(VENDOR_FOLDER . $param));
+        };
+        if (file_exists(VENDOR_FOLDER)) {
+            foreach (glob(VENDOR_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
+                $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(VENDOR_FOLDER, '', $folder));
+                self::registerNamespace($namespace);
+            }
+        }
+
+        //Register all Application Namespaces
+        $checkFolder = function($param) {
+            return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param));
+        };
+        if (file_exists(SOURCE_FOLDER)) {
+            foreach (glob(SOURCE_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
+                $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(SOURCE_FOLDER, '', $folder));
+                self::registerNamespace($namespace);
+            }
+        }
+
+        //PHP Helpers
+        register_shutdown_function(array('\Backend\Core\Application', 'shutdown'));
+
+        set_exception_handler(array('\Backend\Core\Application', 'exception'));
+        set_error_handler(array('\Backend\Core\Application', 'error'));
+
+        //Some constants
+        if (!defined('SITE_STATE')) {
+            define('SITE_STATE', 'production');
+        }
+
+        if (empty($_SERVER['DEBUG_LEVEL'])) {
+            switch (SITE_STATE) {
+            case 'development':
+                self::setDebugLevel(5);
+                break;
+            case 'production':
+                self::setDebugLevel(1);
+                break;
+            }
+        } else {
+            self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
+        }
+
+        self::$constructed = true;
     }
 
     /**
@@ -256,7 +260,7 @@ class Application
             }
         }
 
-        return $this->handleResult($result);
+        return self::handleResult($result);
     }
 
     /**
@@ -266,7 +270,7 @@ class Application
      *
      * @return Response The response object to be outputted
      */
-    protected function handleResult($result)
+    protected static function handleResult($result)
     {
         $view = self::getTool('View');
 
@@ -306,7 +310,7 @@ class Application
      *
      * @return null
      */
-    public function shutdown()
+    public static function shutdown()
     {
         self::log('Shutting down Application', 3);
     }
@@ -323,7 +327,7 @@ class Application
      *
      * @return null
      */
-    public function error($errno, $errstr, $errfile, $errline)
+    public static function error($errno, $errstr, $errfile, $errline)
     {
         throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
@@ -337,8 +341,9 @@ class Application
      *
      * @return null
      */
-    public function exception(\Exception $exception)
+    public static function exception(\Exception $exception)
     {
+        self::log('Exception: ' . $exception->getMessage(), 1);
         //TODO: Let the Application be able to handle (and pretty up) Exceptions
         /*$data = array(
             'error/exception' => '',
@@ -349,7 +354,7 @@ class Application
             //Which is then outputted to the Client
             $response->output();
         } catch (\Exception $e) {*/
-            $response = $this->handleResult($exception);
+            $response = self::handleResult($exception);
             $response->setStatusCode(500);
             $response->output();
         //}
