@@ -1,57 +1,38 @@
 <?php
-namespace Backend\Core;
 /**
  * File defining Route
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package CoreFiles
+ * @category  Backend
+ * @package   Core
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
  */
+namespace Backend\Core;
 /**
- * The Route class that uses the query string to help determine the controller, action
- * and arguments for the request.
+ * The Route class that uses the query string to help determine the controller,
+ * action and arguments for the request.
  *
- * @package Core
+ * @category Backend
+ * @package  Core
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
  */
 class Route
 {
     /**
      * @var array An array of predefined routes
      */
-    protected $_routes;
-
-    public function addRoute($name, $route)
-    {
-        $this->_routes[$name] = $route;
-    }
-
-    public function getRoute($name)
-    {
-        return array_key_exists($name, $this->_routes) ? $this->_routes[$name] : null;
-    }
+    protected $routes;
 
     /**
      * The constructor for the class
      *
-     * @param Request A request object to serve
+     * @param string $routesFile The path to the cpnfiguration file for the routes
      */
     public function __construct($routesFile = false)
     {
@@ -81,18 +62,80 @@ class Route
         if (!array_key_exists('controllers', $routes)) {
             $routes['controllers'] = array();
         }
-        $this->_routes = $routes;
+        $this->routes = $routes;
     }
 
-    public function resolve($request)
+    /**
+     * Add a route to the Route object
+     *
+     * @param string $name  The name of the route
+     * @param array  $route The route information
+     *
+     * @return null
+     */
+    public function addRoute($name, $route)
+    {
+        $this->routes[$name] = $route;
+    }
+
+    /**
+     * Get the specified route information
+     *
+     * @param string $name The name of the route to retrieve
+     *
+     * @return array The route information
+     */
+    public function getRoute($name)
+    {
+        return array_key_exists($name, $this->routes) ? $this->routes[$name] : null;
+    }
+
+    /**
+     * Resolve the route for the specified Request
+     *
+     * @param \Backend\Core\Request $request The request to check
+     *
+     * @return \Backend\Core\RoutePath The matched RoutePath
+     */
+    public function resolve(\Backend\Core\Request $request)
     {
         //Setup and split the query
-        if ($routePath = $this->checkDefinedRoutes($request)) {
+        try {
+            $routePath = $this->checkDefinedRoutes($request);
             return $routePath;
+        } catch (Exceptions\UnknownRouteException $exception) {
+            return $this->checkGeneratedRoutes($request);
         }
-        return $this->checkGeneratedRoutes($request);
     }
 
+    /**
+     * Check if we can match a Defined Route
+     *
+     * @param \Backend\Core\Request $request The request to check
+     *
+     * @return \Backend\Core\RoutePath The matched RoutePath
+     */
+    protected function checkDefinedRoutes($request)
+    {
+        foreach ($this->routes['routes'] as $name => $routeInfo) {
+            $routePath = new Utilities\RoutePath($routeInfo);
+            if ($routePath->check($request)) {
+                return $routePath;
+            }
+        }
+        throw new Exceptions\UnknownRouteException($request->getQuery());
+    }
+
+    /**
+     * Check if we can match a Generated Route
+     *
+     * This method uses a basic REST to CRUD mapping, along with a simple
+     * URL to Controller mapping to try and generate a route.
+     *
+     * @param \Backend\Core\Request $request The request to check
+     *
+     * @return \Backend\Core\RoutePath The matched RoutePath
+     */
     protected function checkGeneratedRoutes($request)
     {
         $query    = ltrim($request->getQuery(), '/');
@@ -100,8 +143,8 @@ class Route
 
         //Resolve the controller
         $controller = $queryArr[0];
-        if (array_key_exists($controller, $this->_routes['controllers'])) {
-            $controller  = $this->_routes['controllers'][$controller];
+        if (array_key_exists($controller, $this->routes['controllers'])) {
+            $controller  = $this->routes['controllers'][$controller];
         } else {
             $controller = Utilities\Strings::className($queryArr[0]);
         }
@@ -135,17 +178,6 @@ class Route
         if ($routePath->check($request)) {
             return $routePath;
         }
-        return false;
-    }
-
-    protected function checkDefinedRoutes($request)
-    {
-        foreach ($this->_routes['routes'] as $name => $routeInfo) {
-            $routePath = new Utilities\RoutePath($routeInfo);
-            if ($routePath->check($request)) {
-                return $routePath;
-            }
-        }
-        return false;
+        throw new Exceptions\UnknownRouteException($request->getQuery());
     }
 }

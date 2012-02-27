@@ -4,23 +4,25 @@
  *
  * PHP Version 5.3
  *
- * @category  Backend
- * @package   Core/Utilities
- * @author    J Jurgens du Toit <jrgns@backend-php.net>
- * @copyright 2011 - 2012 Jade IT (cc)
- * @license   http://www.opensource.org/licenses/mit-license.php MIT License
- * @link      http://backend-php.net
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright  2011 - 2012 Jade IT (cc)
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
 use \Backend\Core\Request;
 /**
  * The RoutePath class stores and manages information about a single Route
  *
- * @category Backend
- * @package  Core/Utilities
- * @author   J Jurgens du Toit <jrgns@backend-php.net>
- * @license  http://www.opensource.org/licenses/mit-license.php MIT License
- * @link     http://backend-php.net
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
 class RoutePath
 {
@@ -127,7 +129,7 @@ class RoutePath
             $methodName      = Strings::camelCase($callbackArray[1] . ' Action');
 
             if (!class_exists($controllerClass, true)) {
-                throw new \Exception('Unknown Controller: ' . $callbackArray[0]);
+                throw new \Backend\Core\Exceptions\UnknownControllerException('Unknown Controller: ' . $callbackArray[0]);
             }
 
             $callback = array(

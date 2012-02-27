@@ -213,9 +213,11 @@ class Application
 
         //Resolve the Route
         $this->route = new Route();
-        $routePath   = $this->route->resolve($request);
-        if (!($routePath instanceof Utilities\RoutePath)) {
-            throw new Exceptions\UnknownRouteException($request->getQuery());
+        try {
+            $routePath   = $this->route->resolve($request);
+        } catch (Exceptions\UnknownControllerException $e) {
+            self::log($e->getMessage(), 2);
+            return new Response($e->getMessage(), 404);
         }
 
         return $this->executeRoutePath($routePath);
@@ -253,7 +255,7 @@ class Application
             $view = self::getTool('View');
             try {
                 $viewMethod = $this->getViewMethod($callback, $view);
-                Application::log('Executing ' . get_class($this) . '::' . $viewMethod->name, 4);
+                Application::log('Executing ' . get_class($callback[0]) . '::' . $viewMethod->name, 4);
                 $result = $viewMethod->invokeArgs($callback[0], array($result));
             } catch (\Exception $e) {
                 unset($e);

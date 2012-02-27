@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining UncallableMethodException
+ * File defining UnknownControllerException
  *
  * PHP Version 5.3
  *
@@ -14,7 +14,7 @@
  */
 namespace Backend\Core\Exceptions;
 /**
- * UnknownModelException
+ * UnknownControllerException
  *
  * @category   Backend
  * @package    Core
@@ -23,6 +23,6 @@ namespace Backend\Core\Exceptions;
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-class UnknownModelException extends \Exception
+class UnknownControllerException extends \Exception
 {
 }
