@@ -1,30 +1,18 @@
 <?php
-namespace Backend\Core\Utilities;
 /**
  * File defining LogMessage
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package UtilityFiles
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright  2011 - 2012 Jade IT (cc)
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
+namespace Backend\Core\Utilities;
 /**
  * LogMessage
  *
@@ -34,7 +22,13 @@ namespace Backend\Core\Utilities;
  * 3. Important Messages
  * 4. Debugging Messages
  * 5. Informative Messages
- * @package Utilities
+ *
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@jrgns.net>
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
 class LogMessage implements \SplSubject
 {
@@ -66,29 +60,29 @@ class LogMessage implements \SplSubject
     /**
      * @var array A set of observers for the log message
      */
-    protected $_observers = array();
+    protected $observers = array();
 
     /**
      * @var string The log message level
      */
-    protected $_level;
+    protected $level;
 
     /**
      * @var string The log message
      */
-    protected $_message;
+    protected $message;
 
     /**
      * Constructor for the class
      *
-     * @param string The log message
-     * @param string The log message level
+     * @param string $message The log message
+     * @param string $level   The log message level
      */
     public function __construct($message, $level)
     {
-        $this->_message = $message;
+        $this->message = $message;
 
-        $this->_level   = $level;
+        $this->level   = $level;
 
         Observable::execute($this);
 
@@ -102,7 +96,7 @@ class LogMessage implements \SplSubject
      */
     public function getMessage()
     {
-        return $this->_message;
+        return $this->message;
     }
 
     /**
@@ -112,47 +106,55 @@ class LogMessage implements \SplSubject
      */
     public function getLevel()
     {
-        return $this->_level;
+        return $this->level;
     }
 
     //SplSubject functions
     /**
      * Attach an observer to the class
      *
-     * @param SplObserver The observer to attach
+     * @param SplObserver $observer The observer to attach
+     *
+     * @return null
      */
     public function attach(\SplObserver $observer)
     {
         $id = spl_object_hash($observer);
-        $this->_observers[$id] = $observer;
+        $this->observers[$id] = $observer;
     }
 
     /**
      * Detach an observer from the class
      *
-     * @param SplObserver The observer to detach
+     * @param SplObserver $observer The observer to detach
+     *
+     * @return null
      */
     public function detach(\SplObserver $observer)
     {
         $id = spl_object_hash($observer);
-        unset($this->_observers[$id]);
+        unset($this->observers[$id]);
     }
 
     /**
      * Notify observers of an update to the class
+     *
+     * @return null
      */
     public function notify()
     {
-        foreach ($this->_observers as $obs) {
+        foreach ($this->observers as $obs) {
             $obs->update($this);
         }
     }
 
     /**
      * Return a string representation of the class
+     *
+     * @return string The message
      */
     function __toString()
     {
-        return $this->_message;
+        return $this->message;
     }
 }
