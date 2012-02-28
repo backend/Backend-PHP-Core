@@ -2,46 +2,41 @@
 /**
  * File defining Core\Decorators\PrettyExceptionDecorator
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package DecoratorFiles
+ * @category   Backend
+ * @package    Core
+ * @subpackage Decorators
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright  2011 - 2012 Jade IT (cc)
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
 namespace Backend\Core\Decorators;
 /**
  * Abstract base class for Model decorators
  *
- * @package Decorators
+ * @category   Backend
+ * @package    Core
+ * @subpackage Decorators
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
 class PrettyExceptionDecorator extends \Exception
 {
-    protected $_exception;
+    protected $exception;
 
     /**
      * The constructor for the class
      *
-     * @param Exception The exception to decorate
+     * @param Exception $exception The exception to decorate
+     * @param string    $message   The exception message
+     * @param integer   $code      The exception code
      */
     function __construct(\Exception $exception, $message = null, $code = 0)
     {
-        $this->_exception = $exception;
+        $this->exception = $exception;
         parent::__construct($message, $code);
     }
 
@@ -58,10 +53,10 @@ class PrettyExceptionDecorator extends \Exception
         return sprintf(
             '%s [ %s ]: %s ~ %s [ %d ]',
             get_class($this->_exception),
-            $this->_exception->getCode(),
+            $this->exception->getCode(),
             strip_tags($this->_exception->getMessage()),
-            $this->_exception->getFile(),
-            $this->_exception->getLine()
+            $this->exception->getFile(),
+            $this->exception->getLine()
         );
     }
 }
