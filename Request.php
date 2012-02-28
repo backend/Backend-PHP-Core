@@ -81,29 +81,36 @@ class Request
         }
         $this->setPayload($payload);
 
-        //Get the query
-        //TODO This doesn't take into account the request passed down
-        $query = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
-
-        //Clean up the query
-        $this->query = $this->cleanupQuery($query);
-
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
         Application::log($message, 4);
     }
 
     /**
-     * Standarize the query
+     * Return the request's query.
+     *
+     * @return string The Request Query
+     */
+    public function getQuery()
+    {
+        if (is_null($this->query)) {
+            $this->prepareQuery();
+        }
+        return $this->query;
+    }
+
+    /**
+     * Prepare the query
      *
      * This is done by removing the trailing slash, and ensuring that the query
      * starts with a slash
      *
-     * @param string $query The query to clean up
-     *
-     * @return string The cleaned up query
+     * @return null
      */
-    protected function cleanupQuery($query)
+    public function prepareQuery()
     {
+        //TODO This doesn't take into account the request passed down
+        $query = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+
         //Decode the URL
         $query = urldecode($query);
         //No trailing slash
@@ -113,7 +120,9 @@ class Request
         if (substr($query, 0, 1) != '/') {
             $query = '/' . $query;
         }
-        return $query;
+
+        //Clean up the query
+        $this->query = $query;
     }
 
     /**
@@ -147,7 +156,8 @@ class Request
         if ('index.php' == basename($_SERVER['PHP_SELF'])) {
             $this->siteUrl .= $_SERVER['PHP_SELF'];
         } else {
-            $this->siteUrl .= dirname($_SERVER['PHP_SELF']);
+            $pattern = '/' . str_replace('/', '\\/', $this->getQuery()) . '$/';
+            $this->siteUrl .= preg_replace($pattern, '', $_SERVER['PHP_SELF']);
         }
         if (substr($this->siteUrl, -1) != '/') {
             $this->siteUrl .= '/';
@@ -368,16 +378,6 @@ class Request
     public function isPut()
     {
         return $this->isMethod('PUT');
-    }
-
-    /**
-     * Return the request's query.
-     *
-     * @return string The Request Query
-     */
-    public function getQuery()
-    {
-        return $this->query;
     }
 
     /**
