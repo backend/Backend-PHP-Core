@@ -40,7 +40,7 @@ class JsonDecorator implements \Backend\Core\Interfaces\DecoratorInterface
     }
 
     /**
-     * The magic _call function.
+     * The magic __call function to pass on calls to decorated object
      *
      * This is used to call the specified function on the original object
      *
@@ -52,6 +52,35 @@ class JsonDecorator implements \Backend\Core\Interfaces\DecoratorInterface
     public function __call($method, $args)
     {
         return call_user_func_array(array($this->object, $method), $args);
+    }
+
+    /**
+     * The magic __get function to retrieve properties from decorated object
+     *
+     * @param string $property The name of the property to retrieve
+     *
+     * @return mixed The value of the property
+     */
+    public function __get($property)
+    {
+        if (property_exists($this->exception, $property)) {
+            return $this->exception->$property;
+        }
+        return null;
+    }
+
+    /**
+     * The magic __get function to retrieve properties from decorated object
+     *
+     * @param string $property The name of the property to set
+     * @param mixed  $value    The value of the property being set
+     *
+     * @return object The current object
+     */
+    public function __set($property, $value)
+    {
+        $this->exception->$property = $value;
+        return $this;
     }
 
     /**

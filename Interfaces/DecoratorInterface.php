@@ -33,7 +33,7 @@ interface DecoratorInterface
     function __construct(\Backend\Core\Interfaces\DecorableInterface $decorable);
 
     /**
-     * Function call to catch methods for the decorated instance
+     * The magic __call function to pass on calls to decorated object
      *
      * For an example, see {@link http://stackoverflow.com/questions/3857644/php-decorator-writer-script}
      *
@@ -43,4 +43,23 @@ interface DecoratorInterface
      * @return mixed The result of the method called by the decorated instance
      */
     public function __call($method, $args);
+
+    /**
+     * The magic __get function to retrieve properties from decorated object
+     *
+     * @param string $property The name of the property to retrieve
+     *
+     * @return mixed The value of the property
+     */
+    public function __get($property);
+
+    /**
+     * The magic __get function to retrieve properties from decorated object
+     *
+     * @param string $property The name of the property to set
+     * @param mixed  $value    The value of the property being set
+     *
+     * @return object The current object
+     */
+    public function __set($property, $value);
 }
