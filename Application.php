@@ -15,18 +15,6 @@ namespace Backend\Core;
 /**
  * The main application class.
  *
- * In the traditional PHP setup, you will have one appllication per request. The application
- * will always have one view associated with it. If not specified, the view will be
- * deduced from the request.
- *
- * If you need to serve multiple views with one request, it is possible to instansiate
- * Application multiple times.
- *
- * If you need to serve multiple routes with one request, instansiate one application,
- * and execute the main function multiple times with the specified routes. You can also
- * run {@link Controller::execute} multiple times, although the behaviour around that
- * is undefined.
- *
  * The application will / should be the only singleton in the framework, acting as
  * a Toolbox. That means that any resource that should be globally accessable (and
  * some times a singleton) should be passed to the Application. Read more at
@@ -68,11 +56,14 @@ class Application
     /**
      * The constructor for the class
      *
-     * @param mixed $config The Configuration to be used for the application. Can be a the
+     * @param Request $request The request the application should handle
+     * @param mixed   $config  The Configuration to be used for the application. Can be a the
      * path of a config file, or a Config object
      */
-    function __construct($config = null)
+    function __construct(Request $request = null, $config = null)
     {
+        $this->setRequest($request instanceof Request ? $request : new Request());
+
         if (!self::$constructed) {
             self::constructApplication();
         }
@@ -81,8 +72,15 @@ class Application
         //TODO: Maybe move the Toolbox to a separate class
         self::$_toolbox = array();
 
-        //Use the default view until we have a request to use
-        self::addTool('View', new View());
+        //Determine the View
+        try {
+            $view = Utilities\ViewFactory::build($this->getRequest());
+        } catch (Exceptions\UnrecognizedRequestException $e) {
+            Application::log('View Exception: ' . $e->getMessage(), 2);
+            $view = new View($this->getRequest());
+        }
+        self::log('Running Application in ' . get_class($view) . ' View');
+        self::addTool('View', $view);
 
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
@@ -195,26 +193,23 @@ class Application
     }
 
     /**
-     * Main function for the application
+     * Get the current Constructed state of the Application
      *
-     * @param Request $request The request to handle
+     * @return boolean The Constructed state of the Application
+     */
+    public function getConstructed()
+    {
+        return self::$constructed;
+    }
+
+    /**
+     * Main function for the application
      *
      * @return mixed The result of the call
      */
-    public function main(Request $request = null)
+    public function main()
     {
-        $this->setRequest($request instanceof Request ? $request : new Request());
         $request = $this->getRequest();
-
-        //Determine the View
-        try {
-            $view = Utilities\ViewFactory::build($request);
-        } catch (Exceptions\UnrecognizedRequestException $e) {
-            Application::log('View Exception: ' . $e->getMessage(), 2);
-            $view = new View();
-        }
-        self::log('Running Application in ' . get_class($view) . ' View');
-        self::addTool('View', $view);
 
         //Resolve the Route
         $this->route = new Route();
@@ -280,6 +275,10 @@ class Application
     protected static function handleResult($result)
     {
         $view = self::getTool('View');
+        //Make sure we have a view to work with
+        if (!$view) {
+            $view = new View($this->getRequest());
+        }
 
         //Convert the result to a Respose
         $response = $view->transform($result);

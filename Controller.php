@@ -68,6 +68,9 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
      */
     public function redirect($location, $responseCode = 302)
     {
+        if (substr($responseCode, 0, 1) !== '3') {
+            throw new \Exception('Invalid Redirection Response Code');
+        }
         $response = new Response('Redirecting to ' . $location, $responseCode);
         $response->addHeader('Location', $location);
         return $response;

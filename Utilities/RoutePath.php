@@ -13,7 +13,6 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use \Backend\Core\Request;
 /**
  * The RoutePath class stores and manages information about a single Route
  *
@@ -71,21 +70,21 @@ class RoutePath
     }
 
     /**
-     * Check this RoutePath against the given Request for a match
+     * Check this RoutePath against the given verb / query for a match
      *
-     * @param \Backend\Core\Request $request The Request to check against
+     * @param string $verb  The Verb to check against
+     * @param string $query The query to check against
      *
      * @return mixed Return this RoutePath if there's a match, false otherwise
      */
-    public function check(Request $request)
+    public function check($verb, $query)
     {
         //If the verb is defined, and it doesn't match, skip
-        if ($this->verb && $request->getMethod() != $this->verb) {
+        if ($this->verb && $verb != $this->verb) {
             return false;
         }
 
         //Try to match the route
-        $query = $request->getQuery();
         if ($this->route == $query) {
             //Straight match, no arguments
             return $this;

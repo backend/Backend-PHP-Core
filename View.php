@@ -24,16 +24,23 @@ namespace Backend\Core;
 class View
 {
     /**
-     * Define the formats this view can handle
-     * @var array
+     * @var array Define the formats this view can handle
      */
     public static $handledFormats = array();
 
     /**
-     * The View constructor
+     * @var \Backend\Core\Request The request that was used to generate the View
      */
-    function __construct()
+    protected $request = null;
+
+    /**
+     * The View constructor
+     *
+     * @param \Backend\Core\Request $request The Request to associate with the view
+     */
+    function __construct(\Backend\Core\Request $request)
     {
+        $this->request = $request;
     }
 
     /**
@@ -91,5 +98,15 @@ END;
         }
         $response->setBody($body);
         return $response;
+    }
+
+    /**
+     * Get the request associated with the View
+     *
+     * @return \Backend\Core\Request The Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
     }
 }

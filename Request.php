@@ -24,24 +24,34 @@ namespace Backend\Core;
 class Request
 {
     /**
+     * @var string The absolute path to the site. Used for links to assets
+     */
+    protected $sitePath = null;
+
+    /**
+     * @var string The site end point. Used for calls to the site
+     */
+    protected $siteUrl = null;
+
+    /**
      * @var string The query of the request
      */
-    private $_query   = null;
+    protected $query   = null;
 
     /**
      * @var array The payload of the request
      */
-    private $_payload = null;
+    protected $payload = null;
 
     /**
      * @var string The method of the request. Can be one of GET, POST, PUT or DELETE
      */
-    private $_method  = null;
+    protected $method  = null;
 
     /**
      * @var string The extension of the request.
      */
-    private $_extension  = null;
+    protected $extension  = null;
 
     /**
      * The constructor for the class
@@ -76,7 +86,7 @@ class Request
         $query = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
 
         //Clean up the query
-        $this->_query = $this->cleanupQuery($query);
+        $this->query = $this->cleanupQuery($query);
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
         Application::log($message, 4);
@@ -107,6 +117,71 @@ class Request
     }
 
     /**
+     * Get the Site URL
+     *
+     * @return string The API end point
+     */
+    public function getSiteUrl()
+    {
+        if (is_null($this->siteUrl)) {
+            $this->prepareSiteUrl();
+        }
+        return $this->siteUrl;
+    }
+
+    /**
+     * Prepare the SITE URL
+     *
+     * @return null
+     */
+    protected function prepareSiteUrl()
+    {
+        //Construct the current URL
+        $this->siteUrl = 'http';
+        if ($_SERVER['SERVER_PORT'] == 443
+            || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')
+        ) {
+            $this->siteUrl .= 's';
+        }
+        $this->siteUrl .= '://' . $_SERVER['HTTP_HOST'];
+        if ('index.php' == basename($_SERVER['PHP_SELF'])) {
+            $this->siteUrl .= $_SERVER['PHP_SELF'];
+        } else {
+            $this->siteUrl .= dirname($_SERVER['PHP_SELF']);
+        }
+        if (substr($this->siteUrl, -1) != '/') {
+            $this->siteUrl .= '/';
+        }
+    }
+
+    /**
+     * Get the Site Path
+     *
+     * @return string The Site Path
+     */
+    public function getSitePath()
+    {
+        if (is_null($this->sitePath)) {
+            $this->prepareSitePath();
+        }
+        return $this->sitePath;
+    }
+
+    /**
+     * Prepare the Site Path
+     *
+     * @return null
+     */
+    protected function prepareSitePath()
+    {
+        $path = dirname($this->getSiteUrl());
+        if (substr($path, -1) != '/') {
+            $path .= '/';
+        }
+        $this->sitePath = $path;
+    }
+
+    /**
      * Determine the requested format for the request
      *
      * @return string The format for the request
@@ -119,8 +194,8 @@ class Request
         }
 
         //Check the format parameter
-        if (array_key_exists('format', $this->_payload)) {
-            return $this->_payload['format'];
+        if (array_key_exists('format', $this->payload)) {
+            return $this->payload['format'];
         }
         return false;
     }
@@ -132,21 +207,21 @@ class Request
      */
     public function getExtension()
     {
-        if (!is_null($this->_extension)) {
-            return $this->_extension;
+        if (!is_null($this->extension)) {
+            return $this->extension;
         }
-        $parts = preg_split('/[_\.]/', $this->_query);
+        $parts = preg_split('/[_\.]/', $this->query);
         if (count($parts) > 1) {
             $extension = end($parts);
             //Check if it's a valid .extension
             if (array_key_exists('QUERY_STRING', $_SERVER)) {
-                $test = preg_replace('/[_\.]' . $extension . '$/', '.' . $extension, $this->_query);
+                $test = preg_replace('/[_\.]' . $extension . '$/', '.' . $extension, $this->query);
                 if (strpos($_SERVER['QUERY_STRING'], $test) === false) {
                     $extension = false;
                 }
             }
             if ($extension) {
-                $this->_query = preg_replace('/[_\.]' . $extension . '$/', '', $this->_query);
+                $this->query = preg_replace('/[_\.]' . $extension . '$/', '', $this->query);
                 return $extension;
             }
         }
@@ -181,8 +256,8 @@ class Request
      */
     public function getMethod()
     {
-        if (!is_null($this->_method)) {
-            return $this->_method;
+        if (!is_null($this->method)) {
+            return $this->method;
         }
         //Copied the way to determine the method from CakePHP
         //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
@@ -203,7 +278,7 @@ class Request
             break;
         }
         $this->setMethod($method);
-        return $this->_method;
+        return $this->method;
     }
 
     /**
@@ -219,7 +294,7 @@ class Request
         if (!in_array($method, array('DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'))) {
             throw new Exceptions\UnsupportedHttpMethodException('Unsupported method ' . $method);
         }
-        $this->_method = $method;
+        $this->method = $method;
         return $this;
     }
 
@@ -232,7 +307,7 @@ class Request
      */
     protected function isMethod($method)
     {
-        return strtoupper($method) == $this->_method;
+        return strtoupper($method) == $this->method;
     }
 
     /**
@@ -302,7 +377,7 @@ class Request
      */
     public function getQuery()
     {
-        return $this->_query;
+        return $this->query;
     }
 
     /**
@@ -312,8 +387,8 @@ class Request
      */
     public function getPayload()
     {
-        if (!is_null($this->_payload)) {
-            return $this->_payload;
+        if (!is_null($this->payload)) {
+            return $this->payload;
         }
         if (self::fromCli()) {
             $payload = array(
@@ -324,7 +399,7 @@ class Request
                 //Fourth CL parameter is a query string
                 parse_str($_SERVER['argv'][4], $queryVars);
                 if (is_array($queryVars)) {
-                    $payload = array_merge($this->_payload, $queryVars);
+                    $payload = array_merge($this->payload, $queryVars);
                 }
             }
         }
@@ -332,7 +407,7 @@ class Request
             $payload = isset($_REQUEST) ? $_REQUEST : array();
         }
         $this->setPayload($payload);
-        return $this->_payload;
+        return $this->payload;
     }
 
     /**
@@ -344,7 +419,7 @@ class Request
      */
     public function setPayload(array $payload)
     {
-        $this->_payload = $payload;
+        $this->payload = $payload;
         return $this;
     }
 

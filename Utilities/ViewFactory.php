@@ -1,48 +1,45 @@
 <?php
-namespace Backend\Core\Utilities;
 /**
  * File defining ViewFactory
  *
- * Copyright (c) 2011 JadeIT cc
- * @license http://www.opensource.org/licenses/mit-license.php
+ * PHP Version 5.3
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in the
- * Software without restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR
- * A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
- * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * @package UtilityFiles
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright  2011 - 2012 Jade IT (cc)
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
+namespace Backend\Core\Utilities;
+use Backend\Core\Application;
+use Backend\Core\Request;
+use Backend\Core\View;
 /**
  * Factory class to create Views
  *
- * @package Utility
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@jrgns.net>
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
  */
 class ViewFactory
 {
     /**
      * Build a view with the supplied (or current) request
      *
-     * @param Request The Request to use to determine the view
+     * @param Request $request The Request to use to determine the view
+     *
      * @return View The view that can handle the Request
      */
-    public static function build(\Backend\Core\Request $request)
+    public static function build(Request $request)
     {
         //Check the View Folder
         $views = array();
-        $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
+        $namespaces = array_reverse(Application::getNamespaces());
         $viewFiles = array();
         foreach ($namespaces as $base) {
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
@@ -69,26 +66,17 @@ class ViewFactory
 
         foreach ($formats as $format) {
             foreach ($views as $viewName) {
-                if ($view = self::checkView($viewName, $format)) {
+                if (in_array($format, $viewName::$handledFormats)) {
+                    $view = new $viewName($request);
+                    if (!($view instanceof View)) {
+                        throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
+                    }
                     return $view;
                 }
             }
         }
 
         throw new \Backend\Core\Exceptions\UnrecognizedRequestException('Unrecognized Format');
-        return false;
-    }
-
-    private static function checkView($viewName, $format)
-    {
-        if (in_array($format, $viewName::$handledFormats)) {
-            //$renderer = \Backend\Core\Application::getTool('Renderer');
-            $view = new $viewName();
-            if (!($view instanceof \Backend\Core\View)) {
-                throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
-            }
-            return $view;
-        }
         return false;
     }
 }
