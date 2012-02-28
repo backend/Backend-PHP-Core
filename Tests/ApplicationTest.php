@@ -1,12 +1,33 @@
 <?php
+/**
+ * File defining ApplicationTest
+ *
+ * PHP Version 5.3
+ *
+ * @category  Backend
+ * @package   CoreTests
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
+ */
 namespace Backend\Core\Tests;
 use \Backend\Core\Application;
-
-//use DataPathway\LedgerBundle\Service\LedgerService;
-//use DataPathway\AccountingBundle\Entity\SalesJournal;
-
-class ApplicationTest extends \PHPUnit_Framework_TestCase {
+/**
+ * Class to test the \Backend\Core\Application class
+ *
+ * @category Backend
+ * @package  CoreTests
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
+ */
+class ApplicationTest extends \PHPUnit_Framework_TestCase
+{
     /**
+     * Test adding an undefined Tool
+     *
+     * @return null
      * @expectedException \Backend\Core\Exceptions\UndefinedToolException
      */
     public function testAddUndefinedTool()
@@ -15,6 +36,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test adding an invalid Tool
+     *
+     * @return null
      * @expectedException \Backend\Core\Exceptions\InvalidToolException
      */
     public function testAddInvalidTool()
@@ -22,6 +46,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase {
         Application::addTool('InvalidTool', new \StdClass());
     }
 
+    /**
+     * Test adding and retrieving a Tool
+     *
+     * @return null
+     */
     public function testAddGetTool()
     {
         Application::addTool('Logger', '\Backend\Core\Utilities\Logger');
@@ -29,6 +58,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test the Application error handling
+     *
+     * @return null
      * @expectedException \ErrorException
      */
     public function testError()
@@ -36,6 +68,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase {
         Application::error(1, 'SomeError', __FILE__, __LINE__);
     }
 
+    /**
+     * Test getting and setting the Debug Level
+     *
+     * @return null
+     */
     public function testDebugLevel()
     {
         $this->assertSame(3, Application::getDebugLevel());
@@ -47,6 +84,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame(5, Application::getDebugLevel());
     }
 
+    /**
+     * Test adding and getting Namespaces
+     *
+     * @return null
+     */
     public function testRegisterNamespace()
     {
         $this->assertSame(array(), Application::getNamespaces());
@@ -55,6 +97,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * Test Application::getViewMethod
+     *
+     * @return null
      * @expectedException \ReflectionException
      */
     public function testGetViewMethod()
