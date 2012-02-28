@@ -12,6 +12,8 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+use \Backend\Core\Request;
+use \Backend\Core\Response;
 /**
  * The Base View class.
  *
@@ -36,9 +38,9 @@ class View
     /**
      * The View constructor
      *
-     * @param \Backend\Core\Request $request The Request to associate with the view
+     * @param Request $request The Request to associate with the view
      */
-    function __construct(\Backend\Core\Request $request)
+    function __construct(Request $request)
     {
         $this->request = $request;
     }
@@ -54,10 +56,10 @@ class View
      */
     function transform($result)
     {
-        if ($result instanceof \Backend\Core\Response) {
+        if ($result instanceof Response) {
             return $result;
         }
-        $response = new \Backend\Core\Response();
+        $response = new Response();
         $response->addHeader('X-Backend-View', get_class($this));
         $body  = '';
         switch (gettype($result)) {
