@@ -35,7 +35,9 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     {
         $controller = new Controller();
         $response = $controller->redirect('/');
-        var_dump($response); die;
+        $headers  = $response->getHeaders();
+        $this->assertArrayHasKey('Location', $headers);
+        $this->assertEquals('/', $headers['Location']);
     }
 
     /**
@@ -47,7 +49,9 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     {
         $controller = new Controller();
         $response = $controller->redirect('http://www.google.com');
-        $this->assertContains('Location: http://www.google.com', $response->getHeaders());
+        $headers  = $response->getHeaders();
+        $this->assertArrayHasKey('Location', $headers);
+        $this->assertEquals('http://www.google.com', $headers['Location']);
     }
 
     /**
@@ -59,7 +63,10 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     {
         $controller = new Controller();
         $response = $controller->redirect('http://www.google.com', 302);
-        var_dump($response); die;
+        $headers  = $response->getHeaders();
+        $this->assertArrayHasKey('Location', $headers);
+        $this->assertEquals('http://www.google.com', $headers['Location']);
+        $this->assertEquals(302, $response->getStatusCode());
     }
 
     /**
