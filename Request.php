@@ -23,6 +23,8 @@ namespace Backend\Core;
  */
 class Request
 {
+    protected $serverInfo = array();
+
     /**
      * @var string The absolute path to the site. Used for links to assets
      */
@@ -64,25 +66,56 @@ class Request
      * @param mixed  $request The request data. Defaults to the HTTP request data if not supplied
      * @param string $method  The request method. Can be one of GET, POST, PUT, DELETE or HEAD
      */
-    function __construct($request = null, $method = null)
+    function __construct($url = null, $method = null, $payload = null)
     {
+        if (is_null($url)) {
+            $this->serverInfo = $_SERVER;
+            $this->serverInfo['PATH_INFO'] = array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '';
+        } else {
+            $this->parseUrl($url);
+            $method = is_null($method) ? 'GET' : $method;
+        }
         if (!is_null($method)) {
             $this->setMethod($method);
         }
 
-        if (is_null($request)) {
+        if (is_null($payload)) {
             $payload = $this->getPayload();
-        } else if (is_string($request)) {
-            $payload = parse_str($request);
-        } else if (is_array($request)) {
-            $payload = $request;
-        } else if (is_object($request)) {
-            $payload = (array)$request;
+        } else if (is_string($payload)) {
+            $payload = parse_str($payload);
+        } else if (is_object($payload)) {
+            $payload = (array)$payload;
+        } else if (is_array($payload)) {
+            $payload = $payload;
         }
         $this->setPayload($payload);
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
         Application::log($message, 4);
+    }
+
+    protected function parseUrl($url)
+    {
+        $urlParts = parse_url($url);
+        $this->serverInfo['HTTP_HOST']    = $urlParts['host'];
+        $this->serverInfo['QUERY_STRING'] = array_key_exists('query', $urlParts) ? $urlParts['query'] : '';
+        $this->serverInfo['REQUEST_URI']  = $urlParts['path'];
+        //TODO For now we're assuming all URL's passed will have an index.php in them
+        $pathInfo = explode('index.php', $url, 2);
+        $this->serverInfo['PATH_INFO'] = end($pathInfo);
+        //$this->serverInfo['PATH_INFO']    = str_replace($_SERVER['SCRIPT_NAME'], '', $urlParts['path']); 
+        $this->serverInfo['REQUEST_TIME'] = time();
+        if ($urlParts['scheme'] == 'https') {
+            $this->serverInfo['HTTPS']       = 'on';
+            $this->serverInfo['SERVER_PORT'] = 443;
+        } else {
+            $this->serverInfo['SERVER_PORT'] = 80;
+        }
+        if (array_key_exists('port', $urlParts)) {
+            $this->serverInfo['SERVER_PORT'] = $urlParts['port'];
+        }
+        //Keep all $_SERVER details we haven't set
+        $this->serverInfo = array_merge($_SERVER, $this->serverInfo);
     }
 
     /**
@@ -108,8 +141,7 @@ class Request
      */
     public function prepareQuery()
     {
-        //TODO This doesn't take into account the request passed down
-        $query = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
+        $query = $this->serverInfo['PATH_INFO'];
 
         //Decode the URL
         $query = urldecode($query);
@@ -147,17 +179,17 @@ class Request
     {
         //Construct the current URL
         $this->siteUrl = 'http';
-        if ($_SERVER['SERVER_PORT'] == 443
-            || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on')
+        if ($this->serverInfo['SERVER_PORT'] == 443
+            || (!empty($this->serverInfo['HTTPS']) && $this->serverInfo['HTTPS'] == 'on')
         ) {
             $this->siteUrl .= 's';
         }
-        $this->siteUrl .= '://' . $_SERVER['HTTP_HOST'];
-        if ('index.php' == basename($_SERVER['PHP_SELF'])) {
-            $this->siteUrl .= $_SERVER['PHP_SELF'];
+        $this->siteUrl .= '://' . $this->serverInfo['HTTP_HOST'];
+        if ('index.php' == basename($this->serverInfo['PHP_SELF'])) {
+            $this->siteUrl .= $this->serverInfo['PHP_SELF'];
         } else {
-            $pattern = '/' . str_replace('/', '\\/', $this->getQuery()) . '$/';
-            $this->siteUrl .= preg_replace($pattern, '', $_SERVER['PHP_SELF']);
+            $pattern = '/' . str_replace('/', '\\/', $this->serverInfo['PATH_INFO']) . '$/';
+            $this->siteUrl .= preg_replace($pattern, '', $this->serverInfo['REQUEST_URI']);
         }
         if (substr($this->siteUrl, -1) != '/') {
             $this->siteUrl .= '/';
@@ -191,6 +223,11 @@ class Request
         $this->sitePath = $path;
     }
 
+    public function getServerInfo()
+    {
+        return $this->serverInfo;
+    }
+
     /**
      * Determine the requested format for the request
      *
@@ -199,8 +236,8 @@ class Request
     public function getSpecifiedFormat()
     {
         //Third CL parameter is the required format
-        if (self::fromCli() && count($_SERVER['argv']) >= 4) {
-            return $_SERVER['argv'][3];
+        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
+            return $this->serverInfo['argv'][3];
         }
 
         //Check the format parameter
@@ -224,9 +261,9 @@ class Request
         if (count($parts) > 1) {
             $extension = end($parts);
             //Check if it's a valid .extension
-            if (array_key_exists('QUERY_STRING', $_SERVER)) {
+            if (array_key_exists('QUERY_STRING', $this->serverInfo)) {
                 $test = preg_replace('/[_\.]' . $extension . '$/', '.' . $extension, $this->query);
-                if (strpos($_SERVER['QUERY_STRING'], $test) === false) {
+                if (strpos($this->serverInfo['QUERY_STRING'], $test) === false) {
                     $extension = false;
                 }
             }
@@ -275,15 +312,15 @@ class Request
         case array_key_exists('_method', $_POST):
             $method = $_POST['_method'];
             break;
-        case array_key_exists('X_HTTP_METHOD_OVERRIDE', $_SERVER):
-            $method = $_SERVER['X_HTTP_METHOD_OVERRIDE'];
+        case array_key_exists('X_HTTP_METHOD_OVERRIDE', $this->serverInfo):
+            $method = $this->serverInfo['X_HTTP_METHOD_OVERRIDE'];
             break;
         default:
             if (self::fromCli()) {
                 //First CL parameter is the method
                 $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
             } else {
-                $method = $_SERVER['REQUEST_METHOD'];
+                $method = $this->serverInfo['REQUEST_METHOD'];
             }
             break;
         }
@@ -305,6 +342,7 @@ class Request
             throw new Exceptions\UnsupportedHttpMethodException('Unsupported method ' . $method);
         }
         $this->method = $method;
+        $this->serverInfo['REQUEST_METHOD'] = $method;
         return $this;
     }
 
