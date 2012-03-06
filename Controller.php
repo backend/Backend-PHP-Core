@@ -81,14 +81,18 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
      *
      * @return ModelInterface The model associated with this controller
      */
-    public function getModel()
+    public function getModel($id = null)
     {
-        //Get and check the model
-        $modelName = 'Backend\Models\\' . class_name($this->route->getArea());
+        $reflector = new \ReflectionClass($this);
+        $namespace = preg_replace('/\\\\Controllers$/', '\\Models', $reflector->getNamespaceName());
+        $modelName = basename(str_replace('\\', DIRECTORY_SEPARATOR, get_class($this)));
+        $modelName = Utilities\Strings::singularize(preg_replace('/Controller$/', '', $modelName));
+        $modelName = Utilities\Strings::className($modelName);
+        $modelName = $namespace . '\\' . $modelName;
         if (!class_exists($modelName, true)) {
             return null;
         }
-        $model = new $modelName();
+        $model = new $modelName($id);
         if ($model instanceof Interfaces\Decorable) {
             foreach ($model->getDecorators() as $decorator) {
                 $model = new $decorator($model);
