@@ -36,7 +36,7 @@ class Model extends Decorable implements Interfaces\ModelInterface
     {
         $funcName = 'get' . Utilities\Strings::className($propertyName);
         if (method_exists($this, $funcName)) {
-            $this->$funcName($value);
+            $this->$funcName();
         } else if (property_exists($this, $propertyName)) {
             return $this->$propertyName;
         }

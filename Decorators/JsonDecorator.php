@@ -12,7 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Decorators;
-use \Backend\Core\Interfaces\DecorableInterface;
+use \Backend\Core\Decorators\Decorator;
 /**
  * Give custom JSON encoding functionality to objects
  *
@@ -22,67 +22,8 @@ use \Backend\Core\Interfaces\DecorableInterface;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class JsonDecorator implements \Backend\Core\Interfaces\DecoratorInterface
+class JsonDecorator extends Decorator
 {
-    /**
-     * @var Object The object this class is decorating
-     */
-    protected $object;
-
-    /**
-     * The constructor for the class
-     *
-     * @param DecorableInterface $object The model to decorate
-     */
-    function __construct(DecorableInterface $object)
-    {
-        $this->object = $object;
-    }
-
-    /**
-     * The magic __call function to pass on calls to decorated object
-     *
-     * This is used to call the specified function on the original object
-     *
-     * @param string $method The name of the method to call
-     * @param array  $args   The arguments to pass to the method
-     *
-     * @return mixed The result of the called method
-     */
-    public function __call($method, $args)
-    {
-        return call_user_func_array(array($this->object, $method), $args);
-    }
-
-    /**
-     * The magic __get function to retrieve properties from decorated object
-     *
-     * @param string $property The name of the property to retrieve
-     *
-     * @return mixed The value of the property
-     */
-    public function __get($property)
-    {
-        if (property_exists($this->exception, $property)) {
-            return $this->exception->$property;
-        }
-        return null;
-    }
-
-    /**
-     * The magic __get function to retrieve properties from decorated object
-     *
-     * @param string $property The name of the property to set
-     * @param mixed  $value    The value of the property being set
-     *
-     * @return object The current object
-     */
-    public function __set($property, $value)
-    {
-        $this->exception->$property = $value;
-        return $this;
-    }
-
     /**
      * Get the normal properties of the Object
      *

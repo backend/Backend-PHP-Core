@@ -28,7 +28,7 @@ interface DecoratorInterface
     /**
      * The constructor for the decorator
      *
-     * @param ModelInterface $decorable The model to decorate
+     * @param \Backend\Core\Interfaces\DecorableInterface $decorable The object to decorate
      */
     function __construct(\Backend\Core\Interfaces\DecorableInterface $decorable);
 
@@ -54,7 +54,7 @@ interface DecoratorInterface
     public function __get($property);
 
     /**
-     * The magic __get function to retrieve properties from decorated object
+     * The magic __set function to set the properties of a decorated object
      *
      * @param string $property The name of the property to set
      * @param mixed  $value    The value of the property being set

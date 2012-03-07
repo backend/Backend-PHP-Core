@@ -90,20 +90,13 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
         $modelName = Utilities\Strings::className($modelName);
         $modelName = $namespace . '\\' . $modelName;
         if (!class_exists($modelName, true)) {
-            return null;
+            throw new \Exception('Model does not exist: ' . $namespace . '\\' . $modelName);
         }
         $model = new $modelName($id);
-        if ($model instanceof Interfaces\Decorable) {
-            foreach ($model->getDecorators() as $decorator) {
-                $model = new $decorator($model);
-                if (!($model instanceof \Backend\Core\Decorators\ModelDecorator)) {
-                    //TODO Use a specific Exception
-                    throw new \Exception(
-                        'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ModelDecorator'
-                    );
-                }
-            }
-        }
+
+        //Decorate the Model
+        $model = \Backend\Core\Decorable::decorate($model);
+
         return $model;
     }
 }
