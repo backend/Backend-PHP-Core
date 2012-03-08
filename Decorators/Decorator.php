@@ -53,6 +53,9 @@ class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
      */
     public function __call($method, $args)
     {
+        if (!is_callable(array($this->object, $method))) {
+            throw new \Exception('Undefined method - ' . get_class($this->object) . '::' . $method);
+        }
         return call_user_func_array(array($this->object, $method), $args);
     }
 
