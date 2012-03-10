@@ -87,4 +87,18 @@ class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
         $this->object->$property = $value;
         return $this;
     }
+
+    /**
+     * Get the original, undecorated object
+     *
+     * @return mixed The original undecorated object
+     */
+    public function getOriginalObject()
+    {
+        $object = $this->object;
+        while ($object instanceof \Backend\Core\Interfaces\DecoratorInterface) {
+            $object = $object->getOriginalObject();
+        }
+        return $object;
+    }
 }
