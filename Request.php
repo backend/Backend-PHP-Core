@@ -82,7 +82,7 @@ class Request
         if (is_null($payload)) {
             $payload = $this->getPayload();
         } else if (is_string($payload)) {
-            $payload = parse_str($payload);
+            parse_str($payload, $payload);
         } else if (is_object($payload)) {
             $payload = (array)$payload;
         } else if (is_array($payload)) {
@@ -440,6 +440,22 @@ class Request
                     $payload = array_merge($this->payload, $queryVars);
                 }
             }
+        }
+        switch ($this->getMethod()) {
+        case 'GET':
+            $payload = isset($_GET) ? $_GET : array();
+            break;
+        case 'POST':
+            $payload = isset($_POST) ? $_POST : array();
+            break;
+        case 'PUT':
+            $data = '';
+            $fp   = fopen('php://input', 'r');
+            while ($chunk = fread($fp, 1024)) {
+                $data .= $chunk;
+            }
+            parse_str($data, $payload);
+            break;
         }
         if (!isset($payload)) {
             $payload = isset($_REQUEST) ? $_REQUEST : array();
