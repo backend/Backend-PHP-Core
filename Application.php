@@ -335,7 +335,7 @@ class Application
      */
     public static function error($errno, $errstr, $errfile, $errline)
     {
-        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        self::exception(new \ErrorException($errstr, 0, $errno, $errfile, $errline));
     }
 
     /**
@@ -363,6 +363,7 @@ class Application
             $response = self::handleResult($exception);
             $response->setStatusCode(500);
             $response->output();
+            die;
         //}
     }
 
