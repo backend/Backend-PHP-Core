@@ -277,7 +277,8 @@ class Application
         $view = self::getTool('View');
         //Make sure we have a view to work with
         if (!$view) {
-            $view = new View($this->getRequest());
+            throw new \Exception('No View to work with');
+            //$view = new View($this->getRequest());
         }
 
         //Convert the result to a Respose
@@ -459,10 +460,12 @@ class Application
      */
     public function setDebugLevel($level)
     {
+        $level = (int)$level;
         if ($level <= 0) {
             return false;
         }
         self::$debugLevel = $level;
+        return $this;
     }
 
     /**

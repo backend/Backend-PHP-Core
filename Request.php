@@ -99,9 +99,16 @@ class Request
         $urlParts = parse_url($url);
         $this->serverInfo['HTTP_HOST']    = $urlParts['host'];
         $this->serverInfo['QUERY_STRING'] = array_key_exists('query', $urlParts) ? $urlParts['query'] : '';
-        $this->serverInfo['REQUEST_URI']  = $urlParts['path'];
+        $urlParts['path']                 = array_key_exists('path', $urlParts) ? $urlParts['path'] : '';
         //TODO For now we're assuming all URL's passed will have an index.php in them
-        $pathInfo = explode('index.php', $url, 2);
+        if (strpos($urlParts['path'], 'index.php') === false) {
+            if (substr($urlParts['path'], -1) != '/') {
+                $urlParts['path'] .= '/';
+            }
+            $urlParts['path'] .= 'index.php';
+        }
+        $this->serverInfo['REQUEST_URI']  = $urlParts['path'];
+        $pathInfo = explode('index.php', $urlParts['path'], 2);
         $this->serverInfo['PATH_INFO'] = end($pathInfo);
         //$this->serverInfo['PATH_INFO']    = str_replace($_SERVER['SCRIPT_NAME'], '', $urlParts['path']); 
         $this->serverInfo['REQUEST_TIME'] = time();

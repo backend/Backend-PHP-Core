@@ -33,6 +33,13 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
     }
 
+    public function testNoIndex()
+    {
+        $request = new Request('http://backend-php.net/', 'GET');
+        $this->assertEquals('/', $request->getQuery());
+        $this->assertEquals('http://backend-php.net/index.php/', $request->getSiteUrl());
+    }
+
     public function testEmptyQuery()
     {
         $request = new Request('http://backend-php.net/index.php', 'GET');
