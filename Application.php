@@ -72,16 +72,6 @@ class Application
         //TODO: Maybe move the Toolbox to a separate class
         self::$_toolbox = array();
 
-        //Determine the View
-        try {
-            $view = Utilities\ViewFactory::build($this->getRequest());
-        } catch (Exceptions\UnrecognizedRequestException $e) {
-            Application::log('View Exception: ' . $e->getMessage(), 2);
-            $view = new View($this->getRequest());
-        }
-        self::log('Running Application in ' . get_class($view) . ' View');
-        self::addTool('View', $view);
-
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
                 $config = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
@@ -100,6 +90,16 @@ class Application
             throw new \Exception('Invalid Configuration');
         }
         self::addTool('Config', $config);
+
+        //Determine the View
+        try {
+            $view = Utilities\ViewFactory::build($this->getRequest());
+        } catch (Exceptions\UnrecognizedRequestException $e) {
+            Application::log('View Exception: ' . $e->getMessage(), 2);
+            $view = new View($this->getRequest());
+        }
+        self::log('Running Application in ' . get_class($view) . ' View');
+        self::addTool('View', $view);
 
         //Initiate the Tools
         $tools = $config->tools;
