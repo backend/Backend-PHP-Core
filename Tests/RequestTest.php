@@ -64,4 +64,9 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $serverInfo = $request->getServerInfo();
         $this->assertEquals(8080, $serverInfo['SERVER_PORT']);
     }
+
+    public function testSitePath()
+    {
+        //TODO
+    }
 }

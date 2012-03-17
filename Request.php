@@ -53,7 +53,7 @@ class Request
     /**
      * @var string The extension of the request.
      */
-    protected $extension  = null;
+    protected $extension = null;
 
     /**
      * The constructor for the class
@@ -162,6 +162,11 @@ class Request
 
         //Clean up the query
         $this->query = $query;
+
+        //Remove the extension if present
+        if ($extension = $this->getExtension()) {
+            $this->query = preg_replace('/[_\.]' . $extension . '$/', '', $this->query);
+        }
     }
 
     /**
@@ -196,7 +201,9 @@ class Request
             $this->siteUrl .= $this->serverInfo['PHP_SELF'];
         } else {
             $pattern = '/' . str_replace('/', '\\/', $this->serverInfo['PATH_INFO']) . '$/';
-            $this->siteUrl .= preg_replace($pattern, '', $this->serverInfo['REQUEST_URI']);
+            $subject = explode('?', $this->serverInfo['REQUEST_URI']);
+            $subject = reset($subject);
+            $this->siteUrl .= preg_replace($pattern, '', $subject);
         }
         if (substr($this->siteUrl, -1) != '/') {
             $this->siteUrl .= '/';
@@ -255,31 +262,31 @@ class Request
     }
 
     /**
+     * Get the Request Extension
+     *
+     * @return string The extension of the request
+     */
+    public function getExtension()
+    {
+        if (is_null($this->extension)) {
+            $this->prepareExtension();
+        }
+        return $this->extension;
+    }
+
+    /**
      * Determine the extension for the request
      *
      * @return string The extension for the request
      */
-    public function getExtension()
+    public function prepareExtension()
     {
-        if (!is_null($this->extension)) {
-            return $this->extension;
+        preg_match('/[^\/]+\.(.*)\??.*$/', $this->getQuery(), $matches);
+        if (!empty($matches[1])) {
+            $this->extension = $matches[1];
+        } else {
+            $this->extension = false;
         }
-        $parts = preg_split('/[_\.]/', $this->query);
-        if (count($parts) > 1) {
-            $extension = end($parts);
-            //Check if it's a valid .extension
-            if (array_key_exists('QUERY_STRING', $this->serverInfo)) {
-                $test = preg_replace('/[_\.]' . $extension . '$/', '.' . $extension, $this->query);
-                if (strpos($this->serverInfo['QUERY_STRING'], $test) === false) {
-                    $extension = false;
-                }
-            }
-            if ($extension) {
-                $this->query = preg_replace('/[_\.]' . $extension . '$/', '', $this->query);
-                return $extension;
-            }
-        }
-        return false;
     }
 
     /**
