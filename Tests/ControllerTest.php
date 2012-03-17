@@ -78,4 +78,15 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     {
         $controller = new Controller();
     }
+
+    /**
+     * Test an Invalid Model Name
+     *
+     * @expectedException UnknownModel
+     * @return null
+     */
+    public function testInvalidModel()
+    {
+        //TODO
+    }
 }

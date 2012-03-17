@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Interfaces;
+use \Backend\Core\Interfaces\DecorableInterface;
 /**
  * Interface for all classes that are decorators
  *
@@ -28,9 +29,9 @@ interface DecoratorInterface
     /**
      * The constructor for the decorator
      *
-     * @param ModelInterface $decorable The model to decorate
+     * @param \Backend\Core\Interfaces\DecorableInterface $decorable The object to decorate
      */
-    function __construct(\Backend\Core\Interfaces\DecorableInterface $decorable);
+    function __construct(DecorableInterface $decorable);
 
     /**
      * The magic __call function to pass on calls to decorated object
@@ -54,7 +55,7 @@ interface DecoratorInterface
     public function __get($property);
 
     /**
-     * The magic __get function to retrieve properties from decorated object
+     * The magic __set function to set the properties of a decorated object
      *
      * @param string $property The name of the property to set
      * @param mixed  $value    The value of the property being set
@@ -62,4 +63,21 @@ interface DecoratorInterface
      * @return object The current object
      */
     public function __set($property, $value);
+
+    /**
+     * Get the original, undecorated object
+     *
+     * @return mixed The original undecorated object
+     */
+    public function getOriginalObject();
+
+    /**
+     * Check if the specified method is executable on the original object and
+     * its decorators
+     *
+     * @param string $method The name of the method to check
+     *
+     * @return object The object on which the method can be executed
+     */
+    public function isCallable($method);
 }

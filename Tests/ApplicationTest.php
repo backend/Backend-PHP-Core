@@ -108,8 +108,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             new \Backend\Base\Controllers\ExamplesController(),
             'homeAction'
         );
-        $view = new \Backend\Base\Views\Cli();
-        $method = Application::getViewMethod($callback, $view);
+        $request = new \Backend\Core\Request('http://www.google.com', 'GET');
+        $view    = new \Backend\Base\Views\Cli($request);
+        $method  = Application::getViewMethod($callback, $view);
         $this->assertInstanceOf('\ReflectionMethod', $method);
         $this->assertSame('homeCli', $method->getName());
 

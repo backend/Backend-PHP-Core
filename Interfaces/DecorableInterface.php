@@ -50,7 +50,6 @@ interface DecorableInterface
      */
     public function removeDecorator($decorator);
 
-
     /**
      * Decorate the given object
      *

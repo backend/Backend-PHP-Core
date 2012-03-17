@@ -72,16 +72,6 @@ class Application
         //TODO: Maybe move the Toolbox to a separate class
         self::$_toolbox = array();
 
-        //Determine the View
-        try {
-            $view = Utilities\ViewFactory::build($this->getRequest());
-        } catch (Exceptions\UnrecognizedRequestException $e) {
-            Application::log('View Exception: ' . $e->getMessage(), 2);
-            $view = new View($this->getRequest());
-        }
-        self::log('Running Application in ' . get_class($view) . ' View');
-        self::addTool('View', $view);
-
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
                 $config = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
@@ -100,6 +90,16 @@ class Application
             throw new \Exception('Invalid Configuration');
         }
         self::addTool('Config', $config);
+
+        //Determine the View
+        try {
+            $view = Utilities\ViewFactory::build($this->getRequest());
+        } catch (Exceptions\UnrecognizedRequestException $e) {
+            Application::log('View Exception: ' . $e->getMessage(), 2);
+            $view = new View($this->getRequest());
+        }
+        self::log('Running Application in ' . get_class($view) . ' View');
+        self::addTool('View', $view);
 
         //Initiate the Tools
         $tools = $config->tools;
@@ -241,24 +241,32 @@ class Application
         if (is_array($callback)) {
             //Set the request for the callback
             $callback[0]->setRequest($request);
-            Application::log('Executing ' . get_class($callback[0]) . '::' . $callback[1], 4);
+            $methodMessage = get_class($callback[0]) . '::' . $callback[1];
         } else {
             //The first argument for the callback is the request
-            Application::log('Executing ' . $callback, 4);
             array_unshift($request, $arguments);
+            $methodMessage = $callback;
         }
+        Application::log('Executing ' . $methodMessage, 4);
 
+        if (!is_callable($callback)) {
+            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
+        }
         $result = call_user_func_array($callback, $arguments);
 
         //Execute the View related method
         if (is_array($callback)) {
             $view = self::getTool('View');
-            try {
-                $viewMethod = $this->getViewMethod($callback, $view);
-                Application::log('Executing ' . get_class($callback[0]) . '::' . $viewMethod->name, 4);
-                $result = $viewMethod->invokeArgs($callback[0], array($result));
-            } catch (\Exception $e) {
-                unset($e);
+            $viewMethod = $this->getViewMethod($callback, $view);
+            //Do both the is_callable check and the try, as some __call methods throw an exception
+            if (is_callable(array($callback[0], $viewMethod))) {
+                Application::log('Executing ' . get_class($callback[0]) . '::' . $viewMethod, 4);
+                try {
+                    $result = call_user_func(array($callback[0], $viewMethod), $result);
+                } catch (Exceptions\UncallableMethodException $e) {
+                    Application::log(get_class($callback[0]) . '::' . $viewMethod . ' does not exist', 4);
+                    unset($e);
+                }
             }
         }
 
@@ -277,7 +285,8 @@ class Application
         $view = self::getTool('View');
         //Make sure we have a view to work with
         if (!$view) {
-            $view = new View($this->getRequest());
+            throw new \Exception('No View to work with');
+            //$view = new View($this->getRequest());
         }
 
         //Convert the result to a Respose
@@ -296,7 +305,7 @@ class Application
      * @param array $callback The callback to check for
      * @param View  $view     The view to use
      *
-     * @return ReflectionMethod The method to execute
+     * @return string The name of the View Method
      */
     public function getViewMethod(array $callback, View $view = null)
     {
@@ -306,9 +315,7 @@ class Application
         $methodName = get_class($view);
         $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
         $methodName = preg_replace('/Action$/', $methodName, $callback[1]);
-
-        $reflector  = new \ReflectionClass(get_class($callback[0]));
-        return $reflector->getMethod($methodName);
+        return $methodName;
     }
 
     /**
@@ -335,7 +342,7 @@ class Application
      */
     public static function error($errno, $errstr, $errfile, $errline)
     {
-        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        self::exception(new \ErrorException($errstr, 0, $errno, $errfile, $errline));
     }
 
     /**
@@ -363,6 +370,7 @@ class Application
             $response = self::handleResult($exception);
             $response->setStatusCode(500);
             $response->output();
+            die;
         //}
     }
 
@@ -458,10 +466,12 @@ class Application
      */
     public function setDebugLevel($level)
     {
+        $level = (int)$level;
         if ($level <= 0) {
             return false;
         }
         self::$debugLevel = $level;
+        return $this;
     }
 
     /**

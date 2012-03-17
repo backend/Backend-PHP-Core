@@ -48,7 +48,7 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     /**
      * Set the Request for the Controller
      *
-     * @param \Backend\Core\Request $request The request for the Controller
+     * @param \Backend\Core\Request $request The Request for the Controller
      *
      * @return \Backend\Core\Controller The current object
      */
@@ -56,6 +56,16 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     {
         $this->request = $request;
         return $this;
+    }
+
+    /**
+     * Get the Controller's Request
+     *
+     * @return \Backend\Core\Request The Controller's Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
     }
 
     /**
@@ -76,6 +86,21 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
         return $response;
     }
 
+    public static function getModelName($controllerName = false)
+    {
+        if (is_object($controllerName)) {
+            $controllerName = get_class($controllerName);
+        }
+        $controllerName = $controllerName ?: get_called_class();
+        $reflector = new \ReflectionClass($controllerName);
+        $namespace = preg_replace('/\\\\Controllers$/', '\\Models', $reflector->getNamespaceName());
+        $modelName = basename(str_replace('\\', DIRECTORY_SEPARATOR, $controllerName));
+        $modelName = Utilities\Strings::singularize(preg_replace('/Controller$/', '', $modelName));
+        $modelName = Utilities\Strings::className($modelName);
+        $modelName = $namespace . '\\' . $modelName;
+        return $modelName;
+    }
+
     /**
      * Use the current Route to generate the Model name and return it
      *
@@ -83,27 +108,15 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
      */
     public function getModel($id = null)
     {
-        $reflector = new \ReflectionClass($this);
-        $namespace = preg_replace('/\\\\Controllers$/', '\\Models', $reflector->getNamespaceName());
-        $modelName = basename(str_replace('\\', DIRECTORY_SEPARATOR, get_class($this)));
-        $modelName = Utilities\Strings::singularize(preg_replace('/Controller$/', '', $modelName));
-        $modelName = Utilities\Strings::className($modelName);
-        $modelName = $namespace . '\\' . $modelName;
+        $modelName = self::getModelName();
         if (!class_exists($modelName, true)) {
-            return null;
+            throw new \Exception('Model does not exist: ' . $namespace . '\\' . $modelName);
         }
         $model = new $modelName($id);
-        if ($model instanceof Interfaces\Decorable) {
-            foreach ($model->getDecorators() as $decorator) {
-                $model = new $decorator($model);
-                if (!($model instanceof \Backend\Core\Decorators\ModelDecorator)) {
-                    //TODO Use a specific Exception
-                    throw new \Exception(
-                        'Class ' . $decorator . ' is not an instance of \Backend\Core\Decorators\ModelDecorator'
-                    );
-                }
-            }
-        }
+
+        //Decorate the Model
+        $model = \Backend\Core\Decorable::decorate($model);
+
         return $model;
     }
 }

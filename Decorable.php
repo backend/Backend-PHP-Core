@@ -43,7 +43,7 @@ abstract class Decorable implements DecorableInterface
         }
         foreach ($object->getDecorators() as $decorator) {
             $object = new $decorator($object);
-            if (!($callback[0] instanceof \Backend\Core\Interfaces\DecoratorInterface)) {
+            if (!($object instanceof \Backend\Core\Interfaces\DecoratorInterface)) {
                 throw new \Exception(
                     'Class ' . $decorator . ' is not an instance of \Backend\Core\Interfaces\DecoratorInterface'
                 );
