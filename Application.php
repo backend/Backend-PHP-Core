@@ -253,13 +253,9 @@ class Application
         //Execute the View related method
         if (is_array($callback)) {
             $view = self::getTool('View');
-            try {
-                $viewMethod = $this->getViewMethod($callback, $view);
-                Application::log('Executing ' . get_class($callback[0]) . '::' . $viewMethod->name, 4);
-                $result = $viewMethod->invokeArgs($callback[0], array($result));
-            } catch (\Exception $e) {
-                unset($e);
-            }
+            $viewMethod = $this->getViewMethod($callback, $view);
+            Application::log('Executing ' . get_class($viewMethod[0]) . '::' . $viewMethod[1], 4);
+            $result = call_user_func($viewMethod, $result);
         }
 
         return self::handleResult($result);
@@ -297,7 +293,7 @@ class Application
      * @param array $callback The callback to check for
      * @param View  $view     The view to use
      *
-     * @return ReflectionMethod The method to execute
+     * @return callback The callback to execute
      */
     public function getViewMethod(array $callback, View $view = null)
     {
@@ -308,8 +304,10 @@ class Application
         $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
         $methodName = preg_replace('/Action$/', $methodName, $callback[1]);
 
-        $reflector  = new \ReflectionClass(get_class($callback[0]));
-        return $reflector->getMethod($methodName);
+        $object = $callback[0] instanceof \Backend\Core\Interfaces\DecoratorInterface
+            ? $callback[0]->isCallable($methodName) : $callback[0];
+
+        return array($object, $methodName);
     }
 
     /**
