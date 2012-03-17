@@ -12,6 +12,8 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Decorators;
+use \Backend\Core\Decorable;
+use \Backend\Core\Interfaces\DecoratorInterface;
 use \Backend\Core\Interfaces\DecorableInterface;
 /**
  * Class that gives basic Decorator functionality
@@ -22,7 +24,7 @@ use \Backend\Core\Interfaces\DecorableInterface;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
+class Decorator extends Decorable implements DecoratorInterface
 {
     /**
      * @var Object The object this class is decorating
@@ -53,10 +55,10 @@ class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
      */
     public function __call($method, $args)
     {
-        if (!is_callable(array($this->object, $method))) {
-            throw new \Exception('Undefined method - ' . get_class($this->object) . '::' . $method);
+        if ($object = $this->isCallable($method)) {
+            return call_user_func_array(array($object, $method), $args);
         }
-        return call_user_func_array(array($this->object, $method), $args);
+        throw new \Exception('Undefined method - ' . get_class($object) . '::' . $method);
     }
 
     /**
@@ -68,8 +70,9 @@ class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
      */
     public function __get($property)
     {
-        if (property_exists($this->object, $property)) {
-            return $this->object->$property;
+        $object = $this->getOriginalObject();
+        if (property_exists($object, $property)) {
+            return $object->$property;
         }
         return null;
     }
@@ -84,7 +87,8 @@ class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
      */
     public function __set($property, $value)
     {
-        $this->object->$property = $value;
+        $object = $this->getOriginalObject();
+        $object->$property = $value;
         return $this;
     }
 
@@ -100,5 +104,30 @@ class Decorator implements \Backend\Core\Interfaces\DecoratorInterface
             $object = $object->getOriginalObject();
         }
         return $object;
+    }
+
+    /**
+     * Check if the specified method is executable on the original object and
+     * its decorators
+     *
+     * @param string $method The name of the method to check
+     *
+     * @return object The object on which the method can be executed
+     */
+    public function isCallable($method)
+    {
+        //Check the original object
+        $object = $this->getOriginalObject();
+        if (is_callable(array($object, $method))) {
+            return $object;
+        }
+        //Check Decorators
+        $object = $this->object;
+        while ($object instanceof \Backend\Core\Interfaces\DecoratorInterface) {
+            if (is_callable(array($object, $method))) {
+                return $object;
+            }
+        }
+        return false;
     }
 }
