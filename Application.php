@@ -241,21 +241,33 @@ class Application
         if (is_array($callback)) {
             //Set the request for the callback
             $callback[0]->setRequest($request);
-            Application::log('Executing ' . get_class($callback[0]) . '::' . $callback[1], 4);
+            $methodMessage = get_class($callback[0]) . '::' . $callback[1];
         } else {
             //The first argument for the callback is the request
-            Application::log('Executing ' . $callback, 4);
             array_unshift($request, $arguments);
+            $methodMessage = $callback;
         }
+        Application::log('Executing ' . $methodMessage, 4);
 
+        if (!is_callable($callback)) {
+            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
+        }
         $result = call_user_func_array($callback, $arguments);
 
         //Execute the View related method
         if (is_array($callback)) {
             $view = self::getTool('View');
             $viewMethod = $this->getViewMethod($callback, $view);
-            Application::log('Executing ' . get_class($viewMethod[0]) . '::' . $viewMethod[1], 4);
-            $result = call_user_func($viewMethod, $result);
+            //Do both the is_callable check and the try, as some __call methods throw an exception
+            if (is_callable(array($callback[0], $viewMethod))) {
+                Application::log('Executing ' . get_class($callback[0]) . '::' . $viewMethod, 4);
+                try {
+                    $result = call_user_func(array($callback[0], $viewMethod), $result);
+                } catch (Exceptions\UncallableMethodException $e) {
+                    Application::log(get_class($callback[0]) . '::' . $viewMethod . ' does not exist', 4);
+                    unset($e);
+                }
+            }
         }
 
         return self::handleResult($result);
@@ -293,7 +305,7 @@ class Application
      * @param array $callback The callback to check for
      * @param View  $view     The view to use
      *
-     * @return callback The callback to execute
+     * @return string The name of the View Method
      */
     public function getViewMethod(array $callback, View $view = null)
     {
@@ -303,11 +315,7 @@ class Application
         $methodName = get_class($view);
         $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
         $methodName = preg_replace('/Action$/', $methodName, $callback[1]);
-
-        $object = $callback[0] instanceof \Backend\Core\Interfaces\DecoratorInterface
-            ? $callback[0]->isCallable($methodName) : $callback[0];
-
-        return array($object, $methodName);
+        return $methodName;
     }
 
     /**

@@ -15,6 +15,7 @@ namespace Backend\Core\Decorators;
 use \Backend\Core\Decorable;
 use \Backend\Core\Interfaces\DecoratorInterface;
 use \Backend\Core\Interfaces\DecorableInterface;
+use \Backend\Core\Exceptions\UncallableMethodException;
 /**
  * Class that gives basic Decorator functionality
  *
@@ -58,7 +59,9 @@ class Decorator extends Decorable implements DecoratorInterface
         if ($object = $this->isCallable($method)) {
             return call_user_func_array(array($object, $method), $args);
         }
-        throw new \Exception('Undefined method - ' . get_class($object) . '::' . $method);
+        throw new UncallableMethodException(
+            'Undefined method - ' . get_class($this->getOriginalObject()) . '::' . $method
+        );
     }
 
     /**
@@ -110,11 +113,13 @@ class Decorator extends Decorable implements DecoratorInterface
      * Check if the specified method is executable on the original object and
      * its decorators
      *
-     * @param string $method The name of the method to check
+     * @param string  $method    The name of the method to check
+     * @param boolean $checkSelf If the current decorator should be included in the check
      *
+     * @todo Test this
      * @return object The object on which the method can be executed
      */
-    public function isCallable($method)
+    public function isCallable($method, $checkSelf = false)
     {
         //Check the original object
         $object = $this->getOriginalObject();
@@ -122,11 +127,12 @@ class Decorator extends Decorable implements DecoratorInterface
             return $object;
         }
         //Check Decorators
-        $object = $this->object;
+        $object = $checkSelf ? $this : $this->object;
         while ($object instanceof \Backend\Core\Interfaces\DecoratorInterface) {
             if (is_callable(array($object, $method))) {
                 return $object;
             }
+            $object = $this->object;
         }
         return false;
     }
