@@ -455,27 +455,68 @@ class Request
                 }
             }
         }
+        if (!empty($_SERVER['CONTENT_TYPE']) && $payload = $this->parseContent()) {
+            $this->setPayload($payload);
+            return $this->payload;
+        }
+        $payload = null;
         switch ($this->getMethod()) {
         case 'GET':
             $payload = isset($_GET) ? $_GET : array();
             break;
         case 'POST':
+        case 'PUT':
             $payload = isset($_POST) ? $_POST : array();
             break;
-        case 'PUT':
+        }
+        if (is_null($payload)) {
+            $payload = isset($_REQUEST) ? $_REQUEST : array();
+        }
+        $this->setPayload($payload);
+        return $this->payload;
+    }
+
+    /**
+     * Parse the content / body of the Request
+     *
+     * @param string $content The content to parse
+     * @param string $type    The type of the content
+     *
+     * @todo Expand this to include XML and other content types
+     * @return array The payload as an array? This might change
+     */
+    public function parseContent($content = null, $type = null)
+    {
+        $type = $type ?: $_SERVER['CONTENT_TYPE'];
+        if (is_null($content)) {
             $data = '';
             $fp   = fopen('php://input', 'r');
             while ($chunk = fread($fp, 1024)) {
                 $data .= $chunk;
             }
+        }
+        if (empty($data)) {
+            return $data;
+        }
+        $payload = null;
+        switch ($type) {
+        case 'application/json':
+        case 'text/json':
+        case 'text/javascript':
+            $payload = json_decode($data);
+            $payload = is_object($payload) ? (array)$payload : $payload;
+            break;
+        case 'application/x-www-form-urlencoded':
+        case 'text/plain':
             parse_str($data, $payload);
             break;
+        case 'application/xml':
+            //TODO
+        default:
+            throw new Exceptions\UnrecognizedRequestException('Unknown Content Type: ' . $type);
+            break;
         }
-        if (!isset($payload)) {
-            $payload = isset($_REQUEST) ? $_REQUEST : array();
-        }
-        $this->setPayload($payload);
-        return $this->payload;
+        return $payload;
     }
 
     /**
