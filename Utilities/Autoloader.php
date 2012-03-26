@@ -61,11 +61,6 @@ class Autoloader
                 $base = $parts[1];
             }
         }
-        //This allows us to define a class as \Backend\Something, which can be loaded from
-        // \Backend\Base\Something, or if that doesn't exist, \Backend\Core\Something
-        if ($vendor && $vendor == 'Backend' && self::_loadBackendClass($base, $className)) {
-            return true;
-        }
 
         $fileName  = '';
         $namespace = '';
@@ -74,51 +69,11 @@ class Autoloader
             $className = substr($className, $lastNsPos + 1);
             $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
-        $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-        if (file_exists(VENDOR_FOLDER . $fileName)) {
-            include_once VENDOR_FOLDER . $fileName;
-            return true;
-        }
-        if (file_exists(SOURCE_FOLDER . $fileName)) {
-            include_once SOURCE_FOLDER . $fileName;
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Load backend specific classes
-     *
-     * @param string $base      The code base to check
-     * @param string $className The class name to be loaded
-     *
-     * @return boolean If a class was loaded or not
-     */
-    private static function _loadBackendClass($base, $className)
-    {
-        if (!class_exists('\Backend\Core\Application', false)) {
-            return false;
-        }
-        return false;
-        var_dump($base, $className);
-        throw new \Exception('TODO: This has been broken by the new namespace implementation');
-        $bases = Application::getNamespaces();
-        if (!$base || in_array($base, $bases)) {
-            return false;
-        }
-
-        //Not in a defined Base, check all
-        $parts     = explode('\\', $className);
-        $bases     = array_reverse($bases);
-        $className = end($parts);
-        foreach ($bases as $base) {
-            $namespace = implode('/', array_slice($parts, 1, count($parts) - 2));
-            $fileName = BACKEND_FOLDER . DIRECTORY_SEPARATOR
-                . $base . DIRECTORY_SEPARATOR
-                . $namespace . DIRECTORY_SEPARATOR
-                . $className . '.php';
-            if (file_exists($fileName)) {
-                include_once $fileName;
+        $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);
+        foreach($baseFolders as $folder) {
+            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+            if (file_exists($folder . $fileName)) {
+                include_once $folder . $fileName;
                 return true;
             }
         }
