@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+use Backend\Core\Exceptions\BackendException;
 /**
  * Class to handle application configs
  *
@@ -43,14 +44,11 @@ class Config
     public function __construct($filename = false)
     {
         $filename = $filename ? $filename : PROJECT_FOLDER . 'config/default.yaml';
-        if (!file_exists($filename)) {
-            throw new \Exception('Invalid Config File: ' . $filename);
-        }
         if (!is_readable($filename)) {
-            throw new \Exception('Unreadable Config File: ' . $filename);
+            throw new BackendException('Invalid Config File: ' . $filename);
         }
 
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $ext  = pathinfo($filename, PATHINFO_EXTENSION);
         $info = pathinfo($filename);
         switch ($ext) {
         case 'json':
@@ -68,7 +66,7 @@ class Config
             }
         }
         if (is_null($this->_values)) {
-            throw new \Exception('Could not parse Config File using extension ' . $ext);
+            throw new BackendException('Could not parse Config File using extension ' . $ext);
         }
     }
 
