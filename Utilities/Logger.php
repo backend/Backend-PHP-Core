@@ -50,11 +50,11 @@ class Logger implements \Backend\Core\Interfaces\LoggingObserverInterface
         case LogMessage::LEVEL_DEBUGGING:
             $message = ' (DEBUG) ' . $message;
             break;
-        case LogMessage::LEVEL_IMPORTANT:
+        case LogMessage::LEVEL_INFORMATION:
             $message = ' (INFORMATION) ' . $message;
             break;
         default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
+            $message = ' (OTHER - ' . $message->getLevel() . ') ' . $message;
             break;
         }
 

@@ -62,6 +62,15 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testDefaultConfigFile()
+    {
+        $config   = new Config();
+        $expected = include PROJECT_FOLDER . 'configs/default.php';
+        foreach ($expected as $section => $values) {
+            $this->assertEquals($values, $config->get($section));
+        }
+    }
+
     /**
      * Check if the correct exception is thrown for unparsable file
      *

@@ -43,7 +43,7 @@ class Config
      */
     public function __construct($filename = false)
     {
-        $filename = $filename ? $filename : PROJECT_FOLDER . 'config/default.yaml';
+        $filename = $filename ? $filename : PROJECT_FOLDER . 'configs/default.yaml';
         if (!is_readable($filename)) {
             throw new BackendException('Invalid Config File: ' . $filename);
         }

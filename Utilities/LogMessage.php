@@ -30,7 +30,7 @@ namespace Backend\Core\Utilities;
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-class LogMessage implements \SplSubject
+class LogMessage extends Subject
 {
     /**
      * @var int Log level for Critical Messages
@@ -58,11 +58,6 @@ class LogMessage implements \SplSubject
     const LEVEL_INFORMATION = 5;
 
     /**
-     * @var array A set of observers for the log message
-     */
-    protected $observers = array();
-
-    /**
      * @var string The log message level
      */
     protected $level;
@@ -84,7 +79,7 @@ class LogMessage implements \SplSubject
 
         $this->level   = $level;
 
-        Observable::execute($this);
+        parent::__construct();
 
         $this->notify();
     }
@@ -107,45 +102,6 @@ class LogMessage implements \SplSubject
     public function getLevel()
     {
         return $this->level;
-    }
-
-    //SplSubject functions
-    /**
-     * Attach an observer to the class
-     *
-     * @param SplObserver $observer The observer to attach
-     *
-     * @return null
-     */
-    public function attach(\SplObserver $observer)
-    {
-        $id = spl_object_hash($observer);
-        $this->observers[$id] = $observer;
-    }
-
-    /**
-     * Detach an observer from the class
-     *
-     * @param SplObserver $observer The observer to detach
-     *
-     * @return null
-     */
-    public function detach(\SplObserver $observer)
-    {
-        $id = spl_object_hash($observer);
-        unset($this->observers[$id]);
-    }
-
-    /**
-     * Notify observers of an update to the class
-     *
-     * @return null
-     */
-    public function notify()
-    {
-        foreach ($this->observers as $obs) {
-            $obs->update($this);
-        }
     }
 
     /**
