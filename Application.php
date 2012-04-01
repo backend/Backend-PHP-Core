@@ -26,12 +26,22 @@ namespace Backend\Core;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Application
+class Application implements \SplSubject
 {
     /**
      * @var boolean This static property indicates if the application has been constructed yet.
      */
     protected static $constructed = false;
+
+    /**
+     * @var array A set of observers for the log message
+     */
+    protected $observers = array();
+
+    /**
+     * @var string The current state of the Application. Mostly used for Observers
+     */
+    protected $state = null;
 
     /**
      * @var array This contains all tools that should be globally accessable. Use this wisely.
@@ -471,6 +481,71 @@ class Application
             return false;
         }
         self::$debugLevel = $level;
+        return $this;
+    }
+
+    /**
+     * Return the current state of the Application.
+     *
+     * @return array The current state of the Application.
+     */
+    public static function getState()
+    {
+        return $this->state;
+    }
+
+    /**
+     * Set the current state of the Application.
+     *
+     * @param string The new state of the Application.
+     *
+     * @return Application The current object.
+     */
+    public function setState($state)
+    {
+        $this->state = $state;
+        $this->notify();
+        return $this;
+    }
+
+    //SplSubject functions
+    /**
+     * Attach an observer to the class
+     *
+     * @param SplObserver $observer The observer to attach
+     *
+     * @return Application The current object.
+     */
+    public function attach(\SplObserver $observer)
+    {
+        $id = spl_object_hash($observer);
+        $this->observers[$id] = $observer;
+    }
+
+    /**
+     * Detach an observer from the class
+     *
+     * @param SplObserver $observer The observer to detach
+     *
+     * @return Application The current object.
+     */
+    public function detach(\SplObserver $observer)
+    {
+        $id = spl_object_hash($observer);
+        unset($this->observers[$id]);
+        return $this;
+    }
+
+    /**
+     * Notify observers of an update to the class
+     *
+     * @return Application The current object.
+     */
+    public function notify()
+    {
+        foreach ($this->observers as $obs) {
+            $obs->update($this);
+        }
         return $this;
     }
 
