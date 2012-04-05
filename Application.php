@@ -196,6 +196,7 @@ class Application implements \SplSubject
      * Main function for the application
      *
      * @return mixed The result of the call
+     * @todo   Make the 404 page pretty
      */
     public function main()
     {
@@ -206,14 +207,17 @@ class Application implements \SplSubject
         $this->route = new Route();
         try {
             $this->setRoutePath($this->route->resolve($request));
+            $result = $this->executeRoutePath();
+        } catch (Exceptions\UncallableMethodException $e) {
+            new ApplicationEvent($e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
+            $result = new Response($e, 404);
         } catch (Exceptions\UnknownControllerException $e) {
             new ApplicationEvent($e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
-            return new Response($e->getMessage(), 404);
+            $result = new Response($e, 404);
         }
 
-        $result = $this->executeRoutePath();
         $this->setState('executed');
-        return $result;
+        return $this->handleResult($result);
     }
 
     /**
@@ -269,7 +273,7 @@ class Application implements \SplSubject
             }
         }
 
-        return $this->handleResult($result);
+        return $result;
     }
 
     /**
@@ -282,7 +286,7 @@ class Application implements \SplSubject
      */
     protected function handleResult($result)
     {
-        $this->setState('resulting');
+        $this->setState('transforming');
         $view = self::getTool('View');
         //Make sure we have a view to work with
         if (!$view) {
@@ -296,7 +300,7 @@ class Application implements \SplSubject
         if (!($response instanceof Response)) {
             throw new \Exception('Unrecognized Response');
         }
-        $this->setState('resulted');
+        $this->setState('transformed');
         return $response;
     }
 
@@ -372,18 +376,19 @@ class Application implements \SplSubject
 
             $view = self::getTool('View');
             if (!$view) {
-                die($exception);
+                echo (string)$exception;
+                return;
             }
 
             //Convert the result to a Respose
             $response = $view->transform($exception);
     
             if (!($response instanceof Response)) {
-                die($response);
+                echo $response;
+                return;
             }
             $response->setStatusCode(500);
             $response->output();
-            die;
         //}
     }
 
