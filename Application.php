@@ -12,6 +12,8 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+use Backend\Core\Utilities\ApplicationEvent;
+use Backend\Core\Utilities\Observable;
 /**
  * The main application class.
  *
@@ -64,6 +66,11 @@ class Application implements \SplSubject
     private $_request = null;
 
     /**
+     * @var RoutePath This contains the RoutePath on what we're executing
+     */
+    private $_routePath = null;
+
+    /**
      * The constructor for the class
      *
      * @param Request $request The request the application should handle
@@ -72,6 +79,8 @@ class Application implements \SplSubject
      */
     function __construct(Request $request = null, $config = null)
     {
+        $this->setState('constructing');
+
         $this->setRequest($request instanceof Request ? $request : new Request());
 
         if (!self::$constructed) {
@@ -96,19 +105,16 @@ class Application implements \SplSubject
             //String specifies that we should parse the file specified
             $config = new Utilities\Config($config);
         }
-        if (!($config instanceof \Backend\Core\Utilities\Config)) {
-            throw new \Exception('Invalid Configuration');
-        }
         self::addTool('Config', $config);
 
         //Determine the View
         try {
             $view = Utilities\ViewFactory::build($this->getRequest());
         } catch (Exceptions\UnrecognizedRequestException $e) {
-            Application::log('View Exception: ' . $e->getMessage(), 2);
+            new ApplicationEvent('View Exception: ' . $e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
             $view = new View($this->getRequest());
         }
-        self::log('Running Application in ' . get_class($view) . ' View');
+        new ApplicationEvent('Running Application in ' . get_class($view) . ' View', ApplicationEvent::SEVERITY_INFORMATION);
         self::addTool('View', $view);
 
         //Initiate the Tools
@@ -118,6 +124,12 @@ class Application implements \SplSubject
                 self::addTool($toolName, $tool);
             }
         }
+
+        //Attach all configured observers
+        Observable::execute($this);
+
+        $this->setState('constructed');
+
         return true;
     }
 
@@ -181,56 +193,27 @@ class Application implements \SplSubject
     }
 
     /**
-     * Get the current Request
-     *
-     * @return Request The current Request
-     */
-    public function getRequest()
-    {
-        return $this->_request;
-    }
-
-    /**
-     * Set the Request for the Application
-     *
-     * @param Request $request The request for the Application
-     *
-     * @return null
-     */
-    public function setRequest(Request $request)
-    {
-        $this->_request = $request;
-    }
-
-    /**
-     * Get the current Constructed state of the Application
-     *
-     * @return boolean The Constructed state of the Application
-     */
-    public function getConstructed()
-    {
-        return self::$constructed;
-    }
-
-    /**
      * Main function for the application
      *
      * @return mixed The result of the call
      */
     public function main()
     {
+        $this->setState('executing');
         $request = $this->getRequest();
 
         //Resolve the Route
         $this->route = new Route();
         try {
-            $routePath   = $this->route->resolve($request);
+            $this->setRoutePath($this->route->resolve($request));
         } catch (Exceptions\UnknownControllerException $e) {
-            self::log($e->getMessage(), 2);
+            new ApplicationEvent($e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
             return new Response($e->getMessage(), 404);
         }
 
-        return $this->executeRoutePath($routePath);
+        $result = $this->executeRoutePath();
+        $this->setState('executed');
+        return $result;
     }
 
     /**
@@ -240,8 +223,9 @@ class Application implements \SplSubject
      *
      * @return mixed The result of the callback
      */
-    protected function executeRoutePath(Utilities\RoutePath $routePath)
+    protected function executeRoutePath(Utilities\RoutePath $routePath = null)
     {
+        $routePath = $routePath ? $routePath : $this->getRoutePath();
         $request = $this->getRequest();
 
         //Determine the Call
@@ -257,7 +241,7 @@ class Application implements \SplSubject
             array_unshift($request, $arguments);
             $methodMessage = $callback;
         }
-        Application::log('Executing ' . $methodMessage, 4);
+        new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
 
         if (!is_callable($callback)) {
             throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
@@ -270,17 +254,22 @@ class Application implements \SplSubject
             $viewMethod = $this->getViewMethod($callback, $view);
             //Do both the is_callable check and the try, as some __call methods throw an exception
             if (is_callable(array($callback[0], $viewMethod))) {
-                Application::log('Executing ' . get_class($callback[0]) . '::' . $viewMethod, 4);
+                new ApplicationEvent(
+                    'Executing ' . get_class($callback[0]) . '::' . $viewMethod, ApplicationEvent::SEVERITY_DEBUG
+                );
                 try {
                     $result = call_user_func(array($callback[0], $viewMethod), $result);
                 } catch (Exceptions\UncallableMethodException $e) {
-                    Application::log(get_class($callback[0]) . '::' . $viewMethod . ' does not exist', 4);
+                    new ApplicationEvent(
+                        get_class($callback[0]) . '::' . $viewMethod . ' does not exist',
+                        ApplicationEvent::SEVERITY_DEBUG
+                    );
                     unset($e);
                 }
             }
         }
 
-        return self::handleResult($result);
+        return $this->handleResult($result);
     }
 
     /**
@@ -289,9 +278,11 @@ class Application implements \SplSubject
      * @param mixed $result The result returned from the callback
      *
      * @return Response The response object to be outputted
+     * @todo Not sure why this was static?
      */
-    protected static function handleResult($result)
+    protected function handleResult($result)
     {
+        $this->setState('resulting');
         $view = self::getTool('View');
         //Make sure we have a view to work with
         if (!$view) {
@@ -305,7 +296,7 @@ class Application implements \SplSubject
         if (!($response instanceof Response)) {
             throw new \Exception('Unrecognized Response');
         }
-
+        $this->setState('resulted');
         return $response;
     }
 
@@ -335,7 +326,7 @@ class Application implements \SplSubject
      */
     public static function shutdown()
     {
-        self::log('Shutting down Application', 3);
+        new ApplicationEvent('Shutting down Application', ApplicationEvent::SEVERITY_DEBUG);
     }
 
     /**
@@ -366,7 +357,7 @@ class Application implements \SplSubject
      */
     public static function exception(\Exception $exception)
     {
-        self::log('Exception: ' . $exception->getMessage(), 1);
+        new ApplicationEvent('Exception: ' . $exception->getMessage(), ApplicationEvent::SEVERITY_CRITICAL);
         //TODO: Let the Application be able to handle (and pretty up) Exceptions
         /*$data = array(
             'error/exception' => '',
@@ -377,7 +368,19 @@ class Application implements \SplSubject
             //Which is then outputted to the Client
             $response->output();
         } catch (\Exception $e) {*/
-            $response = self::handleResult($exception);
+            //We can't use handleResponse, as it throws exceptions. Just do the transform
+
+            $view = self::getTool('View');
+            if (!$view) {
+                die($exception);
+            }
+
+            //Convert the result to a Respose
+            $response = $view->transform($exception);
+    
+            if (!($response instanceof Response)) {
+                die($response);
+            }
             $response->setStatusCode(500);
             $response->output();
             die;
@@ -398,13 +401,13 @@ class Application implements \SplSubject
             if (class_exists($tool, true)) {
                 $tool = new $tool();
             } else {
-                self::log('Undefined Tool: ' . $tool);
+                new ApplicationEvent('Undefined Tool: ' . $tool, ApplicationEvent::SEVERITY_DEBUG);
             }
         } else if (is_array($tool) && count($tool) == 2) {
             if (class_exists($tool[0], true)) {
                 $tool = new $tool[0]($tool[1]);
             } else {
-                self::log('Undefined Tool: ' . $tool[0]);
+                new ApplicationEvent('Undefined Tool: ' . $tool[0], ApplicationEvent::SEVERITY_DEBUG);
             }
         }
         $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
@@ -444,6 +447,60 @@ class Application implements \SplSubject
         } else {
             self::$_namespaces[] = $namespace;
         }
+    }
+
+    /**
+     * Get the current Request
+     *
+     * @return Request The current Request
+     */
+    public function getRequest()
+    {
+        return $this->_request;
+    }
+
+    /**
+     * Set the Request for the Application
+     *
+     * @param Request $request The request for the Application
+     *
+     * @return null
+     */
+    public function setRequest(Request $request)
+    {
+        $this->_request = $request;
+    }
+
+    /**
+     * Get the current RoutePath
+     *
+     * @return RoutePath The current RoutePath
+     */
+    public function getRoutePath()
+    {
+        return $this->_routePath;
+    }
+
+    /**
+     * Set the RoutePath for the Application
+     *
+     * @param RoutePath $routePath The routePath for the Application
+     *
+     * @return null
+     */
+    public function setRoutePath(Utilities\RoutePath $routePath)
+    {
+        $this->_routePath = $routePath;
+    }
+
+    /**
+     * Get the current Constructed state of the Application
+     *
+     * @return boolean The Constructed state of the Application
+     */
+    public function getConstructed()
+    {
+        return self::$constructed;
     }
 
     /**
@@ -489,7 +546,7 @@ class Application implements \SplSubject
      *
      * @return array The current state of the Application.
      */
-    public static function getState()
+    public function getState()
     {
         return $this->state;
     }
@@ -620,7 +677,7 @@ class Application implements \SplSubject
      *
      * @return Utilities\LogMessage The log message
      */
-    public static function log($message, $level = Utilities\LogMessage::LEVEL_IMPORTANT, $context = false)
+    public static function log($message, $level = Utilities\LogMessage::SEVERITY_IMPORTANT, $context = false)
     {
         /*if (!self::$constructed || !class_exists('Backend\Core\Utilities\LogMessage', true)) {
             return false;

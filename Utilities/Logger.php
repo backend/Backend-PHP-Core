@@ -28,36 +28,43 @@ class Logger implements \Backend\Core\Interfaces\LoggingObserverInterface
     /**
      * Function to receive an update from a subject
      *
-     * @param SplSubject $message The message to log
+     * @param SplSubject $subject The subject to log
      *
-     * @return string The logged message
+     * @return void
      */
-    public function update(\SplSubject $message)
+    public function update(\SplSubject $subject)
     {
-        if (!($message instanceof LogMessage)) {
-            return false;
-        }
-        switch ($message->getLevel()) {
-        case LogMessage::LEVEL_CRITICAL:
-            $message = ' (CRITICAL) ' . $message;
+        switch (true) {
+        case $subject instanceof \Backend\Core\Application:
+            $message = ' (DEBUG) ' . get_class($subject) . ' entered state [' . $subject->getState() . ']';
             break;
-        case LogMessage::LEVEL_WARNING:
-            $message = ' (WARNING) ' . $message;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $message = ' (IMPORTANT) ' . $message;
-            break;
-        case LogMessage::LEVEL_DEBUGGING:
-            $message = ' (DEBUG) ' . $message;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $message = ' (INFORMATION) ' . $message;
-            break;
-        default:
-            $message = ' (OTHER - ' . $level . ') ' . $message;
-            break;
-        }
+        case $subject instanceof ApplicationEvent:
+            switch ($subject->getLevel()) {
+            case ApplicationEvent::SEVERITY_CRITICAL:
+                $message = ' (CRITICAL) ' . $subject->getName();
+                break;
+            case ApplicationEvent::SEVERITY_WARNING:
+                $message = ' (WARNING) ' . $subject->getName();
+                break;
+            case ApplicationEvent::SEVERITY_IMPORTANT:
+                $message = ' (IMPORTANT) ' . $subject->getName();
+                break;
+            case ApplicationEvent::SEVERITY_DEBUG:
+                $message = ' (DEBUG) ' . $subject->getName();
+                break;
+            case ApplicationEvent::SEVERITY_INFORMATION:
+                $message = ' (INFORMATION) ' . $subject->getName();
+                break;
+            default:
+                $message = ' (OTHER - ' . $subject->getLevel() . ') ' . $subject->getName();
+                break;
+            }
 
+        default:
+            //Unknown Subject. Do Nothing
+            return;
+            break;
+        }
         $message = date('Y-m-d H:i:s ') . $message;
         echo $message . '<br>' . PHP_EOL;
     }
