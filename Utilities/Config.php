@@ -64,7 +64,12 @@ class Config
                     include_once 'SymfonyComponents/YAML/sfYamlParser.php';
                 }
                 $yaml = new \sfYamlParser();
-                $this->_values = $yaml->parse(file_get_contents($filename));
+                //try {
+                    $this->_values = $yaml->parse(file_get_contents($filename));
+                //} catch (\InvalidArgumentException $e) {
+                    //TODO Translate this to a Backend Specific error message
+                    //Just keep the config null
+                //}
             }
         }
         if (is_null($this->_values)) {

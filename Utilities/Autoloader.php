@@ -47,10 +47,6 @@ class Autoloader
      */
     public static function autoload($className)
     {
-        if ($className != 'Backend\Core\Application') {
-            //Application::log('Checking for ' . $className, 5);
-        }
-
         $className = ltrim($className, '\\');
         $parts  = explode('\\', $className);
         $vendor = false;

@@ -662,44 +662,6 @@ class Application implements \SplSubject
     }
 
     /**
-     * Logging function hook. This will call the provided Logger to do the logging
-     *
-     * Log levels:
-     * 1. Critical Messages
-     * 2. Warning | Alert Messages
-     * 3. Important Messages
-     * 4. Debugging Messages
-     * 5. Informative Messages
-     *
-     * @param string  $message The message
-     * @param integer $level   The logging level of the message
-     * @param string  $context The context of the message
-     *
-     * @return Utilities\LogMessage The log message
-     */
-    public static function log($message, $level = Utilities\LogMessage::SEVERITY_IMPORTANT, $context = false)
-    {
-        /*if (!self::$constructed || !class_exists('Backend\Core\Utilities\LogMessage', true)) {
-            return false;
-        }*/
-
-        if (!$context) {
-            $backtrace = debug_backtrace();
-            //Remove the call to this function
-            array_shift($backtrace);
-            if ($caller = reset($backtrace)) {
-                $context = empty($caller['class']) ? $caller['file'] : $caller['class'];
-            }
-        }
-        $context = $context ? $context : get_called_class();
-        if ($context) {
-            $message = '[' . $context . '] ' . $message;
-        }
-
-        return new Utilities\LogMessage($message, $level);
-    }
-
-    /**
      * Mail function hook. This will call the provided Mailer to do the mailing.
      *
      * @param string $recipient The recipient of the email
