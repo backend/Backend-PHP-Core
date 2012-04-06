@@ -87,4 +87,14 @@ class PearLogger implements \Backend\Core\Interfaces\LoggingObserverInterface
         }
         $this->logger->log($message->getMessage(), $level);
     }
+
+    /**
+     * Get the current logger instance
+     *
+     * @return Log The current PEAR Log instance
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
 }

@@ -30,7 +30,7 @@ namespace Backend\Core\Utilities;
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-class ApplicationEvent implements \SplSubject
+class ApplicationEvent extends Subject
 {
     /**
      * @var int Event severity for Critical Messages
@@ -84,7 +84,8 @@ class ApplicationEvent implements \SplSubject
 
         $this->severity   = $severity;
 
-        Observable::execute($this);
+
+        parent::__construct();
 
         $this->notify();
     }

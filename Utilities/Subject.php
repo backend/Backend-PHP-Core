@@ -99,6 +99,11 @@ class Subject implements \SplSubject
         }
     }
 
+    /**
+     * Return all the observers for the subject
+     *
+     * @return array
+     */
     public function getObservers()
     {
         return $this->observers;

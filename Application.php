@@ -13,7 +13,7 @@
  */
 namespace Backend\Core;
 use Backend\Core\Utilities\ApplicationEvent;
-use Backend\Core\Utilities\Observable;
+use Backend\Core\Utilities\Subject;
 /**
  * The main application class.
  *
@@ -28,7 +28,7 @@ use Backend\Core\Utilities\Observable;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Application implements \SplSubject
+class Application extends Subject
 {
     /**
      * @var boolean This static property indicates if the application has been constructed yet.
@@ -130,8 +130,7 @@ class Application implements \SplSubject
             }
         }
 
-        //Attach all configured observers
-        Observable::execute($this);
+        parent::__construct($config);
 
         $this->setState('constructed');
 
