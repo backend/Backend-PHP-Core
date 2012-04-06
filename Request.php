@@ -111,7 +111,7 @@ class Request
         $this->serverInfo['REQUEST_URI']  = $urlParts['path'];
         $pathInfo = explode('index.php', $urlParts['path'], 2);
         $this->serverInfo['PATH_INFO'] = end($pathInfo);
-        //$this->serverInfo['PATH_INFO']    = str_replace($_SERVER['SCRIPT_NAME'], '', $urlParts['path']); 
+        //$this->serverInfo['PATH_INFO'] = str_replace($_SERVER['SCRIPT_NAME'], '', $urlParts['path']);
         $this->serverInfo['REQUEST_TIME'] = time();
         if ($urlParts['scheme'] == 'https') {
             $this->serverInfo['HTTPS']       = 'on';
@@ -153,6 +153,18 @@ class Request
 
         //Decode the URL
         $query = urldecode($query);
+
+        return $this->setQuery($query);
+    }
+
+    /**
+     * Set the query
+     *
+     * @param string $query The query
+     */
+    public function setQuery($query)
+    {
+        //Clean up the query
         //No trailing slash
         if (substr($query, -1) == '/') {
             $query = substr($query, 0, strlen($query) - 1);
@@ -161,13 +173,13 @@ class Request
             $query = '/' . $query;
         }
 
-        //Clean up the query
         $this->query = $query;
 
         //Remove the extension if present
         if ($extension = $this->getExtension()) {
             $this->query = preg_replace('/[_\.]' . $extension . '$/', '', $this->query);
         }
+        return $this;
     }
 
     /**

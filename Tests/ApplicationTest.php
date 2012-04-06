@@ -13,6 +13,7 @@
  */
 namespace Backend\Core\Tests;
 use \Backend\Core\Application;
+use \Backend\Core\Request;
 /**
  * Class to test the \Backend\Core\Application class
  *
@@ -24,11 +25,95 @@ use \Backend\Core\Application;
  */
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
+    protected $request = null;
+
+    public function setUp()
+    {
+        Application::setDebugLevel(1);
+        $this->request = new Request('http://www.google.com/', 'GET');
+    }
+
+    public function tearDown()
+    {
+    }
+
+    /**
+     * Test the constructor
+     */
+    public function testConstructor()
+    {
+        //Setup
+        $application = new Application($this->request);
+
+        //Asserts
+        $this->assertTrue($application->getConstructed());
+        $this->assertEquals($this->request, $application->getRequest());
+
+        $this->assertInstanceOf('\Backend\Core\View', $application->getTool('View'));
+
+        $this->assertInstanceOf('\Backend\Core\Utilities\Config', $application->getTool('Config'));
+
+        $this->assertNotEmpty(Application::getSiteState());
+    }
+
+    /**
+     * Test the main function
+     */
+    public function testMain()
+    {
+        //Setup
+        $this->request->setQuery('/');
+        $application = new Application($this->request);
+        $result = $application->main();
+
+        //Asserts
+        $this->assertInstanceOf('\Backend\Core\Response', $result);
+        $this->assertSame(200, $result->getStatusCode());
+    }
+
+    /**
+     * Test the main function with an unknown controller
+     */
+    public function testMainWith404()
+    {
+        //Setup
+        $this->request->setQuery('/unknown_controller');
+        $application = new Application($this->request);
+        $result = $application->main();
+
+        //Asserts
+        $this->assertInstanceOf('\Backend\Core\Response', $result);
+        $this->assertSame(404, $result->getStatusCode());
+    }
+
+    /**
+     * Test the main function
+     */
+    public function testMainWithRoutePath()
+    {
+        //Mock Objects
+        $routePath = $this->getMock('\Backend\Core\Utilities\RoutePath', '', array(), false);
+
+        $route = $this->getMock('\Backend\Core\Route');
+        $route->expects($this->any())->method('resolve')
+            ->with($this->instanceOf('\Backend\Core\Request'))
+            ->will($this->returnValue($routePath));
+
+        //Setup
+        $this->request->setQuery('/');
+        $application = new Application($this->request);
+        $result = $application->main();
+
+        //Asserts
+        $this->assertInstanceOf('\Backend\Core\Response', $result);
+        $this->assertSame(200, $result->getStatusCode());
+    }
+
     /**
      * Test adding an undefined Tool
      *
      * @return null
-     * @expectedException \Backend\Core\Exceptions\UndefinedToolException
+     * @expectedException \Backend\Core\Exceptions\BackendException
      */
     public function testAddUndefinedTool()
     {
@@ -39,7 +124,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Test adding an invalid Tool
      *
      * @return null
-     * @expectedException \Backend\Core\Exceptions\InvalidToolException
+     * @expectedException \Backend\Core\Exceptions\BackendException
      */
     public function testAddInvalidTool()
     {
@@ -63,7 +148,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * @return null
      * @expectedException \ErrorException
      */
-    public function testError()
+    public function DonttestError()
     {
         Application::error(1, 'SomeError', __FILE__, __LINE__);
     }
@@ -75,13 +160,16 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testDebugLevel()
     {
-        $this->assertSame(3, Application::getDebugLevel());
-        Application::setDebugLevel(1);
+        //The default debugging level for testing is 1
         $this->assertSame(1, Application::getDebugLevel());
+        Application::setDebugLevel(2);
+        //Test setting an integer
+        $this->assertSame(2, Application::getDebugLevel());
+        //Test Setting a string
         Application::setDebugLevel('4');
         $this->assertSame(4, Application::getDebugLevel());
-        Application::setDebugLevel(5);
-        $this->assertSame(5, Application::getDebugLevel());
+        //Reset the Debug Level
+        Application::setDebugLevel(1);
     }
 
     /**
@@ -91,16 +179,15 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testRegisterNamespace()
     {
-        $this->assertSame(array(), Application::getNamespaces());
-        Application::registerNamespace('Base');
-        $this->assertContains('Base', Application::getNamespaces());
+        $this->assertContains('\Backend\Core', Application::getNamespaces());
+        Application::registerNamespace('\Some\Namespace');
+        $this->assertContains('\Some\Namespace', Application::getNamespaces());
     }
 
     /**
      * Test Application::getViewMethod
      *
      * @return null
-     * @expectedException \ReflectionException
      */
     public function testGetViewMethod()
     {
@@ -111,10 +198,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $request = new \Backend\Core\Request('http://www.google.com', 'GET');
         $view    = new \Backend\Base\Views\Cli($request);
         $method  = Application::getViewMethod($callback, $view);
-        $this->assertInstanceOf('\ReflectionMethod', $method);
-        $this->assertSame('homeCli', $method->getName());
-
-        $callback[1] = 'someAction';
-        $method = Application::getViewMethod($callback, $view);
+        $this->assertSame('homeCli', $method);
     }
 }

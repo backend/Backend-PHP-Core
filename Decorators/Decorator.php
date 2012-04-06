@@ -35,7 +35,7 @@ class Decorator extends Decorable implements DecoratorInterface
     /**
      * The constructor for the decorator
      *
-     * @param \Backend\Core\Interfaces\DecorableInterface $decorable The object to decorate
+     * @param \Backend\Core\Interfaces\DecorableInterface $object The object to decorate
      */
     function __construct(DecorableInterface $object)
     {
