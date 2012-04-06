@@ -12,6 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+use Backend\Core\Utilities\ApplicationEvent;
 /**
  * The Request class which helps determine the Query string and request format.
  *
@@ -91,7 +92,7 @@ class Request
         $this->setPayload($payload);
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
-        Application::log($message, 4);
+        new ApplicationEvent($message, ApplicationEvent::SEVERITY_DEBUG);
     }
 
     protected function parseUrl($url)
