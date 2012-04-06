@@ -594,47 +594,6 @@ class Application extends Subject
         return $this;
     }
 
-    //SplSubject functions
-    /**
-     * Attach an observer to the class
-     *
-     * @param SplObserver $observer The observer to attach
-     *
-     * @return Application The current object.
-     */
-    public function attach(\SplObserver $observer)
-    {
-        $id = spl_object_hash($observer);
-        $this->observers[$id] = $observer;
-    }
-
-    /**
-     * Detach an observer from the class
-     *
-     * @param SplObserver $observer The observer to detach
-     *
-     * @return Application The current object.
-     */
-    public function detach(\SplObserver $observer)
-    {
-        $id = spl_object_hash($observer);
-        unset($this->observers[$id]);
-        return $this;
-    }
-
-    /**
-     * Notify observers of an update to the class
-     *
-     * @return Application The current object.
-     */
-    public function notify()
-    {
-        foreach ($this->observers as $obs) {
-            $obs->update($this);
-        }
-        return $this;
-    }
-
     /**
      * Check the code bases for a class
      *

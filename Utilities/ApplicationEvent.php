@@ -110,45 +110,6 @@ class ApplicationEvent extends Subject
         return $this->severity;
     }
 
-    //SplSubject functions
-    /**
-     * Attach an observer to the class
-     *
-     * @param SplObserver $observer The observer to attach
-     *
-     * @return null
-     */
-    public function attach(\SplObserver $observer)
-    {
-        $id = spl_object_hash($observer);
-        $this->observers[$id] = $observer;
-    }
-
-    /**
-     * Detach an observer from the class
-     *
-     * @param SplObserver $observer The observer to detach
-     *
-     * @return null
-     */
-    public function detach(\SplObserver $observer)
-    {
-        $id = spl_object_hash($observer);
-        unset($this->observers[$id]);
-    }
-
-    /**
-     * Notify observers of an update to the class
-     *
-     * @return null
-     */
-    public function notify()
-    {
-        foreach ($this->observers as $obs) {
-            $obs->update($this);
-        }
-    }
-
     /**
      * Return a string representation of the class
      *
