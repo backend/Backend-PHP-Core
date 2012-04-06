@@ -61,6 +61,11 @@ class Application implements \SplSubject
     protected static $debugLevel = 3;
 
     /**
+     * @var string The state of the site. Usually production, development or testing
+     */
+    protected static $siteState = null;
+
+    /**
      * @var Request This contains the Request that is being handled
      */
     private $_request = null;
@@ -92,8 +97,8 @@ class Application implements \SplSubject
         self::$_toolbox = array();
 
         if ($config === null) {
-            if (file_exists(PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml')) {
-                $config = PROJECT_FOLDER . 'configs/' . SITE_STATE . '.yaml';
+            if (file_exists(PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.yaml')) {
+                $config = PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.yaml';
             } else if (file_exists(PROJECT_FOLDER . 'configs/default.yaml')) {
                 $config = PROJECT_FOLDER . 'configs/default.yaml';
             } else {
@@ -144,9 +149,6 @@ class Application implements \SplSubject
         self::registerNamespace('\Backend\Core', true);
 
         //Register all Vendor Namespaces
-        $checkFolder = function($param) {
-            return !(preg_match('/^[_.]/', $param) || !is_dir(VENDOR_FOLDER . $param));
-        };
         if (file_exists(VENDOR_FOLDER)) {
             foreach (glob(VENDOR_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
                 $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(VENDOR_FOLDER, '', $folder));
@@ -155,9 +157,6 @@ class Application implements \SplSubject
         }
 
         //Register all Application Namespaces
-        $checkFolder = function($param) {
-            return !(preg_match('/^[_.]/', $param) || !is_dir(SOURCE_FOLDER . $param));
-        };
         if (file_exists(SOURCE_FOLDER)) {
             foreach (glob(SOURCE_FOLDER . '*/*', \GLOB_ONLYDIR) as $folder) {
                 $namespace = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', str_replace(SOURCE_FOLDER, '', $folder));
@@ -171,22 +170,23 @@ class Application implements \SplSubject
         set_exception_handler(array('\Backend\Core\Application', 'exception'));
         set_error_handler(array('\Backend\Core\Application', 'error'));
 
-        //Some constants
-        if (!defined('SITE_STATE')) {
-            define('SITE_STATE', 'production');
+        if (empty(self::$siteState)) {
+            self::setSiteState(defined('SITE_STATE') ? SITE_STATE : 'production');
         }
 
+        //Some constants
         if (empty($_SERVER['DEBUG_LEVEL'])) {
-            switch (SITE_STATE) {
+            switch (self::getSiteState()) {
             case 'development':
                 self::setDebugLevel(5);
                 break;
             case 'production':
+            case 'testing':
                 self::setDebugLevel(1);
                 break;
             }
         } else {
-            self::setDebugLevel((int)$_SERVER['DEBUG_LEVEL']);
+            self::setDebugLevel($_SERVER['DEBUG_LEVEL']);
         }
 
         self::$constructed = true;
@@ -195,16 +195,18 @@ class Application implements \SplSubject
     /**
      * Main function for the application
      *
+     * @param \Backend\Core\Route A route object to execute on
+     *
      * @return mixed The result of the call
      * @todo   Make the 404 page pretty
      */
-    public function main()
+    public function main(Route $route = null)
     {
         $this->setState('executing');
-        $request = $this->getRequest();
 
+        $request = $this->getRequest();
         //Resolve the Route
-        $this->route = new Route();
+        $this->route = $route instanceof Route ? $route : new Route();
         try {
             $this->setRoutePath($this->route->resolve($request));
             $result = $this->executeRoutePath();
@@ -230,12 +232,12 @@ class Application implements \SplSubject
     protected function executeRoutePath(Utilities\RoutePath $routePath = null)
     {
         $routePath = $routePath ? $routePath : $this->getRoutePath();
-        $request = $this->getRequest();
 
         //Determine the Call
         $callback  = $routePath->getCallback();
         $arguments = $routePath->getArguments();
 
+        $request = $this->getRequest();
         if (is_array($callback)) {
             //Set the request for the callback
             $callback[0]->setRequest($request);
@@ -407,12 +409,14 @@ class Application implements \SplSubject
                 $tool = new $tool();
             } else {
                 new ApplicationEvent('Undefined Tool: ' . $tool, ApplicationEvent::SEVERITY_DEBUG);
+                throw new Exceptions\BackendException('Undefined Tool: ' . $tool);
             }
         } else if (is_array($tool) && count($tool) == 2) {
             if (class_exists($tool[0], true)) {
                 $tool = new $tool[0]($tool[1]);
             } else {
                 new ApplicationEvent('Undefined Tool: ' . $tool[0], ApplicationEvent::SEVERITY_DEBUG);
+                throw new Exceptions\BackendException('Undefined Tool: ' . $tool[0]);
             }
         }
         $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
@@ -520,11 +524,33 @@ class Application implements \SplSubject
     }
 
     /**
+     * Public getter for the Site State
+     *
+     * @return integer The site state
+     */
+    public static function getSiteState()
+    {
+        return self::$siteState;
+    }
+
+    /**
+     * Public setter for the Site State
+     *
+     * @param integer $level The site state
+     *
+     * @return null
+     */
+    public static function setSiteState($state)
+    {
+        self::$siteState = $state;
+    }
+
+    /**
      * Public getter for the Debug Level
      *
      * @return integer The debugging levels
      */
-    public function getDebugLevel()
+    public static function getDebugLevel()
     {
         return self::$debugLevel;
     }
@@ -536,14 +562,13 @@ class Application implements \SplSubject
      *
      * @return null
      */
-    public function setDebugLevel($level)
+    public static function setDebugLevel($level)
     {
         $level = (int)$level;
         if ($level <= 0) {
             return false;
         }
         self::$debugLevel = $level;
-        return $this;
     }
 
     /**
