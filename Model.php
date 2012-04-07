@@ -79,7 +79,7 @@ class Model extends Decorable implements Interfaces\ModelInterface
                 $this->$funcName($value);
             } else if (property_exists($this, $name)) {
                 $this->$name = $value;
-            } else {
+            } else if ($name[0] !== '_') {
                 throw new \Exception('Undefined property ' . $name . ' for ' . get_class($this));
             }
         }
