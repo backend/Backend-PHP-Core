@@ -39,7 +39,7 @@ class Logger implements \Backend\Core\Interfaces\LoggingObserverInterface
             $message = ' (DEBUG) ' . get_class($subject) . ' entered state [' . $subject->getState() . ']';
             break;
         case $subject instanceof ApplicationEvent:
-            switch ($subject->getLevel()) {
+            switch ($subject->getSeverity()) {
             case ApplicationEvent::SEVERITY_CRITICAL:
                 $message = ' (CRITICAL) ' . $subject->getName();
                 break;
@@ -56,10 +56,10 @@ class Logger implements \Backend\Core\Interfaces\LoggingObserverInterface
                 $message = ' (INFORMATION) ' . $subject->getName();
                 break;
             default:
-                $message = ' (OTHER - ' . $subject->getLevel() . ') ' . $subject->getName();
+                $message = ' (OTHER - ' . $subject->getSeverity() . ') ' . $subject->getName();
                 break;
             }
-
+            break;
         default:
             //Unknown Subject. Do Nothing
             return;
