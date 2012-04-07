@@ -58,16 +58,22 @@ class Autoloader
             }
         }
 
+        //Determine the filename
         $fileName  = '';
         $namespace = '';
         if ($lastNsPos = strripos($className, '\\')) {
             $namespace = substr($className, 0, $lastNsPos);
             $className = substr($className, $lastNsPos + 1);
             $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
         }
+        if (empty($fileName)) {
+            return false;
+        }
+
+        //Check the bases for the file
         $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);
         foreach($baseFolders as $folder) {
-            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
             if (file_exists($folder . $fileName)) {
                 include_once $folder . $fileName;
                 return true;
