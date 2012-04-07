@@ -26,7 +26,7 @@ namespace Backend\Core\Utilities;
 class Logger implements \Backend\Core\Interfaces\LoggingObserverInterface
 {
     /**
-     * Function to receive an update from a subject
+     * Update method called by subjects being observed
      *
      * @param SplSubject $subject The subject to log
      *

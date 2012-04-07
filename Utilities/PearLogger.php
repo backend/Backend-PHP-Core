@@ -13,7 +13,6 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use \Backend\Core\Utilities\LogMessage;
 require_once 'Log.php';
 /**
  * A Logging Observer using the PEAR::Log class
@@ -53,39 +52,49 @@ class PearLogger implements \Backend\Core\Interfaces\LoggingObserverInterface
     /**
      * Update method called by subjects being observed
      *
-     * @param SplSubject $message The subject, which should be a LogMessage
+     * @param SplSubject $message The subject to log
      *
-     * @return null
+     * @return void
      */
-    public function update(\SplSubject $message)
+    public function update(\SplSubject $subject)
     {
         if (!$this->logger) {
             return false;
         }
-        if (!($message instanceof LogMessage)) {
-            return false;
-        }
-        switch ($message->getLevel()) {
-        case LogMessage::LEVEL_CRITICAL:
-            $level = \PEAR_LOG_EMERG;
+        switch (true) {
+        case $subject instanceof \Backend\Core\Application:
+            $message = get_class($subject) . ' entered state [' . $subject->getState() . ']';
+            $level   = \PEAR_LOG_DEBUG;
             break;
-        case LogMessage::LEVEL_WARNING:
-            $level = \PEAR_LOG_CRIT;
-            break;
-        case LogMessage::LEVEL_IMPORTANT:
-            $level = \PEAR_LOG_WARNING;
-            break;
-        case LogMessage::LEVEL_DEBUGGING:
-            $level = \PEAR_LOG_DEBUG;
-            break;
-        case LogMessage::LEVEL_INFORMATION:
-            $level = \PEAR_LOG_INFO;
+        case $subject instanceof ApplicationEvent:
+            switch ($subject->getSeverity()) {
+            case ApplicationEvent::SEVERITY_CRITICAL:
+                $level = \PEAR_LOG_EMERG;
+                break;
+            case ApplicationEvent::SEVERITY_WARNING:
+                $level = \PEAR_LOG_CRIT;
+                break;
+            case ApplicationEvent::SEVERITY_IMPORTANT:
+                $level = \PEAR_LOG_WARNING;
+                break;
+            case ApplicationEvent::SEVERITY_DEBUG:
+                $level = \PEAR_LOG_DEBUG;
+                break;
+            case ApplicationEvent::SEVERITY_INFORMATION:
+                $level = \PEAR_LOG_INFO;
+                break;
+            default:
+                $level = $message->getSeverity();
+                break;
+            }
+            $message = $subject->getName();
             break;
         default:
-            $level = $message->getLevel();
+            //Unknown Subject. Do Nothing
+            return;
             break;
         }
-        $this->logger->log($message->getMessage(), $level);
+        $this->logger->log($message, $level);
     }
 
     /**
