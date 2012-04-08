@@ -123,6 +123,8 @@ class Application extends Subject
         self::addTool('View', $view);
 
         //Initiate the Tools
+        self::addTool('Application', $this);
+
         $tools = $config->tools;
         if ($tools) {
             foreach ($tools as $toolName => $tool) {

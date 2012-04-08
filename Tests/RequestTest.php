@@ -25,14 +25,29 @@ use \Backend\Core\Request;
  */
 class RequestTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * Set up the test
+     *
+     * @return void
+     */
     protected function setUp()
     {
     }
 
+    /**
+     * Tear down the test
+     *
+     * @return void
+     */
     protected function tearDown()
     {
     }
 
+    /**
+     * Test an URL without the index.php part
+     *
+     * @return void
+     */
     public function testNoIndex()
     {
         $request = new Request('http://backend-php.net/', 'GET');
@@ -40,24 +55,44 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('http://backend-php.net/index.php/', $request->getSiteUrl());
     }
 
+    /**
+     * Test an URL without a query
+     *
+     * @return void
+     */
     public function testEmptyQuery()
     {
         $request = new Request('http://backend-php.net/index.php', 'GET');
         $this->assertEquals('/', $request->getQuery());
     }
 
+    /**
+     * Test a simple Query
+     *
+     * @return void
+     */
     public function testSimpleQuery()
     {
         $request = new Request('http://backend-php.net/index.php/something', 'GET');
         $this->assertEquals('/something', $request->getQuery());
     }
 
+    /**
+     * Tear down the test
+     *
+     * @return void
+     */
     public function testSiteURl()
     {
         $request = new Request('http://backend-php.net/index.php/something/else', 'POST');
         $this->assertEquals('http://backend-php.net/index.php/', $request->getSiteUrl());
     }
 
+    /**
+     * Test a Custom Port
+     *
+     * @return void
+     */
     public function testCustomPort()
     {
         $request = new Request('http://backend-php.net:8080/index.php/something');
@@ -65,6 +100,11 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(8080, $serverInfo['SERVER_PORT']);
     }
 
+    /**
+     * Test the Site Path
+     *
+     * @return void
+     */
     public function testSitePath()
     {
         //TODO

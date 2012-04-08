@@ -64,8 +64,9 @@ class Request
      * 2. A X_HTTP_METHOD_OVERRIDE header
      * 3. The REQUEST_METHOD
      *
-     * @param mixed  $request The request data. Defaults to the HTTP request data if not supplied
+     * @param mixed  $url     The URL of the request
      * @param string $method  The request method. Can be one of GET, POST, PUT, DELETE or HEAD
+     * @param mixed  $payload The request data. Defaults to the HTTP request data if not supplied
      */
     function __construct($url = null, $method = null, $payload = null)
     {
@@ -95,6 +96,13 @@ class Request
         new ApplicationEvent($message, ApplicationEvent::SEVERITY_DEBUG);
     }
 
+    /**
+     * Parse the given URL, and populate the object
+     *
+     * @param string $url The URL to parse
+     *
+     * @return Object The current object
+     */
     protected function parseUrl($url)
     {
         $urlParts = parse_url($url);
@@ -124,6 +132,7 @@ class Request
         }
         //Keep all $_SERVER details we haven't set
         $this->serverInfo = array_merge($_SERVER, $this->serverInfo);
+        return $this;
     }
 
     /**
@@ -145,7 +154,7 @@ class Request
      * This is done by removing the trailing slash, and ensuring that the query
      * starts with a slash
      *
-     * @return null
+     * @return Object The current object
      */
     public function prepareQuery()
     {
@@ -161,6 +170,8 @@ class Request
      * Set the query
      *
      * @param string $query The query
+     *
+     * @return Object The current object
      */
     public function setQuery($query)
     {
@@ -250,6 +261,11 @@ class Request
         $this->sitePath = $path;
     }
 
+    /**
+     * Return the serverInfo property
+     *
+     * @return array The serverInfo property
+     */
     public function getServerInfo()
     {
         return $this->serverInfo;

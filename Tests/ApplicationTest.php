@@ -27,18 +27,32 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
     protected $request = null;
 
+    /**
+     * Set up the test
+     *
+     * Set the debugging level to 1, set a Request
+     *
+     * @return void
+     */
     public function setUp()
     {
         Application::setDebugLevel(1);
         $this->request = new Request('http://www.google.com/', 'GET');
     }
 
+    /**
+     * Tear down the test
+     *
+     * @return void
+     */
     public function tearDown()
     {
     }
 
     /**
      * Test the constructor
+     *
+     * @return void
      */
     public function testConstructor()
     {
@@ -58,6 +72,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test the main function
+     *
+     * @return void
      */
     public function testMain()
     {
@@ -73,6 +89,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test the main function with an unknown controller
+     *
+     * @return void
      */
     public function testMainWith404()
     {
@@ -88,6 +106,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test the main function
+     *
+     * @return void
      */
     public function testMainWithRoutePath()
     {
@@ -148,7 +168,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * @return null
      * @expectedException \ErrorException
      */
-    public function DonttestError()
+    public function dontTestError()
     {
         Application::error(1, 'SomeError', __FILE__, __LINE__);
     }
@@ -156,7 +176,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test getting and setting the Debug Level
      *
-     * @return null
+     * @return void
      */
     public function testDebugLevel()
     {
