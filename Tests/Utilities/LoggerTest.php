@@ -27,14 +27,29 @@ use \Backend\Core\Utilities\LogMessage;
  */
 class LoggerTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * Set up the test
+     *
+     * @return void
+     */
     public function setUp()
     {
     }
 
+    /**
+     * Tear down the test
+     *
+     * @return void
+     */
     public function tearDown()
     {
     }
 
+    /**
+     * Provide data for the testMessages function
+     *
+     * @return array
+     */
     public function providerMessages()
     {
         return array(
@@ -47,9 +62,13 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Check if the correct message is generated
+     * Check if the correct message is generated for an event
+     *
+     * @param string $level   The severity of the event
+     * @param string $message The message for the event
      *
      * @dataProvider providerMessages
+     * @return void
      */
     public function testMessages($level, $message)
     {
@@ -61,6 +80,11 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertContains((string)$message, $result);
     }
 
+    /**
+     * Check for Invalid Messages
+     *
+     * @return void
+     */
     public function testInvalidMessage()
     {
         $logger = new Logger();
@@ -70,6 +94,11 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertEmpty($result);
     }
 
+    /**
+     * Check for invalid Levels
+     *
+     * @return void
+     */
     public function testInvalidLevel()
     {
         $logger = new Logger();

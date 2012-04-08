@@ -86,6 +86,13 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
         return $response;
     }
 
+    /**
+     * Return the Model name derived from the Controller
+     *
+     * @param mixed $controllerName The name of the controller, or the controller itself
+     *
+     * @return string The name of the corresponding Model.
+     */
     public static function getModelName($controllerName = false)
     {
         if (is_object($controllerName)) {
@@ -103,6 +110,8 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
 
     /**
      * Use the current Route to generate the Model name and return it
+     *
+     * @param integer $id The id of the model required.
      *
      * @return ModelInterface The model associated with this controller
      */

@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining AutoloaderTest
+ * File defining PearLoggerTest
  *
  * PHP Version 5.3
  *
@@ -13,9 +13,9 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
-use \Backend\Core\Utilities\Autoloader;
+use \Backend\Core\Utilities\PearLogger;
 /**
- * Class to test the \Backend\Core\Utilities\Autoloader class
+ * Class to test the \Backend\Core\Utilities\PearLogger class
  *
  * @category   Backend
  * @package    CoreTests
@@ -24,7 +24,7 @@ use \Backend\Core\Utilities\Autoloader;
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-class AutoloaderTest extends \PHPUnit_Framework_TestCase
+class PearLoggerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Set up the test
@@ -45,26 +45,18 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test if the register function works correctly
+     * Check if the correct message is generated
      *
      * @return void
      */
-    public function testRegister()
+    public function testMessages()
     {
-        Autoloader::register();
-        $function = array_shift(spl_autoload_functions());
-        $this->assertEquals(array('Backend\Core\Utilities\Autoloader', 'autoload'), $function);
-    }
-
-    /**
-     * Test if the autoload function works correctly
-     *
-     * @return void
-     */
-    public function testAutoload()
-    {
-        $this->assertFalse(class_exists('Backend\Core\Tests\Utilities\AutoloaderTestClass', false));
-        Autoloader::autoload('Backend\Core\Tests\Utilities\AutoloaderTestClass');
-        $this->assertTrue(class_exists('Backend\Core\Tests\Utilities\AutoloaderTestClass', false));
+        $logger = new PearLogger('/tmp/test-backend.log');
+        var_dump($logger); die;
+        //$this->assert
+        ob_start();
+        $logger->update(new LogMessage('Some Message', $level));
+        $result = ob_get_clean();
+        $this->assertContains($message, $result);
     }
 }

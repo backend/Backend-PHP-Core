@@ -196,7 +196,7 @@ class Application extends Subject
     /**
      * Main function for the application
      *
-     * @param \Backend\Core\Route A route object to execute on
+     * @param \Backend\Core\Route $route A route object to execute on
      *
      * @return mixed The result of the call
      * @todo   Make the 404 page pretty
@@ -374,24 +374,24 @@ class Application extends Subject
             $response = $this->main(new Request($data, 'get'));
             //Which is then outputted to the Client
             $response->output();
-        } catch (\Exception $e) {*/
-            //We can't use handleResponse, as it throws exceptions. Just do the transform
+            } catch (\Exception $e) {*/
+        //We can't use handleResponse, as it throws exceptions. Just do the transform
 
-            $view = self::getTool('View');
-            if (!$view) {
-                echo (string)$exception;
-                return;
-            }
+        $view = self::getTool('View');
+        if (!$view) {
+            echo (string)$exception;
+            return;
+        }
 
-            //Convert the result to a Respose
-            $response = $view->transform($exception);
-    
-            if (!($response instanceof Response)) {
-                echo $response;
-                return;
-            }
-            $response->setStatusCode(500);
-            $response->output();
+        //Convert the result to a Respose
+        $response = $view->transform($exception);
+
+        if (!($response instanceof Response)) {
+            echo $response;
+            return;
+        }
+        $response->setStatusCode(500);
+        $response->output();
         //}
     }
 
@@ -537,7 +537,7 @@ class Application extends Subject
     /**
      * Public setter for the Site State
      *
-     * @param integer $level The site state
+     * @param string $state The site state
      *
      * @return null
      */
@@ -585,7 +585,7 @@ class Application extends Subject
     /**
      * Set the current state of the Application.
      *
-     * @param string The new state of the Application.
+     * @param string $state The new state of the Application.
      *
      * @return Application The current object.
      */

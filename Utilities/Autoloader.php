@@ -73,7 +73,7 @@ class Autoloader
 
         //Check the bases for the file
         $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);
-        foreach($baseFolders as $folder) {
+        foreach ($baseFolders as $folder) {
             if (file_exists($folder . $fileName)) {
                 include_once $folder . $fileName;
                 return true;

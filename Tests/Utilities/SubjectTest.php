@@ -30,17 +30,33 @@ use \Backend\Core\Utilities\Subject;
  */
 class SubjectTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * Set up the test
+     *
+     * Setup a Config and a Logger Tool
+     *
+     * @return void
+     */
     public function setUp()
     {
         Application::addTool('Config', new Config());
         Application::addTool('Logger', new Logger());
     }
 
+    /**
+     * Tear down the test
+     *
+     * @return void
+     */
     public function tearDown()
     {
-
     }
 
+    /**
+     * Test the constructor
+     *
+     * @return void
+     */
     public function testConstructor()
     {
         $subject = new Subject();
@@ -54,6 +70,7 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
      * Test if the defined observers match the implemented ones
      *
      * @todo Fix the test!
+     * @return void
      */
     public function testGetObservers()
     {
@@ -69,6 +86,8 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test the attach function
+     *
+     * @return void
      */
     public function testAttach()
     {
@@ -80,6 +99,8 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test the detach function
+     *
+     * @return void
      */
     public function testDetach()
     {
@@ -92,6 +113,11 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($count - 1, count($subject->getObservers()));
     }
 
+    /**
+     * Test the update function
+     *
+     * @return void
+     */
     public function testUpdate()
     {
         $subject = new Subject();

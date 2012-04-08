@@ -36,7 +36,7 @@ class Subject implements \SplSubject
      * An observer is only eligible if it implements \SplObserver, and can be
      * retrieved using \Backend\Core\getTool
      *
-     * @param SplSubject $subject The subject that should be checked
+     * @param \Backend\Utilities\Config $config The config file to check for observers
      *
      * @return boolean If the various subjects where checked or not
      */

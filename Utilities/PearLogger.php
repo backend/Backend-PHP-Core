@@ -52,7 +52,7 @@ class PearLogger implements \Backend\Core\Interfaces\LoggingObserverInterface
     /**
      * Update method called by subjects being observed
      *
-     * @param SplSubject $message The subject to log
+     * @param SplSubject $subject The subject to log
      *
      * @return void
      */
