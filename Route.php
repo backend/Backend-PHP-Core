@@ -43,7 +43,6 @@ class Route
         $routes = array();
 
         $ext  = pathinfo($routesFile, PATHINFO_EXTENSION);
-        $info = pathinfo($routesFile);
         switch ($ext) {
         case 'json':
             $routes = json_decode(file_get_contents($routesFile), true);
@@ -117,7 +116,7 @@ class Route
      */
     protected function checkDefinedRoutes($request)
     {
-        foreach ($this->routes['routes'] as $name => $routeInfo) {
+        foreach ($this->routes['routes'] as $routeInfo) {
             $routePath = new Utilities\RoutePath($routeInfo);
             if ($routePath->check($request->getMethod(), $request->getQuery())) {
                 return $routePath;

@@ -49,7 +49,6 @@ class Config
         }
 
         $ext  = pathinfo($filename, PATHINFO_EXTENSION);
-        $info = pathinfo($filename);
         switch ($ext) {
         case 'json':
             $this->_values = json_decode(file_get_contents($filename), true);

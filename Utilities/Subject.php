@@ -70,8 +70,8 @@ class Subject implements \SplSubject
      */
     public function attach(\SplObserver $observer)
     {
-        $id = spl_object_hash($observer);
-        $this->observers[$id] = $observer;
+        $hash = spl_object_hash($observer);
+        $this->observers[$hash] = $observer;
     }
 
     /**
@@ -83,8 +83,8 @@ class Subject implements \SplSubject
      */
     public function detach(\SplObserver $observer)
     {
-        $id = spl_object_hash($observer);
-        unset($this->observers[$id]);
+        $hash = spl_object_hash($observer);
+        unset($this->observers[$hash]);
     }
 
     /**

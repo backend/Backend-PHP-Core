@@ -96,10 +96,10 @@ class RoutePath
             $regex    = str_replace('/', '\/', str_replace($search, $replace, $this->route));
             if (preg_match_all('/' . $regex . '/', $query, $matches)) {
                 $arguments = array();
-                $i = 2;
+                $index = 2;
                 foreach ($varNames as $name) {
-                    $arguments[$name] = $matches[$i][0];
-                    $i = $i + 2;
+                    $arguments[$name] = $matches[$index][0];
+                    $index = $index + 2;
                 }
                 //Regex Match
                 $this->arguments = $this->constructArguments($arguments);

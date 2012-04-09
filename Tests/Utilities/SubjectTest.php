@@ -75,7 +75,6 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
     public function testGetObservers()
     {
         $subject = new Subject();
-        $config  = new Config();
         $observer = $this->getMock('SplObserver', array('update'));
         $subject->attach($observer);
 

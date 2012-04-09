@@ -119,7 +119,7 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     {
         $modelName = self::getModelName();
         if (!class_exists($modelName, true)) {
-            throw new \Exception('Model does not exist: ' . $namespace . '\\' . $modelName);
+            throw new \Exception('Model does not exist: ' . $modelName);
         }
         $model = new $modelName($id);
 

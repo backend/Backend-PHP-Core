@@ -518,14 +518,11 @@ class Request
     {
         $type = $type ?: $_SERVER['CONTENT_TYPE'];
         if (is_null($content)) {
-            $data = '';
-            $fp   = fopen('php://input', 'r');
-            while ($chunk = fread($fp, 1024)) {
+            $data     = '';
+            $fpointer = fopen('php://input', 'r');
+            while ($chunk = fread($fpointer, 1024)) {
                 $data .= $chunk;
             }
-        }
-        if (empty($data)) {
-            return $data;
         }
         $payload = null;
         switch ($type) {
