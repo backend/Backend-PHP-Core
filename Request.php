@@ -278,14 +278,14 @@ class Request
      */
     public function getSpecifiedFormat()
     {
-        //Third CL parameter is the required format
-        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
-            return $this->serverInfo['argv'][3];
-        }
-
         //Check the format parameter
         if (array_key_exists('format', $this->payload)) {
             return $this->payload['format'];
+        }
+
+        //Third CL parameter is the required format
+        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
+            return $this->serverInfo['argv'][3];
         }
         return false;
     }

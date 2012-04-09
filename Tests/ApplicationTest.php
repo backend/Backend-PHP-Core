@@ -37,7 +37,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         Application::setDebugLevel(1);
-        $this->request = new Request('http://www.google.com/', 'GET');
+        $this->request = new Request('http://www.google.com/', 'GET', array('format' => 'html'));
+        $this->request->setQuery('/');
     }
 
     /**
@@ -112,11 +113,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testMainWithRoutePath()
     {
         //Mock Objects
-        $routePath = $this->getMock('\Backend\Core\Utilities\RoutePath', '', array(), false);
+        $routePath = $this->getMock('\Backend\Core\Utilities\RoutePath', array(), array(), '', false);
 
         $route = $this->getMock('\Backend\Core\Route');
         $route->expects($this->any())->method('resolve')
-            ->with($this->instanceOf('\Backend\Core\Request'))
+            ->with($this->isInstanceOf('\Backend\Core\Request'))
             ->will($this->returnValue($routePath));
 
         //Setup
@@ -148,7 +149,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddInvalidTool()
     {
-        Application::addTool('InvalidTool', new \StdClass());
+        Application::addTool('InvalidTool', 'SomeRandomClass');
     }
 
     /**

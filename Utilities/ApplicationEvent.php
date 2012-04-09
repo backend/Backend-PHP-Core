@@ -117,6 +117,6 @@ class ApplicationEvent extends Subject
      */
     function __toString()
     {
-        return $this->event . ' [' . $this->severity . ']';
+        return $this->name . ' [' . $this->severity . ']';
     }
 }

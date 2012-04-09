@@ -14,7 +14,7 @@
  */
 namespace Backend\Core\Tests\Utilities;
 use \Backend\Core\Utilities\Logger;
-use \Backend\Core\Utilities\LogMessage;
+use \Backend\Core\Utilities\ApplicationEvent;
 /**
  * Class to test the \Backend\Core\Utilities\Logger class
  *
@@ -53,11 +53,11 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function providerMessages()
     {
         return array(
-            array(LogMessage::LEVEL_CRITICAL,    '(CRITICAL) '),
-            array(LogMessage::LEVEL_WARNING,     '(WARNING) '),
-            array(LogMessage::LEVEL_IMPORTANT,   '(IMPORTANT) '),
-            array(LogMessage::LEVEL_DEBUGGING,   '(DEBUG) '),
-            array(LogMessage::LEVEL_INFORMATION, '(INFORMATION) '),
+            array(ApplicationEvent::SEVERITY_CRITICAL,    '(CRITICAL) '),
+            array(ApplicationEvent::SEVERITY_WARNING,     '(WARNING) '),
+            array(ApplicationEvent::SEVERITY_IMPORTANT,   '(IMPORTANT) '),
+            array(ApplicationEvent::SEVERITY_DEBUG,       '(DEBUG) '),
+            array(ApplicationEvent::SEVERITY_INFORMATION, '(INFORMATION) '),
         );
     }
 
@@ -70,14 +70,14 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
      * @dataProvider providerMessages
      * @return void
      */
-    public function testMessages($level, $message)
+    public function testMessages($severity, $messageStr)
     {
         $logger = new Logger();
         ob_start();
-        $message = $this->getMock('\Backend\Core\Utilities\LogMessage', array('update'), array('Some Message', $level));
+        $message = $this->getMock('\Backend\Core\Utilities\ApplicationEvent', array('update'), array('Some Message', $severity));
         $logger->update($message);
         $result = ob_get_clean();
-        $this->assertContains((string)$message, $result);
+        $this->assertContains($messageStr, $result);
     }
 
     /**
@@ -103,7 +103,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     {
         $logger = new Logger();
         ob_start();
-        $message = $this->getMock('\Backend\Core\Utilities\LogMessage', array('update'), array('Some Message', 99));
+        $message = $this->getMock('\Backend\Core\Utilities\ApplicationEvent', array('update'), array('Some Message', 99));
         $logger->update($message);
         $result = ob_get_clean();
 

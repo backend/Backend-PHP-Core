@@ -16,7 +16,7 @@ namespace Backend\Core\Tests\Utilities;
 use \Backend\Core\Application;
 use \Backend\Core\Utilities\Config;
 use \Backend\Core\Utilities\Logger;
-use \Backend\Core\Utilities\LogMessage;
+use \Backend\Core\Utilities\ApplicationEvent;
 use \Backend\Core\Utilities\Subject;
 /**
  * Class to test the \Backend\Core\Utilities\Observable class
@@ -62,7 +62,7 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
         $subject = new Subject();
         $this->assertEquals(0, count($subject->getObservers()));
 
-        $subject = new LogMessage('Some Message', LogMessage::LEVEL_INFORMATION);
+        $subject = new ApplicationEvent('Some Message', ApplicationEvent::SEVERITY_INFORMATION);
         $this->assertContains(Application::getTool('Logger'), $subject->getObservers());
     }
 

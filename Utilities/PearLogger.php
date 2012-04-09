@@ -13,7 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-require_once 'Log.php';
+include_once 'Log.php';
 /**
  * A Logging Observer using the PEAR::Log class
  *
@@ -41,7 +41,9 @@ class PearLogger implements \Backend\Core\Interfaces\LoggingObserverInterface
         if (is_string($options)) {
             $options = array('filename' => $options);
         }
-        if (array_key_exists('filename', $options)) {
+        if (array_key_exists('logger', $options)) {
+            $this->logger = $options['logger'];
+        } else if (array_key_exists('filename', $options)) {
             if (!array_key_exists('prepend', $options)) {
                 $options['prepend'] = 'BackendCore';
             }
@@ -84,17 +86,17 @@ class PearLogger implements \Backend\Core\Interfaces\LoggingObserverInterface
                 $level = \PEAR_LOG_INFO;
                 break;
             default:
-                $level = $message->getSeverity();
+                $level = $subject->getSeverity();
                 break;
             }
             $message = $subject->getName();
             break;
         default:
             //Unknown Subject. Do Nothing
-            return;
+            return false;
             break;
         }
-        $this->logger->log($message, $level);
+        return $this->logger->log($message, $level);
     }
 
     /**
