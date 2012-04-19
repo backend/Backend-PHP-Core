@@ -46,6 +46,9 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
     {
     }
 
+    /**
+     * Test the constructor
+     */
     public function testContructor()
     {
         $filename = '/tmp/test-backend.log';
@@ -91,6 +94,9 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
         $logger->update(new ApplicationEvent('Some Message', $severity));
     }
 
+    /**
+     * Test passing an undefined severity to the logger
+     */
     public function testUndefinedSeverity()
     {
         $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);
@@ -105,6 +111,9 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
         $logger->update(new ApplicationEvent('Some Message', 999));
     }
 
+    /**
+     * Test passing a non message object to the logger
+     */
     public function testNonMessageObject()
     {
         $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);
@@ -116,6 +125,9 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($logger->update(new \Backend\Core\Utilities\Subject()));
     }
 
+    /**
+     * Test passing the Application to the Logger
+     */
     public function testApplication()
     {
         $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);

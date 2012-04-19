@@ -51,9 +51,11 @@ class Config
         $ext  = pathinfo($filename, PATHINFO_EXTENSION);
         switch ($ext) {
         case 'json':
+            //TODO Move this to a JsonParser class
             $this->_values = json_decode(file_get_contents($filename), true);
             break;
         case 'yaml':
+            //TODO Move this to a YamlParser class
             if (function_exists('yaml_parse_file')) {
                 $this->_values = \yaml_parse_file($filename);
             } else if (fopen('SymfonyComponents/YAML/sfYamlParser.php', 'r', true)) {

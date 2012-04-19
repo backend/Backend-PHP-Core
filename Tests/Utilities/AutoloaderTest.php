@@ -67,4 +67,20 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
         Autoloader::autoload('Backend\Core\Tests\Utilities\AutoloaderTestClass');
         $this->assertTrue(class_exists('Backend\Core\Tests\Utilities\AutoloaderTestClass', false));
     }
+
+    /**
+     * Test if the autoloader ignores non namespaced classes
+     */
+    public function testNonNSClass()
+    {
+        $this->assertFalse(Autoloader::autoload('SomeBaseClass'));
+    }
+
+    /**
+     * Test if the autoloader doesn't find a class
+     */
+    public function testNonExistantClass()
+    {
+        $this->assertFalse(Autoloader::autoload('Backend\Core\NoClass'));
+    }
 }

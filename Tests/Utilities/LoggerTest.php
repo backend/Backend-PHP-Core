@@ -109,4 +109,20 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertContains(' (OTHER - 99)', $result);
     }
+ 
+    /**
+     * Test passing the Application to the Logger
+     */
+    public function testApplication()
+    {
+        $request     = new \Backend\Core\Request('http://www.google.com', 'GET');
+        $application = new \Backend\Core\Application($request);
+        $application->setState('something');
+        $logger = new Logger();
+        ob_start();
+        $logger->update($application);
+        $result = ob_get_clean();
+
+        $this->assertContains('Backend\Core\Application entered state [something]', $result);
+    }
 }

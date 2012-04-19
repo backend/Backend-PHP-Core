@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining ObservableTest
+ * File defining SubjectTest
  *
  * PHP Version 5.3
  *
@@ -19,7 +19,7 @@ use \Backend\Core\Utilities\Logger;
 use \Backend\Core\Utilities\ApplicationEvent;
 use \Backend\Core\Utilities\Subject;
 /**
- * Class to test the \Backend\Core\Utilities\Observable class
+ * Class to test the \Backend\Core\Utilities\Subject class
  *
  * @category   Backend
  * @package    CoreTests
@@ -60,27 +60,13 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
     public function testConstructor()
     {
         $subject = new Subject();
-        $this->assertEquals(0, count($subject->getObservers()));
+        $this->assertEquals(array(), $subject->getObservers());
 
         $subject = new ApplicationEvent('Some Message', ApplicationEvent::SEVERITY_INFORMATION);
         $this->assertContains(Application::getTool('Logger'), $subject->getObservers());
-    }
 
-    /**
-     * Test if the defined observers match the implemented ones
-     *
-     * @todo Fix the test!
-     * @return void
-     */
-    public function testGetObservers()
-    {
+        Application::addTool('Config', false);
         $subject = new Subject();
-        $observer = $this->getMock('SplObserver', array('update'));
-        $subject->attach($observer);
-
-        $result   = array_values($subject->getObservers());
-
-        $this->assertEquals(array($observer), $result);
     }
 
     /**
@@ -94,6 +80,22 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
         $observer = $this->getMock('SplObserver', array('update'));
         $subject->attach($observer);
         $this->assertContains($observer, $subject->getObservers());
+    }
+
+    /**
+     * Test if the defined observers match the implemented ones
+     *
+     * @return void
+     */
+    public function testGetObservers()
+    {
+        $subject  = new Subject();
+        $observer = $this->getMock('SplObserver', array('update'));
+        $subject->attach($observer);
+
+        $result = array_values($subject->getObservers());
+
+        $this->assertEquals(array($observer), $result);
     }
 
     /**
