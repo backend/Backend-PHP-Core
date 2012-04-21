@@ -239,10 +239,14 @@ class Application extends Subject
         $arguments = $routePath->getArguments();
 
         $request = $this->getRequest();
+        $isCallable = is_callable($callback);
         if (is_array($callback)) {
             //Set the request for the callback
             $callback[0]->setRequest($request);
             $methodMessage = get_class($callback[0]) . '::' . $callback[1];
+            if ($callback[0] instanceof \Backend\Core\Decorators\Decorator) {
+                $isCallable = $callback[0]->isCallable($callback[1]);
+            }
         } else {
             //The first argument for the callback is the request
             array_unshift($request, $arguments);
@@ -250,7 +254,7 @@ class Application extends Subject
         }
         new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
 
-        if (!is_callable($callback)) {
+        if (!$isCallable) {
             throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
         }
         $result = call_user_func_array($callback, $arguments);
