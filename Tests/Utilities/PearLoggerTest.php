@@ -15,7 +15,7 @@
 namespace Backend\Core\Tests\Utilities;
 use \Backend\Core\Utilities\PearLogger;
 use \Backend\Core\Utilities\ApplicationEvent;
-include_once 'Log.php';
+require_once 'Log.php';
 /**
  * Class to test the \Backend\Core\Utilities\PearLogger class
  *
@@ -48,6 +48,8 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test the constructor
+     *
+     * @return void
      */
     public function testContructor()
     {
@@ -77,6 +79,9 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
     /**
      * Check if the correct message is generated
      *
+     * @param integer $severity  The severity
+     * @param integer $pearLevel The level
+     *
      * @return void
      * @dataProvider providerMessages
      */
@@ -96,6 +101,8 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test passing an undefined severity to the logger
+     *
+     * @return void
      */
     public function testUndefinedSeverity()
     {
@@ -113,6 +120,8 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test passing a non message object to the logger
+     *
+     * @return void
      */
     public function testNonMessageObject()
     {
@@ -127,6 +136,8 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test passing the Application to the Logger
+     *
+     * @return void
      */
     public function testApplication()
     {

@@ -64,8 +64,8 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     /**
      * Check if the correct message is generated for an event
      *
-     * @param string $level   The severity of the event
-     * @param string $message The message for the event
+     * @param string $severity   The severity of the event
+     * @param string $messageStr The message for the event
      *
      * @dataProvider providerMessages
      * @return void
@@ -112,6 +112,8 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
  
     /**
      * Test passing the Application to the Logger
+     *
+     * @return void
      */
     public function testApplication()
     {

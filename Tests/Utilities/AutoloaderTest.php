@@ -70,6 +70,8 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test if the autoloader ignores non namespaced classes
+     *
+     * @return void
      */
     public function testNonNSClass()
     {
@@ -78,6 +80,8 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test if the autoloader doesn't find a class
+     *
+     * @return void
      */
     public function testNonExistantClass()
     {
