@@ -287,13 +287,13 @@ class Application extends Subject
      * @return Response The response object to be outputted
      * @todo Not sure why this was static?
      */
-    protected function handleResult($result)
+    public function handleResult($result)
     {
         $this->setState('transforming');
         $view = self::getTool('View');
         //Make sure we have a view to work with
         if (!$view) {
-            throw new \Exception('No View to work with');
+            throw new Exceptions\BackendException('No View to work with');
             //$view = new View($this->getRequest());
         }
 
@@ -301,7 +301,7 @@ class Application extends Subject
         $response = $view->transform($result);
 
         if (!($response instanceof Response)) {
-            throw new \Exception('Unrecognized Response');
+            throw new Exceptions\BackendException('Unrecognized Response');
         }
         $this->setState('transformed');
         return $response;
@@ -508,9 +508,21 @@ class Application extends Subject
      *
      * @return boolean The Constructed state of the Application
      */
-    public function getConstructed()
+    public static function getConstructed()
     {
         return self::$constructed;
+    }
+
+    /**
+     * Set the constructed state of the application
+     * 
+     * @param boolean $constructed The new constructed state
+     *
+     * @return void
+     */
+    public static function setConstructed($constructed)
+    {
+        self::$constructed = (bool)$constructed;
     }
 
     /**
@@ -649,33 +661,5 @@ class Application extends Subject
         }
 
         return false;
-    }
-
-    /**
-     * Mail function hook. This will call the provided Mailer to do the mailing.
-     *
-     * @param string $recipient The recipient of the email
-     * @param string $subject   The subject of the email
-     * @param string $message   The content of the email
-     * @param array  $options   Extra email options
-     *
-     * @return boolean If the mail was succesfully scheduled
-     */
-    public static function mail($recipient, $subject, $message, array $options = array())
-    {
-        $mail = self::getTool('Mailer');
-
-        if (array_key_exists('headers', $options)) {
-            $headers = $options['headers'];
-            unset($options['headers']);
-        } else {
-            $headers = array();
-        }
-
-        if ($mail) {
-        } else {
-            $options['headers'] = 'X-Mailer: BackendCore / PHP';
-            return mail($recipient, $subject, $message, $options['headers'], $options);
-        }
     }
 }

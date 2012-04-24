@@ -69,6 +69,18 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\Backend\Core\Utilities\Config', $application->getTool('Config'));
 
         $this->assertNotEmpty(Application::getSiteState());
+
+        Application::setSiteState('development');
+        Application::setConstructed(false);
+        $application = new Application($this->request);
+        $this->assertEquals(5, Application::getDebugLevel());
+
+        $_SERVER['DEBUG_LEVEL'] = 13;
+        Application::setConstructed(false);
+        $application = new Application($this->request);
+        $this->assertEquals(13, Application::getDebugLevel());
+
+        Application::setDebugLevel(1);
     }
 
     /**
@@ -133,7 +145,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding an undefined Tool
      *
-     * @return null
+     * @return void
      * @expectedException \Backend\Core\Exceptions\BackendException
      */
     public function testAddUndefinedTool()
@@ -144,7 +156,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding an invalid Tool
      *
-     * @return null
+     * @return void
      * @expectedException \Backend\Core\Exceptions\BackendException
      */
     public function testAddInvalidTool()
@@ -153,9 +165,20 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test adding an invalid Tool Array
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exceptions\BackendException
+     */
+    public function testAddInvalidToolArray()
+    {
+        Application::addTool('InvalidTool', array('SomeRandomClass', array()));
+    }
+
+    /**
      * Test adding and retrieving a Tool
      *
-     * @return null
+     * @return void
      */
     public function testAddGetTool()
     {
@@ -166,7 +189,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the Application error handling
      *
-     * @return null
+     * @return void
      * @expectedException \ErrorException
      */
     public function dontTestError()
@@ -189,6 +212,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         //Test Setting a string
         Application::setDebugLevel('4');
         $this->assertSame(4, Application::getDebugLevel());
+        //Test an invalid level
+        $this->assertFalse(Application::setDebugLevel('string'));
+        $this->assertFalse(Application::setDebugLevel(0));
+
+
         //Reset the Debug Level
         Application::setDebugLevel(1);
     }
@@ -196,7 +224,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding and getting Namespaces
      *
-     * @return null
+     * @return void
      */
     public function testRegisterNamespace()
     {
@@ -206,9 +234,42 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * testHandleResult
+     *
+     * @expectedException \Backend\Core\Exceptions\BackendException
+     * @expectedExceptionMessage No View to work with
+     * @return void
+     */
+    public function testHandleResultInvalidView()
+    {
+        $request = new Request('http://www.google.com/', 'GET', array('format' => 'invalid'));
+        $request->setQuery('/');
+
+        $application = new Application($request);
+        Application::addTool('View', false);
+        $application->handleResult('');
+    }
+
+    /**
+     * testHandleResult
+     *
+     * @expectedException \Backend\Core\Exceptions\BackendException
+     * @expectedExceptionMessage Unrecognized Response
+     * @return void
+     */
+    public function testHandleResultInvalidResponse()
+    {
+        $view = new TestView($this->request);
+        $view->setResponse(false);
+        $application = new Application($this->request);
+        Application::addTool('View', $view);
+        $application->handleResult('');
+    }
+
+    /**
      * Test Application::getViewMethod
      *
-     * @return null
+     * @return void
      */
     public function testGetViewMethod()
     {
