@@ -58,7 +58,7 @@ class Config
             //TODO Move this to a YamlParser class
             if (function_exists('yaml_parse_file')) {
                 $this->_values = \yaml_parse_file($filename);
-            } else if (fopen('SymfonyComponents/YAML/sfYamlParser.php', 'r', true)) {
+            } else if (stream_resolve_include_path('SymfonyComponents/YAML/sfYamlParser.php')) {
                 if (!class_exists('\sfYamlParser')) {
                     include_once 'SymfonyComponents/YAML/sfYamlParser.php';
                 }
