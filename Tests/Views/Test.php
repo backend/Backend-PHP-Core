@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining \Core\Tests\TestView
+ * File defining \Core\Tests\Views\Test
  *
  * PHP Version 5.3
  *
@@ -12,7 +12,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-namespace Backend\Core\Tests;
+namespace Backend\Core\Tests\Views;
 /**
  * Output a request in JavaScript Object Notation
  *
@@ -23,8 +23,18 @@ namespace Backend\Core\Tests;
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-class TestView extends \Backend\Core\View
+class Test extends \Backend\Core\View
 {
+    /**
+     * @var array Handle HTML requests
+     */
+    public static $handledFormats = array(
+        'test'
+    );
+
+    /**
+     * @var mixed The response to give
+     */
     protected $response;
 
     /**

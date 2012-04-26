@@ -33,29 +33,79 @@ class ViewFactory
      *
      * @param Request $request The Request to use to determine the view
      *
+     * @throws \Backend\Core\Exceptions\UnrecognizedRequestException
      * @return View The view that can handle the Request
      */
-    public static function build(Request $request)
+    public static function build(Request $request, array $namespaces = null)
     {
-        //Check the View Folder
-        $views = array();
-        $namespaces = array_reverse(Application::getNamespaces());
-        $viewFiles = array();
+        $views = self::getViews($namespaces);
+
+        $formats = self::getFormats($request);
+
+        foreach ($formats as $format) {
+            foreach ($views as $viewName) {
+                if (in_array($format, $viewName::$handledFormats)) {
+                    $view = new $viewName($request);
+                    return $view;
+                }
+            }
+        }
+
+        throw new \Backend\Core\Exceptions\UnrecognizedRequestException('Unrecognized Format');
+    }
+
+    /**
+     * Get the available views
+     * 
+     * @param array $namespaces An array of namespaces to check
+     *
+     * @return array The list of available view classes
+     */
+    public static function getViews(array $namespaces = null)
+    {
+        //Get the Files
+        $namespaces = $namespaces ? $namespaces : array_reverse(Application::getNamespaces());
+        $viewFiles  = array();
         foreach ($namespaces as $base) {
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
             $files  = glob(PROJECT_FOLDER . '*' . $folder . '/Views/*.php');
             $viewFiles = array_merge($viewFiles, $files);
         }
+
+        $views = array();
         foreach ($viewFiles as $file) {
             //Check the view class
             $viewName = str_replace(array(SOURCE_FOLDER, VENDOR_FOLDER), '', $file);
             $viewName = '\\' . str_replace(DIRECTORY_SEPARATOR, '\\', substr($viewName, 0, strlen($viewName) - 4));
-            if (!class_exists($viewName, true)) {
-                continue;
-            }
             $views[] = $viewName;
         }
+        //Check the classes
+        $views = array_filter($views, array('\Backend\Core\Utilities\ViewFactory', 'isValidView'));
 
+        return $views;
+    }
+
+    /**
+     * Check if a class is a valid View 
+     * 
+     * @param mixed $className The class to check
+     *
+     * @return boolean
+     */
+    public static function isValidView($className)
+    {
+        return class_exists($className) && is_subclass_of($className, '\Backend\Core\View');
+    }
+
+    /**
+     * Get the possible formats for the Request
+     *
+     * @param \Backend\Core\Request $request The request to check
+     *
+     * @return array The formats requested
+     */
+    public static function getFormats(Request $request)
+    {
         $formats = array_filter(
             array(
                 $request->getSpecifiedFormat(),
@@ -63,20 +113,6 @@ class ViewFactory
                 $request->getMimeType(),
             )
         );
-
-        foreach ($formats as $format) {
-            foreach ($views as $viewName) {
-                if (in_array($format, $viewName::$handledFormats)) {
-                    $view = new $viewName($request);
-                    if (!($view instanceof View)) {
-                        throw new \Backend\Core\Exceptions\UnknownViewException('Invalid View: ' . get_class($view));
-                    }
-                    return $view;
-                }
-            }
-        }
-
-        throw new \Backend\Core\Exceptions\UnrecognizedRequestException('Unrecognized Format');
-        return false;
+        return $formats;
     }
 }
