@@ -97,10 +97,10 @@ class Application extends Subject
         self::$_toolbox = array();
 
         if ($config === null) {
-            if (file_exists(PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.yaml')) {
-                $config = PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.yaml';
-            } else if (file_exists(PROJECT_FOLDER . 'configs/default.yaml')) {
-                $config = PROJECT_FOLDER . 'configs/default.yaml';
+            if (file_exists(PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.' . CONFIG_EXT)) {
+                $config = PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.' . CONFIG_EXT;
+            } else if (file_exists(PROJECT_FOLDER . 'configs/default.' . CONFIG_EXT)) {
+                $config = PROJECT_FOLDER . 'configs/default.' . CONFIG_EXT;
             } else {
                 $string = 'Could not find Configuration file. . Add one to ' . PROJECT_FOLDER . 'configs';
                 throw new \Exception($string);
@@ -176,6 +176,11 @@ class Application extends Subject
         }
 
         //Some constants
+        if (!defined('CONFIG_EXT')) {
+            define('CONFIG_EXT', 'yaml');
+        }
+
+        //Set the Debug Level
         if (empty($_SERVER['DEBUG_LEVEL'])) {
             switch (self::getSiteState()) {
             case 'development':

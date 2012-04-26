@@ -127,8 +127,12 @@ class RoutePath
             $controllerClass = \Backend\Core\Application::resolveClass($callbackArray[0], 'controller');
             $methodName      = Strings::camelCase($callbackArray[1] . ' Action');
 
+            if (empty($controllerClass)) {
+                throw new \Backend\Core\Exceptions\UnknownControllerException('Invalid Callback: ' . $callback);
+            }
+
             if (!class_exists($controllerClass, true)) {
-                throw new \Backend\Core\Exceptions\UnknownControllerException('Unknown Controller: ' . $callbackArray[0]);
+                throw new \Backend\Core\Exceptions\UnknownControllerException('Unknown Controller: ' . $controllerClass);
             }
 
             $callback = array(

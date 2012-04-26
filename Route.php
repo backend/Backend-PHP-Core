@@ -36,7 +36,7 @@ class Route
      */
     public function __construct($routesFile = false)
     {
-        $routesFile = $routesFile ?: PROJECT_FOLDER . 'configs/routes.yaml';
+        $routesFile = $routesFile ?: PROJECT_FOLDER . 'configs/routes.' . CONFIG_EXT;
         if (!file_exists($routesFile)) {
             return false;
         }
@@ -138,6 +138,9 @@ class Route
     protected function checkGeneratedRoutes($request)
     {
         $query    = ltrim($request->getQuery(), '/');
+        if (empty($query)) {
+            throw new Exceptions\UnknownRouteException($request);
+        }
         $queryArr = explode('/', $query);
 
         //Resolve the controller
