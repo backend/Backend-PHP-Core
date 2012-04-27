@@ -14,13 +14,9 @@
 namespace Backend\Core;
 use Backend\Core\Utilities\ApplicationEvent;
 use Backend\Core\Utilities\Subject;
+use Backend\Core\Utilities\ServiceLocator;
 /**
  * The main application class.
- *
- * The application will / should be the only singleton in the framework, acting as
- * a Toolbox. That means that any resource that should be globally accessable (and
- * some times a singleton) should be passed to the Application. Read more at
- * {@link http://www.ibm.com/developerworks/webservices/library/co-single/index.html#h3}
  *
  * @category Backend
  * @package  Core
@@ -86,16 +82,9 @@ class Application extends Subject
     {
         $this->setState('constructing');
 
-        $this->setRequest($request instanceof Request ? $request : new Request());
 
-        if (!self::$constructed) {
-            self::constructApplication();
-        }
 
-        //Setup the specified tools
-        //TODO: Maybe move the Toolbox to a separate class
-        self::$_toolbox = array();
-
+        // Setup the Config
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.' . CONFIG_EXT)) {
                 $config = PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.' . CONFIG_EXT;
@@ -110,7 +99,20 @@ class Application extends Subject
             //String specifies that we should parse the file specified
             $config = new Utilities\Config($config);
         }
-        self::addTool('Config', $config);
+        ServiceLocator::add('backend.Config', $config);
+
+        //Initiate the Services
+        ServiceLocator::add('backend.Application', $this);
+
+        if ($services = $config->get('services')) {
+            ServiceLocator::addFromConfig($services);
+        }
+
+        $this->setRequest($request instanceof Request ? $request : new Request());
+
+        if (!self::$constructed) {
+            self::constructApplication();
+        }
 
         //Determine the View
         try {
@@ -120,17 +122,7 @@ class Application extends Subject
             $view = new View($this->getRequest());
         }
         new ApplicationEvent('Running Application in ' . get_class($view) . ' View', ApplicationEvent::SEVERITY_INFORMATION);
-        self::addTool('View', $view);
-
-        //Initiate the Tools
-        self::addTool('Application', $this);
-
-        $tools = $config->tools;
-        if ($tools) {
-            foreach ($tools as $toolName => $tool) {
-                self::addTool($toolName, $tool);
-            }
-        }
+        ServiceLocator::add('backend.View', $view);
 
         parent::__construct($config);
 
@@ -262,7 +254,7 @@ class Application extends Subject
 
         //Execute the View related method
         if (is_array($callback)) {
-            $view = self::getTool('View');
+            $view = ServiceLocator::get('backend.View');
             $viewMethod = $this->getViewMethod($callback, $view);
             //Do both the is_callable check and the try, as some __call methods throw an exception
             if (is_callable(array($callback[0], $viewMethod))) {
@@ -295,7 +287,7 @@ class Application extends Subject
     public function handleResult($result)
     {
         $this->setState('transforming');
-        $view = self::getTool('View');
+        $view = ServiceLocator::get('backend.View');
         //Make sure we have a view to work with
         if (!$view) {
             throw new Exceptions\BackendException('No View to work with');
@@ -322,7 +314,7 @@ class Application extends Subject
      */
     public function getViewMethod(array $callback, View $view = null)
     {
-        $view = is_null($view) ? self::getTool('View') : $view;
+        $view = is_null($view) ? ServiceLocator::get('backend.View') : $view;
 
         //Check for a transform for the current view in the controller
         $methodName = get_class($view);
@@ -382,7 +374,7 @@ class Application extends Subject
             } catch (\Exception $e) {*/
         //We can't use handleResponse, as it throws exceptions. Just do the transform
 
-        $view = self::getTool('View');
+        $view = ServiceLocator::get('backend.View');
         if (!$view) {
             echo (string)$exception;
             return;
@@ -398,50 +390,6 @@ class Application extends Subject
         $response->setStatusCode(500);
         $response->output();
         //}
-    }
-
-    /**
-     * Add a tool to the application
-     *
-     * @param mixed $toolName The tool to add. Can also be the name of a class to instansiate
-     * @param array $tool     The parameters to pass to the constructor of the Tool
-     *
-     * @return null
-     */
-    public static function addTool($toolName, $tool)
-    {
-        if (is_string($tool)) {
-            if (class_exists($tool, true)) {
-                $tool = new $tool();
-            } else {
-                new ApplicationEvent('Undefined Tool: ' . $tool, ApplicationEvent::SEVERITY_DEBUG);
-                throw new Exceptions\BackendException('Undefined Tool: ' . $tool);
-            }
-        } else if (is_array($tool) && count($tool) == 2) {
-            if (class_exists($tool[0], true)) {
-                $tool = new $tool[0]($tool[1]);
-            } else {
-                new ApplicationEvent('Undefined Tool: ' . $tool[0], ApplicationEvent::SEVERITY_DEBUG);
-                throw new Exceptions\BackendException('Undefined Tool: ' . $tool[0]);
-            }
-        }
-        $toolName = empty($toolName) || is_numeric($toolName) ? get_class($tool) : $toolName;
-        self::$_toolbox[$toolName] = $tool;
-    }
-
-    /**
-     * Get a tool from the application
-     *
-     * @param string $className The class of the tool to retrieve
-     *
-     * @return mixed The requested Tool, or null if it doesn't exist
-     */
-    public static function getTool($className)
-    {
-        if (array_key_exists($className, self::$_toolbox)) {
-            return self::$_toolbox[$className];
-        }
-        return null;
     }
 
     /**
