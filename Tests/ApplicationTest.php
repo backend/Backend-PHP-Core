@@ -41,6 +41,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->request->setQuery('/');
     }
 
+    protected function getApplication($request = false)
+    {
+        return new Application($request ?: $this->request, '../configs/testing.yaml');
+    }
+
     /**
      * Tear down the test
      *
@@ -58,27 +63,21 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-        //Setup
-        $application = new Application($this->request);
-
         //Asserts
+        $application = $this->getApplication();
         $this->assertTrue($application->getConstructed());
         $this->assertEquals($this->request, $application->getRequest());
-
-        $this->assertInstanceOf('\Backend\Core\View', $application->getTool('View'));
-
-        $this->assertInstanceOf('\Backend\Core\Utilities\Config', $application->getTool('Config'));
 
         $this->assertNotEmpty(Application::getSiteState());
 
         Application::setSiteState('development');
         Application::setConstructed(false);
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $this->assertEquals(5, Application::getDebugLevel());
 
         $_SERVER['DEBUG_LEVEL'] = 13;
         Application::setConstructed(false);
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $this->assertEquals(13, Application::getDebugLevel());
 
         Application::setDebugLevel(1);
@@ -93,7 +92,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         //Setup
         $this->request->setQuery('/');
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $result = $application->main();
 
         //Asserts
@@ -110,7 +109,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         //Setup
         $this->request->setQuery('/unknown_controller');
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $result = $application->main();
 
         //Asserts
@@ -135,56 +134,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         //Setup
         $this->request->setQuery('/');
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $result = $application->main();
 
         //Asserts
         $this->assertInstanceOf('\Backend\Core\Response', $result);
         $this->assertSame(200, $result->getStatusCode());
-    }
-
-    /**
-     * Test adding an undefined Tool
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     */
-    public function testAddUndefinedTool()
-    {
-        Application::addTool('UndefinedTool', 'UndefinedTool');
-    }
-
-    /**
-     * Test adding an invalid Tool
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     */
-    public function testAddInvalidTool()
-    {
-        Application::addTool('InvalidTool', 'SomeRandomClass');
-    }
-
-    /**
-     * Test adding an invalid Tool Array
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     */
-    public function testAddInvalidToolArray()
-    {
-        Application::addTool('InvalidTool', array('SomeRandomClass', array()));
-    }
-
-    /**
-     * Test adding and retrieving a Tool
-     *
-     * @return void
-     */
-    public function testAddGetTool()
-    {
-        Application::addTool('Logger', '\Backend\Core\Utilities\Logger');
-        $this->assertInstanceOf('\Backend\Core\Utilities\Logger', Application::getTool('Logger'));
     }
 
     /**
@@ -246,8 +201,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $request = new Request('http://www.google.com/', 'GET', array('format' => 'invalid'));
         $request->setQuery('/');
 
-        $application = new Application($request);
-        Application::addTool('View', false);
+        $application = $this->getApplication($request);
         $application->handleResult('');
     }
 
@@ -262,8 +216,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $view = new Views\Test($this->request);
         $view->setResponse(false);
-        $application = new Application($this->request);
-        Application::addTool('View', $view);
+        $application = $this->getApplication();
         $application->handleResult('');
     }
 
@@ -278,9 +231,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             new \Backend\Base\Controllers\ExamplesController(),
             'homeAction'
         );
-        $request = new \Backend\Core\Request('http://www.google.com', 'GET');
-        $view    = new \Backend\Base\Views\Cli($request);
-        $method  = Application::getViewMethod($callback, $view);
+        $request     = new \Backend\Core\Request('http://www.google.com', 'GET');
+        $application = $this->getApplication($request);
+        $view        = new \Backend\Base\Views\Cli($request);
+        $method      = $application->getViewMethod($callback, $view);
         $this->assertSame('homeCli', $method);
     }
 }
