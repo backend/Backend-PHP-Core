@@ -31,7 +31,8 @@ class ViewFactory
     /**
      * Build a view with the supplied (or current) request
      *
-     * @param Request $request The Request to use to determine the view
+     * @param Request $request    The Request to use to determine the view
+     * @param array   $namespaces An array of namespaces to check
      *
      * @throws \Backend\Core\Exceptions\UnrecognizedRequestException
      * @return View The view that can handle the Request

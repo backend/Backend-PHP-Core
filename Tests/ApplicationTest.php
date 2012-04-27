@@ -41,7 +41,14 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->request->setQuery('/');
     }
 
-    protected function getApplication($request = false)
+    /**
+     * Get an Application instance
+     * 
+     * @param \Backend\Core\Request $request The request to use. Optional
+     *
+     * @return void
+     */
+    protected function getApplication(\Backend\Core\Request $request = false)
     {
         return new Application($request ?: $this->request, '../configs/testing.yaml');
     }

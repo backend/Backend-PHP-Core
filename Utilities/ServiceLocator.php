@@ -24,8 +24,19 @@ use \Backend\Core\Exceptions\BackendException;
  */
 class ServiceLocator
 {
+    /**
+     * collection 
+     * 
+     * @var array The collection of services
+     */
     protected static $collection = array();
 
+    /**
+     * The object constructor. Will throw an exception, as this is a static only class
+     * 
+     * @return void
+     * @throws \Backend\Core\Exceptions\BackendException
+     */
     public function __construct()
     {
         throw new BackendException('Cannot instansiate the ' . get_class($this) . ' Class');
@@ -39,8 +50,8 @@ class ServiceLocator
      * of the service, and the second the parameters to be passed to the
      * constructor
      * 
-     * @param string $id The unique identifier for the service
-     * @param mixed $service The service, or the definition of the service
+     * @param string $id      The unique identifier for the service
+     * @param mixed  $service The service, or the definition of the service
      *
      * @access public
      * @return void
@@ -54,6 +65,14 @@ class ServiceLocator
         self::$collection[$id] = $service;
     }
 
+    /**
+     * Construct a Service.
+     * 
+     * @param mixed $service The details of the service to construct.
+     *
+     * @return object The constructed service
+     * @throws \Backend\Core\Exceptions\BackendException
+     */
     public static function constructService($service)
     {
         if (is_object($service)) {
@@ -79,6 +98,13 @@ class ServiceLocator
         return $service;
     }
 
+    /**
+     * Add Services from a Config array
+     * 
+     * @param array $services An array containing the service details
+     *
+     * @return void
+     */
     public static function addFromConfig(array $services)
     {
         foreach ($services as $id => $service) {
@@ -86,11 +112,25 @@ class ServiceLocator
         }
     }
 
+    /**
+     * Check if the ServiceLocator has the specified Service.
+     * 
+     * @param string $id The unique identifier of the Service.
+     *
+     * @return boolean If the specified Service is present.
+     */
     public static function has($id)
     {
         return array_key_exists($id, self::$collection);
     }
 
+    /**
+     * Remove the specified Service.
+     * 
+     * @param string $id The unique identifier of the Service to remove.
+     *
+     * @return void
+     */
     public static function remove($id)
     {
         if (self::has($id)) {
@@ -98,6 +138,14 @@ class ServiceLocator
         }
     }
 
+    /**
+     * Get the specified Service.
+     * 
+     * @param string $id The unique identifier of the Service to get.
+     * 
+     * @return object The requested Service
+     * @throws \Backend\Core\Exceptions\BackendException
+     */
     public static function get($id)
     {
         if (self::has($id)) {
@@ -107,11 +155,21 @@ class ServiceLocator
         }
     }
 
+    /**
+     * Get all the services
+     * 
+     * @return array An array of all the services
+     */
     public static function getAll()
     {
         return self::$collection;
     }
 
+    /**
+     * Reset and Empty the ServiceLocator collection
+     * 
+     * @return void
+     */
     public static function reset()
     {
         self::$collection = array();

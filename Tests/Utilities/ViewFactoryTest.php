@@ -48,6 +48,11 @@ class ViewFactoryTest extends \PHPUnit_Framework_TestCase
     {
     }
 
+    /**
+     * Test the build function
+     * 
+     * @return void
+     */
     public function testBuild()
     {
         $request = new \Backend\Core\Request('http://www.google.com/', 'GET', array('format' => 'test'));
@@ -59,7 +64,6 @@ class ViewFactoryTest extends \PHPUnit_Framework_TestCase
     /**
      * testBuild 
      * 
-     * @access public
      * @return void
      * @expectedException \Backend\Core\Exceptions\UnrecognizedRequestException
      */
@@ -67,19 +71,34 @@ class ViewFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $request = new \Backend\Core\Request('http://www.google.com/', 'GET', array('format' => 'someFormat'));
         $request->setQuery('/');
-        $view = \Backend\Core\Utilities\ViewFactory::build($request, array(
-            '\Backend\Core\Tests'
-        ));
+        $view = \Backend\Core\Utilities\ViewFactory::build(
+            $request,
+            array(
+                '\Backend\Core\Tests'
+            )
+        );
     }
 
+    /**
+     * Test getViews 
+     * 
+     * @return void
+     */
     public function testGetViews()
     {
-        $views = \Backend\Core\Utilities\ViewFactory::getViews(array(
-            '\Backend\Core\Tests'
-        ));
+        $views = \Backend\Core\Utilities\ViewFactory::getViews(
+            array(
+                '\Backend\Core\Tests'
+            )
+        );
         $this->assertContains('\Backend\Core\Tests\Views\Test', $views);
     }
 
+    /**
+     * Test getFormats 
+     * 
+     * @return void
+     */
     public function testGetFormats()
     {
         $request = new \Backend\Core\Request('http://www.google.com/', 'GET', array('format' => 'someFormat'));

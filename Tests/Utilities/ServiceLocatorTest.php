@@ -61,6 +61,8 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test adding a Service
+     *
+     * @return void
      */
     public function testAddService()
     {
@@ -130,6 +132,11 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         SL::constructService('UndefinedClass');
     }
 
+    /**
+     * Test Adding services From a Config 
+     * 
+     * @return void
+     */
     public function testAddFromConfig()
     {
         $services = array(
@@ -143,6 +150,8 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test removing a Service
+     *
+     * @return void
      */
     public function testRemoveService()
     {
@@ -154,6 +163,8 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test checking a Service
+     * 
+     * @return void
      */
     public function testHasService()
     {
@@ -165,6 +176,8 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test getting a Service
+     *
+     * @return void
      */
     public function testGetService()
     {
@@ -178,6 +191,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException Backend\Core\Exceptions\BackendException
      * @expectedExceptionMessage Undefined Service: Something
+     * @return void
      */
     public function testGetUndefinedService()
     {
