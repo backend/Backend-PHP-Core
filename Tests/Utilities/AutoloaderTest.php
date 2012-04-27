@@ -52,7 +52,8 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
     public function testRegister()
     {
         Autoloader::register();
-        $function = array_shift(spl_autoload_functions());
+        $functions = spl_autoload_functions();
+        $function  = array_shift($functions);
         $this->assertEquals(array('Backend\Core\Utilities\Autoloader', 'autoload'), $function);
     }
 

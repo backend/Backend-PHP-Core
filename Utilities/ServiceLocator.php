@@ -56,6 +56,9 @@ class ServiceLocator
 
     public static function constructService($service)
     {
+        if (is_object($service)) {
+            return $service;
+        }
         if (is_string($service)) {
             if (self::has($service)) {
                 return self::get($service);

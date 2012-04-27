@@ -35,6 +35,7 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        \Backend\Core\Application::setSiteState('testing');
     }
 
     /**
@@ -44,6 +45,7 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
+        \Backend\Core\Utilities\ServiceLocator::reset();
     }
 
     /**

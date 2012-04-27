@@ -82,8 +82,6 @@ class Application extends Subject
     {
         $this->setState('constructing');
 
-
-
         // Setup the Config
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.' . CONFIG_EXT)) {
