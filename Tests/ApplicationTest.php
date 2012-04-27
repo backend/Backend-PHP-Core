@@ -53,6 +53,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the constructor
      *
+     * @todo Make sure we use the test log file, even if we set site state to dev
      * @return void
      */
     public function testConstructor()
@@ -259,7 +260,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleResultInvalidResponse()
     {
-        $view = new TestView($this->request);
+        $view = new Views\Test($this->request);
         $view->setResponse(false);
         $application = new Application($this->request);
         Application::addTool('View', $view);
