@@ -69,6 +69,29 @@ class RoutePath
         $this->arguments = array_key_exists('arguments', $options) ? $options['arguments'] : array();
     }
 
+    public function checkRequest(\Backend\Core\Request $request)
+    {
+        $result = $this->check($request->getMethod(), $request->getQuery());
+        if (!$result) {
+            return $result;
+        }
+        if (is_array($this->callback)) {
+            $methodMessage = get_class($this->callback[0]) . '::' . $this->callback[1];
+        } else {
+            $methodMessage = $this->callback;
+        }
+        //Check the callback
+        if (!is_callable($this->callback)) {
+            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
+        }
+
+        if (is_array($this->callback) && method_exists($this->callback[0], 'setRequest')) {
+            //Set the request for the callback
+            $this->callback[0]->setRequest($request);
+        }
+        return $this->callback;
+    }
+
     /**
      * Check this RoutePath against the given verb / query for a match
      *
@@ -134,14 +157,15 @@ class RoutePath
             if (!class_exists($controllerClass, true)) {
                 throw new \Backend\Core\Exceptions\UnknownControllerException('Unknown Controller: ' . $controllerClass);
             }
+            $object = new $controllerClass();
+            //Decorate the Controller
+            //TODO This adds a dependancy. Rather use the DI framework to do it
+            $object = \Backend\Core\Decorable::decorate($callback[0]);
 
             $callback = array(
-                new $controllerClass(),
+                $object,
                 $methodName
             );
-
-            //Decorate the Controller
-            $callback[0] = \Backend\Core\Decorable::decorate($callback[0]);
         }
         return $callback;
     }
