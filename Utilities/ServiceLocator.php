@@ -90,7 +90,7 @@ class ServiceLocator
         }
         if (class_exists($service[0], true)) {
             $reflection = new \ReflectionClass($service[0]);
-            $service    = $reflection->newInstanceArgs($service[1]);
+            $service    = call_user_func_array(array($reflection, 'newInstanceArgs'), $service[1]);
         } else {
             new ApplicationEvent('Undefined Service: ' . $service[0], ApplicationEvent::SEVERITY_DEBUG);
             throw new BackendException('Undefined Service: ' . $service[0]);
