@@ -88,7 +88,7 @@ class RoutePath
         if ($this->route == $query) {
             //Straight match, no arguments
             return $this;
-        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9]*)>/', $this->route, $matches)) {
+        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $this->route, $matches)) {
             //Compile the Regex
             $varNames = $matches[1];
             $search   = $matches[0];
@@ -152,7 +152,12 @@ class RoutePath
     protected function constructArguments(array $arguments)
     {
         if (is_array($this->callback)) {
-            $refMethod = new \ReflectionMethod($this->callback[0], $this->callback[1]);
+            if ($this->callback[0] instanceof \Backend\Core\Decorators\Decorator) {
+                $object = $this->callback[0]->getOriginalObject();
+            } else {
+                $object = $this->callback[0];
+            }
+            $refMethod = new \ReflectionMethod($object, $this->callback[1]);
         } else {
             $refMethod = new \ReflectionFunction($this->callback);
         }

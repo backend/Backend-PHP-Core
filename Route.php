@@ -142,7 +142,9 @@ class Route
 
         //Resolve the controller
         $controller = $queryArr[0];
-        if (array_key_exists($controller, $this->routes['controllers'])) {
+        if (!empty($this->routes['controllers']) &&
+            array_key_exists($controller, $this->routes['controllers'])
+        ) {
             $controller  = $this->routes['controllers'][$controller];
         } else {
             $controller = Utilities\Strings::className($queryArr[0]);
