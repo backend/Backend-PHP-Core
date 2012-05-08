@@ -35,7 +35,7 @@ class Config
      * Construct the config class.
      *
      * @param string $filename The name of the config file to use. Defaults to
-     * PROJECT_FOLDER . 'config/default.yaml'
+     * PROJECT_FOLDER . 'config/default.' . CONFIG_EXT
      *
      * @return null
      * @todo Allow passing an array of filesnames to parse. This will let you parse
@@ -43,7 +43,7 @@ class Config
      */
     public function __construct($filename = false)
     {
-        $filename = $filename ? $filename : PROJECT_FOLDER . 'configs/default.yaml';
+        $filename = $filename ? $filename : PROJECT_FOLDER . 'configs/default.' . CONFIG_EXT;
         if (!is_readable($filename)) {
             throw new BackendException('Invalid Config File: ' . $filename);
         }
@@ -58,7 +58,7 @@ class Config
             //TODO Move this to a YamlParser class
             if (function_exists('yaml_parse_file')) {
                 $this->_values = \yaml_parse_file($filename);
-            } else if (fopen('SymfonyComponents/YAML/sfYamlParser.php', 'r', true)) {
+            } else if (stream_resolve_include_path('SymfonyComponents/YAML/sfYamlParser.php')) {
                 if (!class_exists('\sfYamlParser')) {
                     include_once 'SymfonyComponents/YAML/sfYamlParser.php';
                 }

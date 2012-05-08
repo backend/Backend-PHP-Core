@@ -13,7 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-include_once 'Log.php';
+require_once 'Log.php';
 /**
  * A Logging Observer using the PEAR::Log class
  *

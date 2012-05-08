@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+use Backend\Core\Utilities\ServiceLocator;
 /**
  * Base Subject (as in Observer / Subject) class
  *
@@ -34,7 +35,7 @@ class Subject implements \SplSubject
      * Check the config for configured observers
      *
      * An observer is only eligible if it implements \SplObserver, and can be
-     * retrieved using \Backend\Core\getTool
+     * retrieved using the Service Locator
      *
      * @param \Backend\Utilities\Config $config The config file to check for observers
      *
@@ -42,16 +43,18 @@ class Subject implements \SplSubject
      */
     public function __construct(Config $config = null)
     {
-        $config = $config ? $config : \Backend\Core\Application::getTool('Config');
-        if (!$config) {
-            return false;
+        if (is_null($config)) {
+            if (!ServiceLocator::has('backend.Config')) {
+                return false;
+            }
+            $config = ServiceLocator::get('backend.Config');
         }
 
         //Attach Observers to Subjects
         $config = $config->get('subjects', get_class($this));
         if (!empty($config['observers'])) {
             foreach ($config['observers'] as $observerName) {
-                $observer = \Backend\Core\Application::getTool($observerName);
+                $observer = ServiceLocator::get($observerName);
                 if ($observer instanceof \SplObserver) {
                     $this->attach($observer);
                 }

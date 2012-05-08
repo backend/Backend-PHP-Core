@@ -13,11 +13,11 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
-use \Backend\Core\Application;
 use \Backend\Core\Utilities\Config;
 use \Backend\Core\Utilities\Logger;
 use \Backend\Core\Utilities\ApplicationEvent;
 use \Backend\Core\Utilities\Subject;
+use \Backend\Core\Utilities\ServiceLocator;
 /**
  * Class to test the \Backend\Core\Utilities\Subject class
  *
@@ -33,14 +33,12 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
     /**
      * Set up the test
      *
-     * Setup a Config and a Logger Tool
+     * Setup a Config and a Logger Service
      *
      * @return void
      */
     public function setUp()
     {
-        Application::addTool('Config', new Config());
-        Application::addTool('Logger', new Logger());
     }
 
     /**
@@ -50,6 +48,7 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
+        ServiceLocator::reset();
     }
 
     /**
@@ -59,14 +58,16 @@ class SubjectTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-        $subject = new Subject();
-        $this->assertEquals(array(), $subject->getObservers());
+        /*
+        $subject = new Subject(new Config('../configs/testing.yaml'));
+        $this->assertEquals(array(), $subject->getObservers());*/
+
+        $config = new Config('../configs/testing.yaml');
+        ServiceLocator::add('backend.Config', $config);
+        ServiceLocator::addFromConfig($config->services);
 
         $subject = new ApplicationEvent('Some Message', ApplicationEvent::SEVERITY_INFORMATION);
-        $this->assertContains(Application::getTool('Logger'), $subject->getObservers());
-
-        Application::addTool('Config', false);
-        $subject = new Subject();
+        $this->assertContains(ServiceLocator::get('backend.PearLogger'), $subject->getObservers());
     }
 
     /**

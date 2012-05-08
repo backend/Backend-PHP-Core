@@ -42,33 +42,53 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Get an Application instance
+     * 
+     * @param \Backend\Core\Request $request The request to use. Optional
+     *
+     * @return void
+     */
+    protected function getApplication(\Backend\Core\Request $request = false)
+    {
+        return new Application($request ?: $this->request, '../configs/testing.yaml');
+    }
+
+    /**
      * Tear down the test
      *
      * @return void
      */
     public function tearDown()
     {
+        \Backend\Core\Utilities\ServiceLocator::reset();
     }
 
     /**
      * Test the constructor
      *
+     * @todo Make sure we use the test log file, even if we set site state to dev
      * @return void
      */
     public function testConstructor()
     {
-        //Setup
-        $application = new Application($this->request);
-
         //Asserts
+        $application = $this->getApplication();
         $this->assertTrue($application->getConstructed());
         $this->assertEquals($this->request, $application->getRequest());
 
-        $this->assertInstanceOf('\Backend\Core\View', $application->getTool('View'));
-
-        $this->assertInstanceOf('\Backend\Core\Utilities\Config', $application->getTool('Config'));
-
         $this->assertNotEmpty(Application::getSiteState());
+
+        Application::setSiteState('development');
+        Application::setConstructed(false);
+        $application = $this->getApplication();
+        $this->assertEquals(5, Application::getDebugLevel());
+
+        $_SERVER['DEBUG_LEVEL'] = 13;
+        Application::setConstructed(false);
+        $application = $this->getApplication();
+        $this->assertEquals(13, Application::getDebugLevel());
+
+        Application::setDebugLevel(1);
     }
 
     /**
@@ -80,7 +100,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         //Setup
         $this->request->setQuery('/');
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $result = $application->main();
 
         //Asserts
@@ -97,7 +117,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         //Setup
         $this->request->setQuery('/unknown_controller');
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $result = $application->main();
 
         //Asserts
@@ -122,7 +142,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         //Setup
         $this->request->setQuery('/');
-        $application = new Application($this->request);
+        $application = $this->getApplication();
         $result = $application->main();
 
         //Asserts
@@ -131,42 +151,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test adding an undefined Tool
-     *
-     * @return null
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     */
-    public function testAddUndefinedTool()
-    {
-        Application::addTool('UndefinedTool', 'UndefinedTool');
-    }
-
-    /**
-     * Test adding an invalid Tool
-     *
-     * @return null
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     */
-    public function testAddInvalidTool()
-    {
-        Application::addTool('InvalidTool', 'SomeRandomClass');
-    }
-
-    /**
-     * Test adding and retrieving a Tool
-     *
-     * @return null
-     */
-    public function testAddGetTool()
-    {
-        Application::addTool('Logger', '\Backend\Core\Utilities\Logger');
-        $this->assertInstanceOf('\Backend\Core\Utilities\Logger', Application::getTool('Logger'));
-    }
-
-    /**
      * Test the Application error handling
      *
-     * @return null
+     * @return void
      * @expectedException \ErrorException
      */
     public function dontTestError()
@@ -189,6 +176,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         //Test Setting a string
         Application::setDebugLevel('4');
         $this->assertSame(4, Application::getDebugLevel());
+        //Test an invalid level
+        $this->assertFalse(Application::setDebugLevel('string'));
+        $this->assertFalse(Application::setDebugLevel(0));
+
+
         //Reset the Debug Level
         Application::setDebugLevel(1);
     }
@@ -196,7 +188,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding and getting Namespaces
      *
-     * @return null
+     * @return void
      */
     public function testRegisterNamespace()
     {
@@ -206,9 +198,40 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * testHandleResult
+     *
+     * @expectedException \Backend\Core\Exceptions\BackendException
+     * @expectedExceptionMessage No View to work with
+     * @return void
+     */
+    public function testHandleResultInvalidView()
+    {
+        $request = new Request('http://www.google.com/', 'GET', array('format' => 'invalid'));
+        $request->setQuery('/');
+
+        $application = $this->getApplication($request);
+        $application->handleResult('');
+    }
+
+    /**
+     * testHandleResult
+     *
+     * @expectedException \Backend\Core\Exceptions\BackendException
+     * @expectedExceptionMessage Unrecognized Response
+     * @return void
+     */
+    public function testHandleResultInvalidResponse()
+    {
+        $view = new Views\Test($this->request);
+        $view->setResponse(false);
+        $application = $this->getApplication();
+        $application->handleResult('');
+    }
+
+    /**
      * Test Application::getViewMethod
      *
-     * @return null
+     * @return void
      */
     public function testGetViewMethod()
     {
@@ -216,9 +239,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             new \Backend\Base\Controllers\ExamplesController(),
             'homeAction'
         );
-        $request = new \Backend\Core\Request('http://www.google.com', 'GET');
-        $view    = new \Backend\Base\Views\Cli($request);
-        $method  = Application::getViewMethod($callback, $view);
+        $request     = new \Backend\Core\Request('http://www.google.com', 'GET');
+        $application = $this->getApplication($request);
+        $view        = new \Backend\Base\Views\Cli($request);
+        $method      = $application->getViewMethod($callback, $view);
         $this->assertSame('homeCli', $method);
     }
 }
