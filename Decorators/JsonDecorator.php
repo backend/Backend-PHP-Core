@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining Core\Decorators\ModelDecorator
+ * File defining Backend\Core\Decorators\JsonDecorator
  *
  * PHP Version 5.3
  *
