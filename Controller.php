@@ -121,7 +121,6 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
         if (!class_exists($modelName, true)) {
             throw new \Exception('Model does not exist: ' . $modelName);
         }
-        $model = new $modelName($id);
         $model = call_user_func(array($modelName, 'read'), $id);
 
         //Decorate the Model
