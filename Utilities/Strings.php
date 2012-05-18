@@ -221,7 +221,7 @@ class Strings
         }
 
         // check for matches using regular expressions
-        foreach ($singular as $key => $pattern) {
+        foreach ($singular as $pattern) {
             if (preg_match($pattern[0], $string)) {
                 return preg_replace($pattern[0], $pattern[1], $string);
             }

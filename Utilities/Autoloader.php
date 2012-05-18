@@ -48,28 +48,16 @@ class Autoloader
     public static function autoload($className)
     {
         $className = ltrim($className, '\\');
-        $parts  = explode('\\', $className);
-        $vendor = false;
-        $base   = false;
-        if (count($parts) > 1) {
-            $vendor = $parts[0];
-            if (count($parts) > 2) {
-                $base = $parts[1];
-            }
-        }
 
-        //Determine the filename
-        $fileName  = '';
-        $namespace = '';
-        if ($lastNsPos = strripos($className, '\\')) {
-            $namespace = substr($className, 0, $lastNsPos);
-            $className = substr($className, $lastNsPos + 1);
-            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
-        }
-        if (empty($fileName)) {
+        //Check only namespaced classes
+        $lastNsPos = strripos($className, '\\');
+        if (!$lastNsPos) {
             return false;
         }
+        $namespace = substr($className, 0, $lastNsPos);
+        $className = substr($className, $lastNsPos + 1);
+        $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+        $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
 
         //Check the bases for the file
         $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);

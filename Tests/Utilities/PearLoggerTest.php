@@ -14,6 +14,8 @@
  */
 namespace Backend\Core\Tests\Utilities;
 use \Backend\Core\Utilities\PearLogger;
+use \Backend\Core\Utilities\ApplicationEvent;
+require_once 'Log.php';
 /**
  * Class to test the \Backend\Core\Utilities\PearLogger class
  *
@@ -33,6 +35,7 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        \Backend\Core\Application::setSiteState('testing');
     }
 
     /**
@@ -42,21 +45,116 @@ class PearLoggerTest extends \PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
+        \Backend\Core\Utilities\ServiceLocator::reset();
+    }
+
+    /**
+     * Test the constructor
+     *
+     * @return void
+     */
+    public function testContructor()
+    {
+        $filename = '/tmp/test-backend.log';
+        $logger   = new PearLogger($filename);
+        $this->assertInstanceOf("Log_file", $logger->getLogger());
+        $logger->update(new ApplicationEvent('Some Message', ApplicationEvent::SEVERITY_INFORMATION));
+        $this->assertFileExists($filename);
+    }
+
+    /**
+     * Provide data for the testMessages function
+     *
+     * @return array
+     */
+    public function providerMessages()
+    {
+        return array(
+            array(ApplicationEvent::SEVERITY_CRITICAL,    \PEAR_LOG_EMERG),
+            array(ApplicationEvent::SEVERITY_WARNING,     \PEAR_LOG_CRIT),
+            array(ApplicationEvent::SEVERITY_IMPORTANT,   \PEAR_LOG_WARNING),
+            array(ApplicationEvent::SEVERITY_DEBUG,       \PEAR_LOG_DEBUG),
+            array(ApplicationEvent::SEVERITY_INFORMATION, \PEAR_LOG_INFO),
+        );
     }
 
     /**
      * Check if the correct message is generated
      *
+     * @param integer $severity  The severity
+     * @param integer $pearLevel The level
+     *
+     * @return void
+     * @dataProvider providerMessages
+     */
+    public function testMessages($severity, $pearLevel)
+    {
+        $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);
+        $pearLogger->expects($this->once())
+            ->method('log')
+            ->with($this->equalTo('Some Message'), $this->equalTo($pearLevel));
+        $options    = array(
+            'logger'   => $pearLogger,
+            'filename' => '/tmp/test-backend.log',
+        );
+        $logger = new PearLogger($options);
+        $logger->update(new ApplicationEvent('Some Message', $severity));
+    }
+
+    /**
+     * Test passing an undefined severity to the logger
+     *
      * @return void
      */
-    public function testMessages()
+    public function testUndefinedSeverity()
     {
-        $logger = new PearLogger('/tmp/test-backend.log');
-        var_dump($logger); die;
-        //$this->assert
-        ob_start();
-        $logger->update(new LogMessage('Some Message', $level));
-        $result = ob_get_clean();
-        $this->assertContains($message, $result);
+        $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);
+        $pearLogger->expects($this->once())
+            ->method('log')
+            ->with($this->equalTo('Some Message'), $this->equalTo(999));
+        $options    = array(
+            'logger'   => $pearLogger,
+            'filename' => '/tmp/test-backend.log',
+        );
+        $logger = new PearLogger($options);
+        $logger->update(new ApplicationEvent('Some Message', 999));
+    }
+
+    /**
+     * Test passing a non message object to the logger
+     *
+     * @return void
+     */
+    public function testNonMessageObject()
+    {
+        $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);
+        $options    = array(
+            'logger'   => $pearLogger,
+            'filename' => '/tmp/test-backend.log',
+        );
+        $logger = new PearLogger($options);
+        $this->assertFalse($logger->update(new \Backend\Core\Utilities\Subject()));
+    }
+
+    /**
+     * Test passing the Application to the Logger
+     *
+     * @return void
+     */
+    public function testApplication()
+    {
+        $pearLogger = $this->getMock('Log_file', array('log'), array(), '', false);
+        $pearLogger->expects($this->once())
+            ->method('log')
+            ->with($this->equalTo('Backend\Core\Application entered state [something]'), $this->equalTo(\PEAR_LOG_DEBUG));
+        $options    = array(
+            'logger'   => $pearLogger,
+            'filename' => '/tmp/test-backend.log',
+        );
+        $logger      = new PearLogger($options);
+        $request     = new \Backend\Core\Request('http://www.google.com', 'GET');
+        $application = new \Backend\Core\Application($request);
+        $application->setState('something');
+        $logger->update($application);
     }
 }

@@ -82,11 +82,12 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test an Invalid Model Name
      *
-     * @expectedException UnknownModel
+     * @expectedException UnknownModelException
      * @return null
      */
     public function testInvalidModel()
     {
         //TODO
+        $this->markTestIncomplete('Not Implemented Yet');
     }
 }

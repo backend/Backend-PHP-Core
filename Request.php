@@ -278,14 +278,14 @@ class Request
      */
     public function getSpecifiedFormat()
     {
-        //Third CL parameter is the required format
-        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
-            return $this->serverInfo['argv'][3];
-        }
-
         //Check the format parameter
         if (array_key_exists('format', $this->payload)) {
             return $this->payload['format'];
+        }
+
+        //Third CL parameter is the required format
+        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
+            return $this->serverInfo['argv'][3];
         }
         return false;
     }
@@ -518,14 +518,11 @@ class Request
     {
         $type = $type ?: $_SERVER['CONTENT_TYPE'];
         if (is_null($content)) {
-            $data = '';
-            $fp   = fopen('php://input', 'r');
-            while ($chunk = fread($fp, 1024)) {
+            $data     = '';
+            $fpointer = fopen('php://input', 'r');
+            while ($chunk = fread($fpointer, 1024)) {
                 $data .= $chunk;
             }
-        }
-        if (empty($data)) {
-            return $data;
         }
         $payload = null;
         switch ($type) {

@@ -47,26 +47,13 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
     /**
      * Check if the correct exception is thrown for unexisting files
      *
-     * @expectedException \Backend\Core\Exceptions\BackendException
+     * @expectedException         \Backend\Core\Exceptions\BackendException
+     * @exptectedExceptionMessage Invalid Config File: /var/www/some/unexisting/file
      * @return void
      */
     public function testInvalidConfigFile()
     {
         $config = new Config('/var/www/some/unexisting/file');
-    }
-
-    /**
-     * Check if the Yaml config parses correctly
-     *
-     * @return void
-     */
-    public function testYamlConfig()
-    {
-        $config   = new Config(PROJECT_FOLDER . 'configs/default.yaml');
-        $expected = include PROJECT_FOLDER . 'configs/default.php';
-        foreach ($expected as $section => $values) {
-            $this->assertEquals($values, $config->get($section));
-        }
     }
 
     /**
@@ -77,6 +64,20 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
     public function testJsonConfig()
     {
         $config   = new Config(PROJECT_FOLDER . 'configs/default.json');
+        $expected = include PROJECT_FOLDER . 'configs/default.php';
+        foreach ($expected as $section => $values) {
+            $this->assertEquals($values, $config->get($section));
+        }
+    }
+
+    /**
+     * Check if the Yaml config parses correctly
+     *
+     * @return void
+     */
+    public function testYamlConfig()
+    {
+        $config   = new Config(PROJECT_FOLDER . 'configs/default.yaml');
         $expected = include PROJECT_FOLDER . 'configs/default.php';
         foreach ($expected as $section => $values) {
             $this->assertEquals($values, $config->get($section));
@@ -100,7 +101,8 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
     /**
      * Check if the correct exception is thrown for unparsable file
      *
-     * @expectedException \Backend\Core\Exceptions\BackendException
+     * @expectedException        \Backend\Core\Exceptions\BackendException
+     * @expectedExceptionMessage Could not parse Config File using extension php
      * @return void
      */
     public function testInvalidConfig()

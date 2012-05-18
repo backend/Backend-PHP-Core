@@ -52,7 +52,8 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
     public function testRegister()
     {
         Autoloader::register();
-        $function = array_shift(spl_autoload_functions());
+        $functions = spl_autoload_functions();
+        $function  = array_shift($functions);
         $this->assertEquals(array('Backend\Core\Utilities\Autoloader', 'autoload'), $function);
     }
 
@@ -66,5 +67,25 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(class_exists('Backend\Core\Tests\Utilities\AutoloaderTestClass', false));
         Autoloader::autoload('Backend\Core\Tests\Utilities\AutoloaderTestClass');
         $this->assertTrue(class_exists('Backend\Core\Tests\Utilities\AutoloaderTestClass', false));
+    }
+
+    /**
+     * Test if the autoloader ignores non namespaced classes
+     *
+     * @return void
+     */
+    public function testNonNSClass()
+    {
+        $this->assertFalse(Autoloader::autoload('SomeBaseClass'));
+    }
+
+    /**
+     * Test if the autoloader doesn't find a class
+     *
+     * @return void
+     */
+    public function testNonExistantClass()
+    {
+        $this->assertFalse(Autoloader::autoload('Backend\Core\NoClass'));
     }
 }
