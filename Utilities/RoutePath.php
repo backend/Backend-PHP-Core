@@ -60,7 +60,7 @@ class RoutePath
         $this->route     = $options['route'];
 
         //Construct the Callback
-        $this->callback  = $this->constructCallback($options['callback']);
+        $this->callback  = $this->getCallback($options['callback']);
 
         $this->verb      = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
 
@@ -133,18 +133,21 @@ class RoutePath
     }
 
     /**
-     * Construct the callback from the given string
+     * Get the RoutePath's callback
      *
      * @param string $callback The callback defined as a string
      *
-     * @return callback The callback
+     * @return callback The callback for the route path
      */
-    protected function constructCallback($callback)
+    public function getCallback($callback = null)
     {
+        if ($this->callback && $callback === null) {
+            return $this->callback;
+        }
         $callbackArray = explode('::', $callback);
         if (count($callbackArray) == 1) {
-            $callback = $callback[0];
-        } else if (count($callbackArray) != 2) {
+            $this->callback = $callback[0];
+        } else if (is_callable($callbackArray, true) === false) {
             throw new \Exception('Invalid Callback: ' . $callback);
         } else {
             $controllerClass = \Backend\Core\Application::resolveClass($callbackArray[0], 'controller');
@@ -160,14 +163,14 @@ class RoutePath
             $object = new $controllerClass();
             //Decorate the Controller
             //TODO This adds a dependancy. Rather use the DI framework to do it
-            $object = \Backend\Core\Decorable::decorate($callback[0]);
+            $object = \Backend\Core\Decorable::decorate($object);
 
-            $callback = array(
+            $this->callback = array(
                 $object,
                 $methodName
             );
         }
-        return $callback;
+        return $this->callback;
     }
 
     /**
@@ -196,16 +199,6 @@ class RoutePath
             }
         }
         return $parameters;
-    }
-
-    /**
-     * Get the RoutePath's callback
-     *
-     * @return callback The callback for the route path
-     */
-    public function getCallback()
-    {
-        return $this->callback;
     }
 
     /**
