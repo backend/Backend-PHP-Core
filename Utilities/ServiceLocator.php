@@ -89,8 +89,12 @@ class ServiceLocator
             throw new BackendException('Incorrect Service Definition');
         }
         if (class_exists($service[0], true)) {
-            $reflection = new \ReflectionClass($service[0]);
-            $service    = call_user_func_array(array($reflection, 'newInstanceArgs'), $service[1]);
+            if (count($service[1])) {
+                $reflection = new \ReflectionClass($service[0]);
+                $service    = call_user_func(array($reflection, 'newInstanceArgs'), $service[1]);
+            } else {
+                $service = new $service[0];
+            }
         } else {
             new ApplicationEvent('Undefined Service: ' . $service[0], ApplicationEvent::SEVERITY_DEBUG);
             throw new BackendException('Undefined Service: ' . $service[0]);

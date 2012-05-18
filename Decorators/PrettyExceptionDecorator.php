@@ -14,7 +14,7 @@
  */
 namespace Backend\Core\Decorators;
 /**
- * Abstract base class for Model decorators
+ * Pretty up exceptions.
  *
  * @category   Backend
  * @package    Core

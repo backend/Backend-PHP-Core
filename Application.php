@@ -232,42 +232,38 @@ class Application extends Subject
         //Determine the Call
         $callback  = $routePath->getCallback();
         $arguments = $routePath->getArguments();
+        if (!is_callable($callback, false, $methodMessage)) {
+            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
+        }
 
+        //Call the callback
+        new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
         $request = $this->getRequest();
         if (is_array($callback)) {
             //Set the request for the callback
             $callback[0]->setRequest($request);
-            $methodMessage = get_class($callback[0]) . '::' . $callback[1];
         } else {
             //The first argument for the callback is the request
             array_unshift($request, $arguments);
-            $methodMessage = $callback;
-        }
-        new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
-
-        if (!is_callable($callback)) {
-            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
         }
         $result = call_user_func_array($callback, $arguments);
 
         //Execute the View related method
-        if (is_array($callback)) {
-            $view = ServiceLocator::get('backend.View');
-            $viewMethod = $this->getViewMethod($callback, $view);
-            //Do both the is_callable check and the try, as some __call methods throw an exception
-            if (is_callable(array($callback[0], $viewMethod))) {
-                new ApplicationEvent(
-                    'Executing ' . get_class($callback[0]) . '::' . $viewMethod, ApplicationEvent::SEVERITY_DEBUG
-                );
-                try {
-                    $result = call_user_func(array($callback[0], $viewMethod), $result);
-                } catch (Exceptions\UncallableMethodException $e) {
-                    new ApplicationEvent(
-                        get_class($callback[0]) . '::' . $viewMethod . ' does not exist',
-                        ApplicationEvent::SEVERITY_DEBUG
-                    );
-                    unset($e);
-                }
+        if (is_string($callback)) {
+            return $result;
+        }
+
+        //Get and call the viewMethod callback
+        $view = ServiceLocator::get('backend.View');
+        $viewMethod = $this->getViewMethod($callback, $view);
+        //Do both the is_callable check and the try, as some __call methods throw an exception
+        if (is_callable(array($callback[0], $viewMethod), false, $methodMessage)) {
+            new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
+            try {
+                $result = call_user_func(array($callback[0], $viewMethod), $result);
+            } catch (Exceptions\UncallableMethodException $e) {
+                new ApplicationEvent($methodMEssage . ' does not exist', ApplicationEvent::SEVERITY_DEBUG);
+                unset($e);
             }
         }
 

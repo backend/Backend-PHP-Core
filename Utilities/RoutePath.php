@@ -60,13 +60,36 @@ class RoutePath
         $this->route     = $options['route'];
 
         //Construct the Callback
-        $this->callback  = $this->constructCallback($options['callback']);
+        $this->callback  = $this->getCallback($options['callback']);
 
         $this->verb      = array_key_exists('verb', $options) ? strtoupper($options['verb']) : false;
 
         $this->defaults  = array_key_exists('defaults', $options) ? $options['defaults'] : array();
 
         $this->arguments = array_key_exists('arguments', $options) ? $options['arguments'] : array();
+    }
+
+    public function checkRequest(\Backend\Core\Request $request)
+    {
+        $result = $this->check($request->getMethod(), $request->getQuery());
+        if (!$result) {
+            return $result;
+        }
+        if (is_array($this->callback)) {
+            $methodMessage = get_class($this->callback[0]) . '::' . $this->callback[1];
+        } else {
+            $methodMessage = $this->callback;
+        }
+        //Check the callback
+        if (!is_callable($this->callback)) {
+            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
+        }
+
+        if (is_array($this->callback) && method_exists($this->callback[0], 'setRequest')) {
+            //Set the request for the callback
+            $this->callback[0]->setRequest($request);
+        }
+        return $this->callback;
     }
 
     /**
@@ -110,18 +133,21 @@ class RoutePath
     }
 
     /**
-     * Construct the callback from the given string
+     * Get the RoutePath's callback
      *
      * @param string $callback The callback defined as a string
      *
-     * @return callback The callback
+     * @return callback The callback for the route path
      */
-    protected function constructCallback($callback)
+    public function getCallback($callback = null)
     {
+        if ($this->callback && $callback === null) {
+            return $this->callback;
+        }
         $callbackArray = explode('::', $callback);
         if (count($callbackArray) == 1) {
-            $callback = $callback[0];
-        } else if (count($callbackArray) != 2) {
+            $this->callback = $callback[0];
+        } else if (is_callable($callbackArray, true) === false) {
             throw new \Exception('Invalid Callback: ' . $callback);
         } else {
             $controllerClass = \Backend\Core\Application::resolveClass($callbackArray[0], 'controller');
@@ -134,16 +160,17 @@ class RoutePath
             if (!class_exists($controllerClass, true)) {
                 throw new \Backend\Core\Exceptions\UnknownControllerException('Unknown Controller: ' . $controllerClass);
             }
+            $object = new $controllerClass();
+            //Decorate the Controller
+            //TODO This adds a dependancy. Rather use the DI framework to do it
+            $object = \Backend\Core\Decorable::decorate($object);
 
-            $callback = array(
-                new $controllerClass(),
+            $this->callback = array(
+                $object,
                 $methodName
             );
-
-            //Decorate the Controller
-            $callback[0] = \Backend\Core\Decorable::decorate($callback[0]);
         }
-        return $callback;
+        return $this->callback;
     }
 
     /**
@@ -177,16 +204,6 @@ class RoutePath
             }
         }
         return $parameters;
-    }
-
-    /**
-     * Get the RoutePath's callback
-     *
-     * @return callback The callback for the route path
-     */
-    public function getCallback()
-    {
-        return $this->callback;
     }
 
     /**
