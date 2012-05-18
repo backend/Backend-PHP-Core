@@ -273,7 +273,7 @@ class Application extends Subject
             try {
                 $result = call_user_func(array($callback[0], $viewMethod), $result);
             } catch (Exceptions\UncallableMethodException $e) {
-                new ApplicationEvent($methodMEssage . ' does not exist', ApplicationEvent::SEVERITY_DEBUG);
+                new ApplicationEvent($methodMessage . ' does not exist', ApplicationEvent::SEVERITY_DEBUG);
                 unset($e);
             }
         }
