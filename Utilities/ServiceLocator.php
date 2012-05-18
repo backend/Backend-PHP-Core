@@ -90,8 +90,13 @@ class ServiceLocator
         }
         if (class_exists($service[0], true)) {
             if (count($service[1])) {
-                $reflection = new \ReflectionClass($service[0]);
-                $service    = call_user_func(array($reflection, 'newInstanceArgs'), $service[1]);
+                try {
+                    $reflection = new \ReflectionClass($service[0]);
+                    $service    = call_user_func(array($reflection, 'newInstanceArgs'), $service[1]);
+                } catch (\ErrorException $e) {
+                    //TODO Log it?
+                    return false;
+                }
             } else {
                 $service = new $service[0];
             }

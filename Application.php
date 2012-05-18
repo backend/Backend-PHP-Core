@@ -82,6 +82,10 @@ class Application extends Subject
     {
         $this->setState('constructing');
 
+        if (!self::$constructed) {
+            self::constructApplication();
+        }
+
         // Setup the Config
         if ($config === null) {
             if (file_exists(PROJECT_FOLDER . 'configs/' . self::getSiteState() . '.' . CONFIG_EXT)) {
@@ -107,10 +111,6 @@ class Application extends Subject
         }
 
         $this->setRequest($request instanceof Request ? $request : new Request());
-
-        if (!self::$constructed) {
-            self::constructApplication();
-        }
 
         //Determine the View
         try {
@@ -352,7 +352,7 @@ class Application extends Subject
      */
     public static function error($errno, $errstr, $errfile, $errline)
     {
-        self::exception(new \ErrorException($errstr, 0, $errno, $errfile, $errline));
+        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
 
     /**

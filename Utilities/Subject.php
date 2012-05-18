@@ -54,9 +54,11 @@ class Subject implements \SplSubject
         $config = $config->get('subjects', get_class($this));
         if (!empty($config['observers'])) {
             foreach ($config['observers'] as $observerName) {
-                $observer = ServiceLocator::get($observerName);
-                if ($observer instanceof \SplObserver) {
-                    $this->attach($observer);
+                if (ServiceLocator::has($observerName)) {
+                    $observer = ServiceLocator::get($observerName);
+                    if ($observer instanceof \SplObserver) {
+                        $this->attach($observer);
+                    }
                 }
             }
         }
