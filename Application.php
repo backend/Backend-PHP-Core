@@ -249,7 +249,7 @@ class Application extends Subject
         //Format the response using a Format class
         $format = $format ?: Format::build($this->getRequest());
         //Convert the result to a Respose
-        $response = $format->transform($response, $callback, $arguments);
+        $response = $format->transform($result, $callback, $arguments);
 
         $this->setState('transformed');
         return $response;
