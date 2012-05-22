@@ -82,7 +82,7 @@ class RoutePath
         }
         //Check the callback
         if (!is_callable($this->callback)) {
-            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
+            throw new \Backend\Core\Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
         }
 
         if (is_array($this->callback) && method_exists($this->callback[0], 'setRequest')) {
@@ -146,8 +146,8 @@ class RoutePath
         }
         $callbackArray = explode('::', $callback);
         if (count($callbackArray) == 1) {
-            $this->callback = $callback[0];
-        } else if (is_callable($callbackArray, true) === false) {
+            $callback = $callbackArray[0];
+        } else if (!is_callable($callbackArray, true)) {
             throw new \Exception('Invalid Callback: ' . $callback);
         } else {
             $controllerClass = \Backend\Core\Application::resolveClass($callbackArray[0], 'controller');

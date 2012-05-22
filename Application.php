@@ -15,6 +15,7 @@ namespace Backend\Core;
 use Backend\Core\Utilities\ApplicationEvent;
 use Backend\Core\Utilities\Subject;
 use Backend\Core\Utilities\ServiceLocator;
+use Backend\Core\Utilities\Format;
 /**
  * The main application class.
  *
@@ -74,11 +75,10 @@ class Application extends Subject
     /**
      * The constructor for the class
      *
-     * @param Request $request The request the application should handle
      * @param mixed   $config  The Configuration to be used for the application. Can be a the
      * path of a config file, or a Config object
      */
-    function __construct(Request $request = null, $config = null)
+    function __construct($config = null)
     {
         $this->setState('constructing');
 
@@ -109,18 +109,6 @@ class Application extends Subject
         if ($services = $config->get('services')) {
             ServiceLocator::addFromConfig($services);
         }
-
-        $this->setRequest($request instanceof Request ? $request : new Request());
-
-        //Determine the View
-        try {
-            $view = Utilities\ViewFactory::build($this->getRequest());
-        } catch (Exceptions\UnrecognizedRequestException $e) {
-            new ApplicationEvent('View Exception: ' . $e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
-            $view = new View($this->getRequest());
-        }
-        new ApplicationEvent('Running Application in ' . get_class($view) . ' View', ApplicationEvent::SEVERITY_INFORMATION);
-        ServiceLocator::add('backend.View', $view);
 
         parent::__construct($config);
 
@@ -191,141 +179,80 @@ class Application extends Subject
     /**
      * Main function for the application
      *
+     * @param \Backend\Core\Request $request The request the application should handle
      * @param \Backend\Core\Route $route A route object to execute on
      *
      * @return mixed The result of the call
      * @todo   Make the 404 page pretty
      */
-    public function main(Route $route = null)
+    public function main(Request $request = null, Route $route = null)
     {
-        $this->setState('executing');
+        $this->setState('main');
 
+        $this->setRequest($request instanceof Request ? $request : new Request());
         $request = $this->getRequest();
+
         //Resolve the Route
         $this->route = $route instanceof Route ? $route : new Route();
+
         try {
-            $this->setRoutePath($this->route->resolve($request));
-            $result = $this->executeRoutePath();
+            //Get the Route
+            $routePath = $this->route->resolve($request);
+            //Get the callback and arguments
+            $callback  = $routePath->getCallback();
+            $arguments = $routePath->getArguments();
+            //And execute
+            $response  = $this->execute($callback, $arguments);
         } catch (Exceptions\UncallableMethodException $e) {
             new ApplicationEvent($e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
-            $result = new Response($e, 404);
+            $response = new Response($e, 404);
         } catch (Exceptions\UnknownControllerException $e) {
             new ApplicationEvent($e->getMessage(), ApplicationEvent::SEVERITY_WARNING);
-            $result = new Response($e, 404);
+            $response = new Response($e, 404);
+        } catch (Exceptions\UnrecognizedRequestException $e) {
+            $response = new Response($e, 400);
+        } catch (\Exception $e) {
+            $response = new Response($e, 500);
         }
-
-        $this->setState('executed');
-        return $this->handleResult($result);
-    }
-
-    /**
-     * Execute the identified routePath.
-     *
-     * @param Utilities\RoutePath $routePath The RoutePath to execute
-     *
-     * @return mixed The result of the callback
-     */
-    protected function executeRoutePath(Utilities\RoutePath $routePath = null)
-    {
-        $routePath = $routePath ? $routePath : $this->getRoutePath();
-
-        //Determine the Call
-        $callback  = $routePath->getCallback();
-        $arguments = $routePath->getArguments();
-        if (!is_callable($callback, false, $methodMessage)) {
-            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
-        }
-
-        //Call the callback
-        new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
-        $request = $this->getRequest();
-        $isCallable = is_callable($callback);
-        if (is_array($callback)) {
-            //Set the request for the callback
-            $callback[0]->setRequest($request);
-            $methodMessage = get_class($callback[0]) . '::' . $callback[1];
-            if ($callback[0] instanceof \Backend\Core\Decorators\Decorator) {
-                $isCallable = $callback[0]->isCallable($callback[1]);
-            }
-        } else {
-            //The first argument for the callback is the request
-            array_unshift($request, $arguments);
-            $methodMessage = $callback;
-        }
-        new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
-
-        if (!$isCallable) {
-            throw new Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
-        }
-        $result = call_user_func_array($callback, $arguments);
-
-        //Execute the View related method
-        if (is_string($callback)) {
-            return $result;
-        }
-
-        //Get and call the viewMethod callback
-        $view = ServiceLocator::get('backend.View');
-        $viewMethod = $this->getViewMethod($callback, $view);
-        //Do both the is_callable check and the try, as some __call methods throw an exception
-        if (is_callable(array($callback[0], $viewMethod), false, $methodMessage)) {
-            new ApplicationEvent('Executing ' . $methodMessage, ApplicationEvent::SEVERITY_DEBUG);
-            try {
-                $result = call_user_func(array($callback[0], $viewMethod), $result);
-            } catch (Exceptions\UncallableMethodException $e) {
-                new ApplicationEvent($methodMessage . ' does not exist', ApplicationEvent::SEVERITY_DEBUG);
-                unset($e);
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Handle the result from the executed callback
-     *
-     * @param mixed $result The result returned from the callback
-     *
-     * @return Response The response object to be outputted
-     * @todo Not sure why this was static?
-     */
-    public function handleResult($result)
-    {
-        $this->setState('transforming');
-        $view = ServiceLocator::get('backend.View');
-        //Make sure we have a view to work with
-        if (!$view) {
-            throw new Exceptions\BackendException('No View to work with');
-            //$view = new View($this->getRequest());
-        }
-
-        //Convert the result to a Respose
-        $response = $view->transform($result);
-
-        if (!($response instanceof Response)) {
-            throw new Exceptions\BackendException('Unrecognized Response');
-        }
-        $this->setState('transformed');
+        $this->setState('mained');
         return $response;
     }
 
     /**
-     * Return a view method for the specified action
+     * Execute the given callback, with the given arguments, and format as required
      *
-     * @param array $callback The callback to check for
-     * @param View  $view     The view to use
+     * @param callable                       $callback  The callback to execute
+     * @param array                          $arguments The arguments to pass to the callback
+     * @param \Backend\Core\Utilities\Format $format The Format class to transform the result into a Response
      *
-     * @return string The name of the View Method
+     * @return \Backend\Core\Response The result of the callback transformed into a Response
      */
-    public function getViewMethod(array $callback, View $view = null)
+    public function execute($callback, $arguments, Format $format = null)
     {
-        $view = is_null($view) ? ServiceLocator::get('backend.View') : $view;
+        $isCallable = is_callable($callback, true, $methodMessage);
+        if ($isCallable
+            && is_array($callback)
+            && ($callback[0] instanceof Decorators\Decorator)
+        ) {
+            $isCallable = $callback[0]->isCallable($callback[1]);
+        } else {
+            $isCallable = is_callable($callback);
+        }
+        new ApplicationEvent(
+            'Executing ' . $methodMessage . ' with ' . count($arguments) . ' arguments',
+            ApplicationEvent::SEVERITY_DEBUG
+        );
+        $result = call_user_func_array($callback, $arguments);
+        $this->setState('executed');
 
-        //Check for a transform for the current view in the controller
-        $methodName = get_class($view);
-        $methodName = substr($methodName, strrpos($methodName, '\\') + 1);
-        $methodName = preg_replace('/Action$/', $methodName, $callback[1]);
-        return $methodName;
+        $this->setState('transforming');
+        //Format the response using a Format class
+        $format = $format ?: Format::build($this->getRequest());
+        //Convert the result to a Respose
+        $response = $format->transform($response, $callback, $arguments);
+
+        $this->setState('transformed');
+        return $response;
     }
 
     /**
@@ -379,11 +306,12 @@ class Application extends Subject
             } catch (\Exception $e) {*/
         //We can't use handleResponse, as it throws exceptions. Just do the transform
 
+        /*
         $view = ServiceLocator::get('backend.View');
-        if (!$view) {
+        if (!$view) {*/
             echo (string)$exception;
             return;
-        }
+        //}
 
         //Convert the result to a Respose
         $response = $view->transform($exception);
@@ -600,7 +528,7 @@ class Application extends Subject
                 break;
             }
         }
-        $namespaces = array_reverse(\Backend\Core\Application::getNamespaces());
+        $namespaces = array_reverse(self::getNamespaces());
         //No namespace, so go through the namespaces to find the class
         foreach ($namespaces as $base) {
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);

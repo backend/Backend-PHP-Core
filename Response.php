@@ -24,9 +24,11 @@ namespace Backend\Core;
 class Response
 {
     /**
-     * @var array An array containing response components
+     * The body of the response
+     *
+     * @var mixed
      */
-    protected $body = array();
+    protected $body = null;
 
     /**
      * @var int The HTTP response code
@@ -114,6 +116,7 @@ class Response
         $this->setStatusCode($status);
         $this->setHeaders($headers);
         $this->setBody($body);
+        //TODO Don't use SERVER, use the REQUEST
         $this->httpVersion = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
     }
 

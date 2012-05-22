@@ -118,7 +118,7 @@ class Route
     {
         foreach ($this->routes['routes'] as $routeInfo) {
             $routePath = new Utilities\RoutePath($routeInfo);
-            if ($routePath->check($request->getMethod(), $request->getQuery())) {
+            if ($routePath->checkRequest($request)) {
                 return $routePath;
             }
         }
@@ -179,7 +179,7 @@ class Route
         );
 
         $routePath = new Utilities\RoutePath($options);
-        if ($routePath->check($request->getMethod(), $request->getQuery())) {
+        if ($routePath->checkRequest($request)) {
             return $routePath;
         }
         throw new Exceptions\UnknownRouteException($request);
