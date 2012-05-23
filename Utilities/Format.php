@@ -29,9 +29,26 @@ use \Backend\Core\Response;
 abstract class Format
 {
     /**
+     * The request that was used to generate the Response.
+     *
+     * @var \Backend\Core\Request
+     */
+    protected $request = null;
+
+    /**
      * @var array Define the formats this class can handle
      */
     public static $handledFormats = array();
+
+    /**
+     * The constructor for the object
+     *
+     * @param Request $request The Request to associate with the view
+     */
+    function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
 
     /**
      * Build a format with the supplied request
@@ -133,24 +150,27 @@ abstract class Format
      */
     public function transform($result, $callback, array $arguments)
     {
+        //Execute the format related method
         $method = $this->getFormatMethod($callback);
         if (!$method) {
             return $result;
         }
-
         new ApplicationEvent(
             'Executing ' . get_class($callback[0]) . '::' . $method, ApplicationEvent::SEVERITY_DEBUG
         );
-        try {
+        if (method_exists($callback[0], $method)) {
             $result = call_user_func(array($callback[0], $method), $result);
-            $response = $result instanceof Response ? $result : new Response($result);
-        } catch (Exceptions\UncallableMethodException $e) {
+        } else {
             new ApplicationEvent(
                 get_class($callback[0]) . '::' . $method . ' does not exist',
                 ApplicationEvent::SEVERITY_DEBUG
             );
             unset($e);
         }
+
+        //Wrap the result in a response
+        $response = $result instanceof Response ? $result : new Response($result);
+        $response->addHeader('X-Backend-View', get_class($this));
         return $response;
     }
 
