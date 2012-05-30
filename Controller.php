@@ -107,31 +107,4 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
         $modelName = $namespace . '\\' . $modelName;
         return $modelName;
     }
-
-    /**
-     * Use the current Route to generate the Model name and return it
-     *
-     * @param integer $id The id of the model required.
-     *
-     * @return ModelInterface The model associated with this controller
-     */
-    public function getModel($id = null)
-    {
-        $modelName = self::getModelName();
-        if (!class_exists($modelName, true)) {
-            throw new \Exception('Model does not exist: ' . $modelName);
-        }
-        $model = new $modelName();
-
-        //Decorate the Model
-        $model = \Backend\Core\Decorable::decorate($model);
-
-        $model->setId($id);
-
-        if ($model->getId() === null) {
-            return null;
-        }
-
-        return $model;
-    }
 }

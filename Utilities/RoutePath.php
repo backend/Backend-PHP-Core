@@ -85,7 +85,7 @@ class RoutePath
             throw new \Backend\Core\Exceptions\UncallableMethodException('Undefined method - ' . $methodMessage);
         }
 
-        if (is_array($this->callback) && method_exists($this->callback[0], 'setRequest')) {
+        if (is_array($this->callback) && is_callable(array($this->callback[0], 'setRequest'))) {
             //Set the request for the callback
             $this->callback[0]->setRequest($request);
         }
