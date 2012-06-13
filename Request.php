@@ -56,6 +56,11 @@ class Request
      */
     protected $extension = null;
 
+    public static function fromState()
+    {
+        return new self();
+    }
+
     /**
      * The constructor for the class
      *
@@ -327,9 +332,9 @@ class Request
     {
         if (self::fromCli()) {
             return 'cli';
-        } else if (array_key_exists('HTTP_ACCEPT', $_SERVER)) {
+        } else if (array_key_exists('HTTP_ACCEPT', $this->serverInfo)) {
             //No format found, check if there's an Accept Header
-            $mimeType = $_SERVER['HTTP_ACCEPT'];
+            $mimeType = $this->serverInfo['HTTP_ACCEPT'];
             //Try to get the first type
             $types = explode(',', $mimeType);
             //Remove the preference variable
@@ -361,7 +366,8 @@ class Request
         default:
             if (self::fromCli()) {
                 //First CL parameter is the method
-                $method = count($_SERVER['argv']) >= 2 ? $_SERVER['argv'][1] : 'GET';
+                $method = count($this->serverInfo['argv']) >= 2
+                    ? $this->serverInfo['argv'][1] : 'GET';
             } else {
                 $method = $this->serverInfo['REQUEST_METHOD'];
             }
@@ -474,17 +480,19 @@ class Request
         if (self::fromCli()) {
             $payload = array(
                 //Second CL parameter is the query. This will be picked up later
-                count($_SERVER['argv']) >= 3 ? $_SERVER['argv'][2] : '' => '',
+                count($this->serverInfo['argv']) >= 3
+                    ? $this->serverInfo['argv'][2] : '' => '',
             );
-            if (count($_SERVER['argv']) >= 5) {
+            if (count($this->serverInfo['argv']) >= 5) {
                 //Fourth CL parameter is a query string
-                parse_str($_SERVER['argv'][4], $queryVars);
+                parse_str($this->serverInfo['argv'][4], $queryVars);
                 if (is_array($queryVars)) {
                     $payload = array_merge($this->payload, $queryVars);
                 }
             }
         }
-        if (!empty($_SERVER['CONTENT_TYPE']) && $payload = $this->parseContent()) {
+        if (!empty($this->serverInfo['CONTENT_TYPE'])
+            && $payload = $this->parseContent()) {
             $this->setPayload($payload);
             return $this->payload;
         }
@@ -516,7 +524,7 @@ class Request
      */
     public function parseContent($content = null, $type = null)
     {
-        $type = $type ?: $_SERVER['CONTENT_TYPE'];
+        $type = $type ?: $this->serverInfo['CONTENT_TYPE'];
         if (is_null($content)) {
             $data     = '';
             $fpointer = fopen('php://input', 'r');
@@ -563,8 +571,9 @@ class Request
      *
      * @return boolean If this is a CLI request
      */
-    public static function fromCli()
+    public function fromCli()
     {
-        return !array_key_exists('REQUEST_METHOD', $_SERVER) && array_key_exists('argv', $_SERVER);
+        return !array_key_exists('REQUEST_METHOD', $this->serverInfo)
+            && array_key_exists('argv', $this->serverInfo);
     }
 }
