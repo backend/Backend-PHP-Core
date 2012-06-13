@@ -13,9 +13,11 @@
  */
 namespace Backend\Core;
 use Backend\Interfaces\ApplicationInterface;
-use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\RouterInterface;
+use Backend\Interfaces\FormatterInterface;
+use Backend\Interfaces\RequestInterface;
 use Backend\Core\Utilities\Router;
+use Backend\Core\Utilities\Formatter;
 /**
  * The main application class.
  *
@@ -28,6 +30,27 @@ use Backend\Core\Utilities\Router;
 class Application implements ApplicationInterface
 {
     /**
+     * Router to map callbacks to requests, and vice versa.
+     *
+     * @var Backend\Interfaces\RouterInterface
+     */
+    protected $router = null;
+
+    /**
+     * Formatter to convert results into responses.
+     *
+     * @var Backend\Interfaces\FormatterInterface
+     */
+    protected $formatter = null;
+
+    public function __construct(RouterInterface $router = null,
+        FormatterInterface $formatter = null)
+    {
+        $this->router    = $router  ?: new Router();
+        $this->formatter = $formatter ?: new Formatter();
+    }
+
+    /**
      * Main function for the application
      *
      * @param \Backend\Interfaces\RequestInterface $request The request the
@@ -35,18 +58,20 @@ class Application implements ApplicationInterface
      *
      * @return mixed The result of the call
      */
-    public function main(\Backend\Interfaces\RequestInterface $request = null,
-        \Backend\Interfaces\RouterInterface $router = null)
+    public function main(RequestInterface $request = null)
     {
+        //Inspect the request and subsequent results, chain if necessary
         $toInspect = $request ?: Request::fromState();
-        $router    = $router  ?: new Router();
         do {
             $callback  = $toInspect instanceof RequestInterface
-                ? $router->inspect($toInspect)
+                ? $this->router->inspect($toInspect)
                 : $toInspect;
             $toInspect = $callback->execute();
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
 
+        //Transform the Result
+        $response = $this->formatter->transform($toInspect);
+        $response->output();
     }
 }
