@@ -15,7 +15,7 @@
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Modules\Config;
-use Backend\Exceptions\ConfigException;
+use Backend\Core\Exceptions\ConfigException;
 use Backend\Interfaces\RequestInterface;
 /**
  * Class to inspect the Request to determine what callback should be executed.
@@ -37,12 +37,12 @@ class Router
     public function __construct($config = null)
     {
         $config = $config ?: $this->getFileName();
-        if (is_string($config)) {
+        if (!($config instanceof ConfigInterface)) {
             $config = new Config($config);
         }
         if (!($config instanceof ConfigInterface)) {
             throw new ConfigException(
-                'Invalud Configuration for ' . get_class($this)
+                'Invalid Configuration for ' . get_class($this)
             );
         }
     }
@@ -54,10 +54,10 @@ class Router
      */
     public function getFileName()
     {
-        if (file_exists(PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.' . CONFIG_EXT)) {
-            $config = PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.' . CONFIG_EXT;
-        } else if (file_exists(PROJECT_FOLDER . 'configs/routes.' . CONFIG_EXT)) {
-            $config = PROJECT_FOLDER . 'configs/default.' . CONFIG_EXT;
+        if (file_exists(PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml')) {
+            return PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml';
+        } else if (file_exists(PROJECT_FOLDER . 'configs/routes.yaml')) {
+            return PROJECT_FOLDER . 'configs/default.yaml';
         } else {
             $string = 'Could not find Routes Configuration file. . Add one to '
                 . PROJECT_FOLDER . 'configs';
