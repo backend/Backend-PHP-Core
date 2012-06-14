@@ -66,7 +66,12 @@ class Application implements ApplicationInterface
             $callback  = $toInspect instanceof RequestInterface
                 ? $this->router->inspect($toInspect)
                 : $toInspect;
-            $toInspect = $callback->execute();
+            if ($callback instanceof CallbackInterface) {
+                $toInspect = $callback->execute();
+            } else {
+                //TODO 404 or something
+                $toInspect = null;
+            }
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
 
