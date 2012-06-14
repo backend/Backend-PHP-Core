@@ -16,8 +16,10 @@ use Backend\Interfaces\ApplicationInterface;
 use Backend\Interfaces\RouterInterface;
 use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
+use Backend\Interfaces\CallbackInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Formatter;
+use Backend\Modules\Callback;
 /**
  * The main application class.
  *
@@ -66,7 +68,13 @@ class Application implements ApplicationInterface
             $callback  = $toInspect instanceof RequestInterface
                 ? $this->router->inspect($toInspect)
                 : $toInspect;
-            if ($callback instanceof CallbackInterface) {
+            if ($callback instanceof RequestInterface) {
+                continue;
+            } else if ($callback) {
+                if ($callback instanceof CallbackInterface) {
+                } else if (is_array($callback) && count($callback) == 2) {
+                    $toInspect = Callback::fromString($callback[0], $callback[1]);
+                }
                 $toInspect = $callback->execute();
             } else {
                 //TODO 404 or something
