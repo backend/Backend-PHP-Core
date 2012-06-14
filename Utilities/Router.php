@@ -81,12 +81,17 @@ class Router
      */
     public function inspect(RequestInterface $request)
     {
-        foreach($this->config->routes as $key => $route) {
-            if ($this->check($request, $route)) {
-                return 'something';
+        if ($this->config->routes) {
+            foreach($this->config->routes as $key => $route) {
+                if ($callback = $this->check($request, $route)) {
+                    return $callback;
+                }
             }
         }
-        var_dump($request); die;
+        if ($this->config->controllers) {
+            //TODO
+        }
+        return false;
     }
 
     protected function check(RequestInterface $request, $route)
@@ -96,17 +101,18 @@ class Router
             return false;
         }
 
+        $defaults = array_key_exists('defaults', $route) ? $route['defaults'] : array();
         //Try to match the route
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
-            return $this->createCallback($route['callback']);
-        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $this->route, $matches)) {
+            return array($route['callback'], $defaults);
+        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches)) {
             //Compile the Regex
             $varNames = $matches[1];
             $search   = $matches[0];
             $replace  = '(/([^/]*))?';
-            $regex    = str_replace('/', '\/', str_replace($search, $replace, $this->route));
-            if (preg_match_all('/' . $regex . '/', $query, $matches)) {
+            $regex    = str_replace('/', '\/', str_replace($search, $replace, $route['route']));
+            if (preg_match_all('/' . $regex . '/', $request->getPath(), $matches)) {
                 $arguments = array();
                 $index = 2;
                 foreach ($varNames as $name) {
@@ -114,41 +120,11 @@ class Router
                     $index = $index + 2;
                 }
                 //Regex Match
-                return $this->createCallback($route['callback'], $arguments);
+                $arguments = array_merge($defaults, $arguments);
+                return array($route['callback'], $arguments);
             }
         }
         return false;
-    }
-
-    /**
-     * Construct the callback with the given arguments
-     *
-     * @param array $arguments The arguments to check against
-     *
-     * @return array The parameters for the callback
-     */
-    protected function createCallback($callback, $arguments = array())
-    {
-        //TODO Construct the callback? Or just send back the string and arguments
-        //so that the Application can construct it?
-        /*if (is_array($callback)) {
-            $object = $this->callback[0];
-            $refMethod = new \ReflectionMethod($object, $this->callback[1]);
-        } else {
-            $refMethod = new \ReflectionFunction($this->callback);
-        }
-        //Get the parameters in the correct order
-        $parameters = array();
-        foreach ($refMethod->getParameters() as $param) {
-            if (!empty($arguments[$param->getName()])) {
-                $parameters[] = $arguments[$param->getName()];
-            } else if (isset($this->defaults[$param->getName()])) {
-                $parameters[] = $this->defaults[$param->getName()];
-            } else if (!$param->isOptional()) {
-                throw new \Exception('Missing argument ' . $param->getName());
-            }
-        }
-        return $parameters;*/
     }
 
     /**
