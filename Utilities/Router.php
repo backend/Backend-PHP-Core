@@ -30,6 +30,12 @@ use Backend\Interfaces\RequestInterface;
 class Router
 {
     /**
+     * An array of the defined routes.
+     *
+     * @var array
+     */
+    protected $routes;
+    /**
      * The class constructor.
      *
      * @param mixed $config The routes config or path to the routes file.
@@ -45,6 +51,7 @@ class Router
                 'Invalid Configuration for ' . get_class($this)
             );
         }
+        $this->config = $config;
     }
 
     /**
@@ -57,7 +64,7 @@ class Router
         if (file_exists(PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml')) {
             return PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml';
         } else if (file_exists(PROJECT_FOLDER . 'configs/routes.yaml')) {
-            return PROJECT_FOLDER . 'configs/default.yaml';
+            return PROJECT_FOLDER . 'configs/routes.yaml';
         } else {
             $string = 'Could not find Routes Configuration file. . Add one to '
                 . PROJECT_FOLDER . 'configs';
@@ -74,6 +81,74 @@ class Router
      */
     public function inspect(RequestInterface $request)
     {
+        foreach($this->config->routes as $key => $route) {
+            if ($this->check($request, $route)) {
+                return 'something';
+            }
+        }
+        var_dump($request); die;
+    }
+
+    protected function check(RequestInterface $request, $route)
+    {
+        //If the verb is defined, and it doesn't match, skip
+        if (!empty($route['verb']) && $route['verb'] != $request->getMethod()) {
+            return false;
+        }
+
+        //Try to match the route
+        if ($route['route'] == $request->getPath()) {
+            //Straight match, no arguments
+            return $this->createCallback($route['callback']);
+        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $this->route, $matches)) {
+            //Compile the Regex
+            $varNames = $matches[1];
+            $search   = $matches[0];
+            $replace  = '(/([^/]*))?';
+            $regex    = str_replace('/', '\/', str_replace($search, $replace, $this->route));
+            if (preg_match_all('/' . $regex . '/', $query, $matches)) {
+                $arguments = array();
+                $index = 2;
+                foreach ($varNames as $name) {
+                    $arguments[$name] = $matches[$index][0];
+                    $index = $index + 2;
+                }
+                //Regex Match
+                return $this->createCallback($route['callback'], $arguments);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Construct the callback with the given arguments
+     *
+     * @param array $arguments The arguments to check against
+     *
+     * @return array The parameters for the callback
+     */
+    protected function createCallback($callback, $arguments = array())
+    {
+        //TODO Construct the callback? Or just send back the string and arguments
+        //so that the Application can construct it?
+        /*if (is_array($callback)) {
+            $object = $this->callback[0];
+            $refMethod = new \ReflectionMethod($object, $this->callback[1]);
+        } else {
+            $refMethod = new \ReflectionFunction($this->callback);
+        }
+        //Get the parameters in the correct order
+        $parameters = array();
+        foreach ($refMethod->getParameters() as $param) {
+            if (!empty($arguments[$param->getName()])) {
+                $parameters[] = $arguments[$param->getName()];
+            } else if (isset($this->defaults[$param->getName()])) {
+                $parameters[] = $this->defaults[$param->getName()];
+            } else if (!$param->isOptional()) {
+                throw new \Exception('Missing argument ' . $param->getName());
+            }
+        }
+        return $parameters;*/
     }
 
     /**
