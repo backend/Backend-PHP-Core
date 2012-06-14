@@ -12,9 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+use Backend\Interfaces\RequestInterface;
 use Backend\Core\Utilities\ApplicationEvent;
 /**
- * The Request class which helps determine the Query string and request format.
+ * The Request class which helps determine the Path and request format.
  *
  * @category Backend
  * @package  Core
@@ -22,7 +23,7 @@ use Backend\Core\Utilities\ApplicationEvent;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Request
+class Request implements RequestInterface
 {
     protected $serverInfo = array();
 
@@ -37,9 +38,11 @@ class Request
     protected $siteUrl = null;
 
     /**
-     * @var string The query of the request
+     * The path of the request.
+     *
+     * @var string
      */
-    protected $query   = null;
+    protected $path   = null;
 
     /**
      * @var array The payload of the request
@@ -97,7 +100,7 @@ class Request
         }
         $this->setPayload($payload);
 
-        $message = 'Request: ' . $this->getMethod() . ': ' . $this->getQuery();
+        $message = 'Request: ' . $this->getMethod() . ': ' . $this->getPath();
         new ApplicationEvent($message, ApplicationEvent::SEVERITY_DEBUG);
     }
 
@@ -141,59 +144,53 @@ class Request
     }
 
     /**
-     * Return the request's query.
+     * Return the link that will result in this request
      *
-     * @return string The Request Query
+     * @return string
      */
-    public function getQuery()
+    public function getLink()
     {
-        if (is_null($this->query)) {
-            $this->prepareQuery();
+
+    }
+
+    /**
+     * Return the path of the Request.
+     *
+     * @return string
+     */
+    public function getPath()
+    {
+        if (is_null($this->path)) {
+            $this->setPath(urldecode($this->serverInfo['PATH_INFO']));
         }
-        return $this->query;
+        return $this->path;
     }
 
     /**
-     * Prepare the query
+     * Set and cleanup the path.
      *
-     * This is done by removing the trailing slash, and ensuring that the query
-     * starts with a slash
+     * The path should be URL decoded before calling this method.
      *
-     * @return Object The current object
-     */
-    public function prepareQuery()
-    {
-        $query = $this->serverInfo['PATH_INFO'];
-
-        //Decode the URL
-        $query = urldecode($query);
-
-        return $this->setQuery($query);
-    }
-
-    /**
-     * Set the query
-     *
-     * @param string $query The query
+     * @param string $path The path
      *
      * @return Object The current object
      */
-    public function setQuery($query)
+    public function setPath($path)
     {
-        //Clean up the query
+        //Clean up the path
         //No trailing slash
-        if (substr($query, -1) == '/') {
-            $query = substr($query, 0, strlen($query) - 1);
+        if (substr($path, -1) == '/') {
+            $path = substr($path, 0, strlen($path) - 1);
         }
-        if (substr($query, 0, 1) != '/') {
-            $query = '/' . $query;
+        if (substr($path, 0, 1) != '/') {
+            $path = '/' . $path;
         }
 
-        $this->query = $query;
+        $this->path = $path;
 
         //Remove the extension if present
         if ($extension = $this->getExtension()) {
-            $this->query = preg_replace('/[_\.]' . $extension . '$/', '', $this->query);
+            $this->path = preg_replace('/[_\.]' . $extension . '$/', '', $this->path);
         }
         return $this;
     }
@@ -315,7 +312,7 @@ class Request
      */
     public function prepareExtension()
     {
-        preg_match('/[^\/]+\.(.*)\??.*$/', $this->getQuery(), $matches);
+        preg_match('/[^\/]+\.(.*)\??.*$/', $this->getPath(), $matches);
         if (!empty($matches[1])) {
             $this->extension = $matches[1];
         } else {
@@ -345,9 +342,9 @@ class Request
     }
 
     /**
-     * Return the request's method.
+     * Return the HTTP Method used to make the request.
      *
-     * @return string The Request Method
+     * @return string
      */
     public function getMethod()
     {
