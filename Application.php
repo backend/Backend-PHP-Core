@@ -45,9 +45,16 @@ class Application implements ApplicationInterface
      */
     protected $formatter = null;
 
-    public function __construct(RouterInterface $router = null,
-        FormatterInterface $formatter = null)
-    {
+    /**
+     * The constructor for the object.
+     *
+     * @param \Backend\Interfaces\RouterInterface    $router    The router to use.
+     * @param \Backend\Interfaces\FormatterInterface $formatter The formatter to use.
+     */
+    public function __construct(
+        RouterInterface $router = null,
+        FormatterInterface $formatter = null
+    ) {
         $this->router    = $router  ?: new Router();
         $this->formatter = $formatter ?: new Formatter();
     }
@@ -73,7 +80,10 @@ class Application implements ApplicationInterface
             } else if ($callback) {
                 if ($callback instanceof CallbackInterface) {
                 } else if (is_array($callback) && count($callback) == 2) {
-                    $toInspect = Callback::fromString($callback[0], $callback[1]);
+                    $callback = Callback::fromString($callback[0], $callback[1]);
+                    if (is_subclass_of($callback->getClass(), '\Backend\Interfaces\ControllerInterface')) {
+                        $callback->setObject(new $callback->getClass());
+                    }
                 }
                 $toInspect = $callback->execute();
             } else {
