@@ -78,13 +78,7 @@ class Application implements ApplicationInterface
             if ($callback instanceof RequestInterface) {
                 continue;
             } else if ($callback) {
-                if ($callback instanceof CallbackInterface) {
-                } else if (is_array($callback) && count($callback) == 2) {
-                    $callback = Callback::fromString($callback[0], $callback[1]);
-                    if (is_subclass_of($callback->getClass(), '\Backend\Interfaces\ControllerInterface')) {
-                        $callback->setObject(new $callback->getClass());
-                    }
-                }
+                $callback = $this->checkCallback($callback);
                 $toInspect = $callback->execute();
             } else {
                 //TODO 404 or something
@@ -96,5 +90,32 @@ class Application implements ApplicationInterface
         //Transform the Result
         $response = $this->formatter->transform($toInspect);
         $response->output();
+    }
+
+    /**
+     * Check the validity of the callback, and transform as necessary.
+     *
+     * If the $callback parameter is an array, the first element must be the string
+     * representation of the callback (in the form class::method), and the second
+     * the arguments for the callback.
+     *
+     * @param mixed $callback The callback to check.
+     *
+     * @return CallbackInterface
+     */
+    protected function checkCallback($callback)
+    {
+        if (is_array($callback) && count($callback) == 2) {
+            $callback = Callback::fromString($callback[0], $callback[1]);
+        }
+        if (!($callback instanceof CallbackInterface)) {
+            throw new \Exception('Invalid Callback');
+        }
+        if (is_subclass_of($callback->getClass(), '\Backend\Interfaces\ControllerInterface')) {
+            $callback->setObject(new $callback->getClass());
+        }
+        //Set the method name as actionAction
+        $callback->setMethod($callback->getMethod() . 'Action');
+        return $callback;
     }
 }
