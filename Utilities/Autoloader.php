@@ -68,9 +68,11 @@ class Autoloader
             }
         }
         //Last gasp attempt, should catch most PSR-0 compliant classes
-        if (stream_resolve_include_path($fileName)) {
-            include_once $fileName;
-            return true;
+        if (function_exists('stream_resolve_include_path')) {
+        	if (stream_resolve_include_path($fileName)) {
+            	include_once $fileName;
+            	return true;
+        	}
         }
         return false;
     }
