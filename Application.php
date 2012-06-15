@@ -46,6 +46,13 @@ class Application implements ApplicationInterface
     protected $formatter = null;
 
     /**
+     * The request currently being executed.
+     *
+     * @var \Backend\Interfaces\RequestInterface
+     */
+    protected $request;
+
+    /**
      * The constructor for the object.
      *
      * @param \Backend\Interfaces\RouterInterface    $router    The router to use.
@@ -71,11 +78,13 @@ class Application implements ApplicationInterface
     {
         //Inspect the request and subsequent results, chain if necessary
         $toInspect = $request ?: Request::fromState();
+        $this->request = $toInspect;
         do {
             $callback  = $toInspect instanceof RequestInterface
                 ? $this->router->inspect($toInspect)
                 : $toInspect;
             if ($callback instanceof RequestInterface) {
+                $this->request = $callback;
                 continue;
             } else if ($callback) {
                 $callback = $this->checkCallback($callback);
@@ -111,11 +120,24 @@ class Application implements ApplicationInterface
         if (!($callback instanceof CallbackInterface)) {
             throw new \Exception('Invalid Callback');
         }
-        if (is_subclass_of($callback->getClass(), '\Backend\Interfaces\ControllerInterface')) {
-            $callback->setObject(new $callback->getClass());
+        $class = $callback->getClass();
+        if (is_subclass_of($class, '\Backend\Interfaces\ControllerInterface')) {
+            $controller = new $class();
+            $controller->setRequest($this->getRequest());
+            $callback->setObject($controller);
         }
         //Set the method name as actionAction
         $callback->setMethod($callback->getMethod() . 'Action');
         return $callback;
+    }
+
+    /**
+     * Get the request that's currently being executed.
+     *
+     * @return \Backend\Interfaces\RequestInterface
+     */
+    public function getRequest()
+    {
+        return $this->request;
     }
 }
