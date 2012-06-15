@@ -12,8 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+use Backend\Interfaces\ControllerInterface;
+use Backend\Interfaces\RequestInterface;
 /**
- * The main controller class.
+ * Controller that acts as the connection between Models and Views.
  *
  * @category Backend
  * @package  Core
@@ -21,38 +23,30 @@ namespace Backend\Core;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Controller extends Decorable implements Interfaces\ControllerInterface
+class Controller extends Decorable implements ControllerInterface
 {
     /**
-     * @var Route This contains the route object that will help decide what controller
-     * and action to execute
-     */
-    protected $route = null;
-
-    /**
-     * @var \Backend\Core\Request This contains the Request that's being actioned
+     * @var \Backend\nterfaces\RequestInterface This contains the Request that's
+     * being actioned
      */
     protected $request = null;
 
     /**
      * The constructor for the object
-     *
-     * @param \Backend\Core\Request $request The request object for the execution of the action
      */
-    function __construct(Request $request = null)
+    function __construct()
     {
-        //Setup the request
-        $this->request = $request;
     }
 
     /**
-     * Set the Request for the Controller
+     * Set the Request for the Controller.
      *
-     * @param \Backend\Core\Request $request The Request for the Controller
+     * @param \Backend\Interfaces\RequestInterface $request The request for the
+     * Controller.
      *
-     * @return \Backend\Core\Controller The current object
+     * @return \Backend\Interfaces\ControllerInterface The current object.
      */
-    public function setRequest(Request $request)
+    public function setRequest(RequestInterface $request)
     {
         $this->request = $request;
         return $this;
@@ -61,7 +55,7 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     /**
      * Get the Controller's Request
      *
-     * @return \Backend\Core\Request The Controller's Request
+     * @return \Backend\Interfaces\RequestInterface The Controller's Request
      */
     public function getRequest()
     {
@@ -89,7 +83,8 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
     /**
      * Return the Model name derived from the Controller
      *
-     * @param mixed $controllerName The name of the controller, or the controller itself
+     * @param mixed $controllerName The name of the controller, or the controller
+     * itself
      *
      * @return string The name of the corresponding Model.
      */
@@ -100,9 +95,15 @@ class Controller extends Decorable implements Interfaces\ControllerInterface
         }
         $controllerName = $controllerName ?: get_called_class();
         $reflector = new \ReflectionClass($controllerName);
-        $namespace = preg_replace('/\\\\Controllers$/', '\\Models', $reflector->getNamespaceName());
-        $modelName = basename(str_replace('\\', DIRECTORY_SEPARATOR, $controllerName));
-        $modelName = Utilities\Strings::singularize(preg_replace('/Controller$/', '', $modelName));
+        $namespace = preg_replace(
+            '/\\\\Controllers$/', '\\Models', $reflector->getNamespaceName()
+        );
+        $modelName = basename(
+            str_replace('\\', DIRECTORY_SEPARATOR, $controllerName)
+        );
+        $modelName = Utilities\Strings::singularize(
+            preg_replace('/Controller$/', '', $modelName)
+        );
         $modelName = Utilities\Strings::className($modelName);
         $modelName = $namespace . '\\' . $modelName;
         return $modelName;

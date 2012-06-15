@@ -12,6 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+use Backend\Interfaces\ResponseInterface;
 /**
  * The response that will be sent back to the client
  *
@@ -21,7 +22,7 @@ namespace Backend\Core;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Response
+class Response implements ResponseInterface
 {
     /**
      * The body of the response
