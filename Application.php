@@ -72,7 +72,7 @@ class Application implements ApplicationInterface
      * @param \Backend\Interfaces\RequestInterface $request The request the
      * application should handle
      *
-     * @return mixed The result of the call
+     * @return \Backend\Interfaces\ResponseInterface
      */
     public function main(RequestInterface $request = null)
     {
@@ -97,8 +97,7 @@ class Application implements ApplicationInterface
             || $toInspect instanceof CallbackInterface);
 
         //Transform the Result
-        $response = $this->formatter->transform($toInspect);
-        $response->output();
+        return $this->formatter->transform($toInspect);
     }
 
     /**
