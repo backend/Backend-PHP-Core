@@ -63,7 +63,7 @@ class Application implements ApplicationInterface
         FormatterInterface $formatter = null
     ) {
         $this->router    = $router  ?: new Router();
-        $this->formatter = $formatter ?: new Formatter();
+        $this->formatter = $formatter;
     }
 
     /**
@@ -97,7 +97,8 @@ class Application implements ApplicationInterface
             || $toInspect instanceof CallbackInterface);
 
         //Transform the Result
-        return $this->formatter->transform($toInspect);
+        
+        return $this->getFormatter()->transform($toInspect);
     }
 
     /**
@@ -138,5 +139,22 @@ class Application implements ApplicationInterface
     public function getRequest()
     {
         return $this->request;
+    }
+
+    /**
+     * Get the appropriate formatter object.
+     *
+     * @param \Backend\Core\Request $request The request to determine what formatter
+     * to return.
+     *
+     * @return \Backend\Interfaces\FormatterInteface
+     */
+    public function getFormatter(Request $request = null)
+    {
+        $request = $request ?: $this->request;
+        if (!$this->formatter) {
+            $this->formatter = Formatter::factory($request);
+        }
+        return $this->formatter;
     }
 }
