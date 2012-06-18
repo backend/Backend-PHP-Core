@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining Application
+ * File defining \Backend\Core\Application
  *
  * PHP Version 5.3
  *
@@ -17,6 +17,7 @@ use Backend\Interfaces\RouterInterface;
 use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\CallbackInterface;
+use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Formatter;
 use Backend\Modules\Callback;
@@ -62,8 +63,28 @@ class Application implements ApplicationInterface
         RouterInterface $router = null,
         FormatterInterface $formatter = null
     ) {
+        $this->init();
         $this->router    = $router  ?: new Router();
         $this->formatter = $formatter;
+    }
+
+    /**
+     * Initialize the Application.
+     *
+     * @return void
+     */
+    public function init()
+    {
+        static $ran = false;
+        if ($ran) {
+            return;
+        }
+        //PHP Helpers
+        register_shutdown_function(array($this, 'shutdown'));
+
+        set_exception_handler(array($this, 'exception'));
+        set_error_handler(array($this, 'error'));
+        $ran = true;
     }
 
     /**
@@ -97,8 +118,11 @@ class Application implements ApplicationInterface
             || $toInspect instanceof CallbackInterface);
 
         //Transform the Result
-        
-        return $this->getFormatter()->transform($toInspect);
+        $formatter = $this->getFormatter();
+        if (!$formatter) {
+            throw new Exception('Could not find appropriate Formatter', 400);
+        }
+        return $formatter->transform($toInspect);
     }
 
     /**
@@ -144,17 +168,67 @@ class Application implements ApplicationInterface
     /**
      * Get the appropriate formatter object.
      *
-     * @param \Backend\Core\Request $request The request to determine what formatter
-     * to return.
+     * @param \Backend\Interfaces\RequestInterface $request The request to
+     * determine what formatter to return.
+     * @param \Backend\Interfaces\ConfigInterface  $config  The current Application
+     * configuration.
      *
      * @return \Backend\Interfaces\FormatterInteface
      */
-    public function getFormatter(Request $request = null)
-    {
+    public function getFormatter(
+        RequestInterface $request = null, ConfigInterface $config = null
+    ) {
         $request = $request ?: $this->request;
         if (!$this->formatter) {
-            $this->formatter = Formatter::factory($request);
+            $this->formatter = Formatter::factory($request, $config);
         }
         return $this->formatter;
+    }
+
+    /**
+     * Shutdown function called when ever the script ends
+     *
+     * @return null
+     */
+    public function shutdown()
+    {
+    }
+
+    /**
+     * Error handling function called when ever an error occurs.
+     *
+     * Called by set_error_handler. Some types of errors will be converted into
+     * excceptions.
+     *
+     * @param int    $errno   The error number
+     * @param string $errstr  The error string
+     * @param string $errfile The file the error occured in
+     * @param int    $errline The line number the errro occured on
+     *
+     * @return null
+     */
+    public function error($errno, $errstr, $errfile, $errline)
+    {
+        $this->exception(
+            new \ErrorException($errstr, 500, $errno, $errfile, $errline)
+        );
+    }
+
+    /**
+     * Exception handling function called when ever an exception isn't handled.
+     *
+     * Called by set_exception_handler.
+     *
+     * @param \Exception $exception The thrown exception
+     *
+     * @return null
+     */
+    public function exception(\Exception $exception)
+    {
+        $response = new Response(
+            $exception->getMessage(),
+            $exception->getCode()
+        );
+        $response->output();
     }
 }
