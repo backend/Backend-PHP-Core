@@ -14,6 +14,7 @@
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
+use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Response;
 /**
  * Transform results into the specified format.
@@ -27,14 +28,32 @@ use Backend\Core\Response;
 class Formatter implements FormatterInterface
 {
     /**
+     * The request being formatted.
+     *
+     * @var \Backend\Interfaces\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * Relavant configuration options.
+     *
+     * @var \Backend\Interfaces\ConfigInterfaces
+     */
+    protected $config;
+
+    /**
      * The constructor for the object
      *
-     * @param \Backend\Interfaces\RequestInterface $request The Request to associate
-     * with the view
+     * @param \Backend\Interfaces\RequestInterface $request The request used to
+     * determine what formatter to return.
+     * @param \Backend\Interfaces\ConfigInterface  $config  The current Application
+     * configuration.
      */
-    function __construct(RequestInterface $request)
-    {
+    function __construct(
+        RequestInterface $request = null, ConfigInterface $config = null
+    ) {
         $this->request = $request;
+        $this->config  = $config;
     }
 
     /**
