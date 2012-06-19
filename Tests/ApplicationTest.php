@@ -36,21 +36,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        Application::setDebugLevel(1);
-        $this->request = new Request('http://www.google.com/', 'GET', array('format' => 'html'));
-        $this->request->setQuery('/');
-    }
-
-    /**
-     * Get an Application instance
-     * 
-     * @param \Backend\Core\Request $request The request to use. Optional
-     *
-     * @return void
-     */
-    protected function getApplication(\Backend\Core\Request $request = false)
-    {
-        return new Application($request ?: $this->request, '../configs/testing.yaml');
     }
 
     /**
@@ -60,35 +45,22 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
-        \Backend\Core\Utilities\ServiceLocator::reset();
     }
 
     /**
      * Test the constructor
      *
-     * @todo Make sure we use the test log file, even if we set site state to dev
      * @return void
      */
     public function testConstructor()
     {
-        //Asserts
-        $application = $this->getApplication();
-        $this->assertTrue($application->getConstructed());
-        $this->assertEquals($this->request, $application->getRequest());
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
+        $application = new Application($router, $formatter);
+        $this->assertSame($router, $application->getRouter());
+        $this->assertSame($formatter, $application->getFormatter());
+        $this->markTestIncomplete('Check that the error, shutdown and exception handlers are set correctly');
 
-        $this->assertNotEmpty(Application::getSiteState());
-
-        Application::setSiteState('development');
-        Application::setConstructed(false);
-        $application = $this->getApplication();
-        $this->assertEquals(5, Application::getDebugLevel());
-
-        $_SERVER['DEBUG_LEVEL'] = 13;
-        Application::setConstructed(false);
-        $application = $this->getApplication();
-        $this->assertEquals(13, Application::getDebugLevel());
-
-        Application::setDebugLevel(1);
     }
 
     /**
@@ -99,150 +71,68 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testMain()
     {
         //Setup
-        $this->request->setQuery('/');
-        $application = $this->getApplication();
-        $result = $application->main();
+        $request = $this->getMockForAbstractClass('\Backend\Interfaces\RequestInterface');
+        $callback = $this->getMockForAbstractClass('\Backend\Interfaces\CallbackInterface');
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->exactly(2))
+            ->method('inspect')
+            ->with($request)
+            ->will($this->onConsecutiveCalls($request, $callback));
+        $response  = $this->getMockForAbstractClass('\Backend\Interfaces\ResponseInterface');
+        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
+        $formatter
+            ->expects($this->once())
+            ->method('transform')
+            ->with(null)
+            ->will($this->returnValue($response));
+        $application = new Application($router, $formatter);
+        $result = $application->main($request);
 
         //Asserts
-        $this->assertInstanceOf('\Backend\Core\Response', $result);
-        $this->assertSame(200, $result->getStatusCode());
+        $this->assertSame($response, $result);
     }
 
     /**
-     * Test the main function with an unknown controller
+     * Test the main function with no route for the request 
      *
      * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unknown route requested
      */
     public function testMainWith404()
     {
         //Setup
-        $this->request->setQuery('/unknown_controller');
-        $application = $this->getApplication();
-        $result = $application->main();
-
-        //Asserts
-        $this->assertInstanceOf('\Backend\Core\Response', $result);
-        $this->assertSame(404, $result->getStatusCode());
+        $request = $this->getMockForAbstractClass('\Backend\Interfaces\RequestInterface');
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->once())
+            ->method('inspect')
+            ->with($request)
+            ->will($this->returnValue(false));
+        $application = new Application($router);
+        $result = $application->main($request);
     }
 
     /**
-     * Test the main function
+     * Test the main function with no route for the request 
      *
      * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unsupported format requested
      */
-    public function testMainWithRoutePath()
+    public function testMainWith415()
     {
-        //Mock Objects
-        $routePath = $this->getMock('\Backend\Core\Utilities\RoutePath', array(), array(), '', false);
-
-        $route = $this->getMock('\Backend\Core\Route');
-        $route->expects($this->any())->method('resolve')
-            ->with($this->isInstanceOf('\Backend\Core\Request'))
-            ->will($this->returnValue($routePath));
-
         //Setup
-        $this->request->setQuery('/');
-        $application = $this->getApplication();
-        $result = $application->main();
-
-        //Asserts
-        $this->assertInstanceOf('\Backend\Core\Response', $result);
-        $this->assertSame(200, $result->getStatusCode());
-    }
-
-    /**
-     * Test the Application error handling
-     *
-     * @return void
-     * @expectedException \ErrorException
-     */
-    public function dontTestError()
-    {
-        Application::error(1, 'SomeError', __FILE__, __LINE__);
-    }
-
-    /**
-     * Test getting and setting the Debug Level
-     *
-     * @return void
-     */
-    public function testDebugLevel()
-    {
-        //The default debugging level for testing is 1
-        $this->assertSame(1, Application::getDebugLevel());
-        Application::setDebugLevel(2);
-        //Test setting an integer
-        $this->assertSame(2, Application::getDebugLevel());
-        //Test Setting a string
-        Application::setDebugLevel('4');
-        $this->assertSame(4, Application::getDebugLevel());
-        //Test an invalid level
-        $this->assertFalse(Application::setDebugLevel('string'));
-        $this->assertFalse(Application::setDebugLevel(0));
-
-
-        //Reset the Debug Level
-        Application::setDebugLevel(1);
-    }
-
-    /**
-     * Test adding and getting Namespaces
-     *
-     * @return void
-     */
-    public function testRegisterNamespace()
-    {
-        $this->assertContains('\Backend\Core', Application::getNamespaces());
-        Application::registerNamespace('\Some\Namespace');
-        $this->assertContains('\Some\Namespace', Application::getNamespaces());
-    }
-
-    /**
-     * testHandleResult
-     *
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     * @expectedExceptionMessage No View to work with
-     * @return void
-     */
-    public function testHandleResultInvalidView()
-    {
-        $request = new Request('http://www.google.com/', 'GET', array('format' => 'invalid'));
-        $request->setQuery('/');
-
-        $application = $this->getApplication($request);
-        $application->handleResult('');
-    }
-
-    /**
-     * testHandleResult
-     *
-     * @expectedException \Backend\Core\Exceptions\BackendException
-     * @expectedExceptionMessage Unrecognized Response
-     * @return void
-     */
-    public function testHandleResultInvalidResponse()
-    {
-        $view = new Views\Test($this->request);
-        $view->setResponse(false);
-        $application = $this->getApplication();
-        $application->handleResult('');
-    }
-
-    /**
-     * Test Application::getViewMethod
-     *
-     * @return void
-     */
-    public function testGetViewMethod()
-    {
-        $callback = array(
-            new \Backend\Base\Controllers\ExamplesController(),
-            'homeAction'
-        );
-        $request     = new \Backend\Core\Request('http://www.google.com', 'GET');
-        $application = $this->getApplication($request);
-        $view        = new \Backend\Base\Views\Cli($request);
-        $method      = $application->getViewMethod($callback, $view);
-        $this->assertSame('homeCli', $method);
+        $request = $this->getMockForAbstractClass('\Backend\Interfaces\RequestInterface');
+        $callback = $this->getMockForAbstractClass('\Backend\Interfaces\CallbackInterface');
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->once())
+            ->method('inspect')
+            ->with($request)
+            ->will($this->returnValue($callback));
+        $application = new Application($router);
+        $result = $application->main($request);
     }
 }

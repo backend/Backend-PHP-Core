@@ -20,6 +20,7 @@ use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Formatter;
+use Backend\Core\Exception as CoreException;
 //TODO Remove this dependancy
 use Backend\Modules\Callback;
 /**
@@ -95,6 +96,8 @@ class Application implements ApplicationInterface
      * application should handle
      *
      * @return \Backend\Interfaces\ResponseInterface
+     * @throws \Backend\Core\Exception When there's no route or formatter for the
+     * request. 
      */
     public function main(RequestInterface $request = null)
     {
@@ -102,7 +105,7 @@ class Application implements ApplicationInterface
         $toInspect = $request ?: Request::fromState();
         $this->request = $toInspect;
         do {
-            $callback  = $toInspect instanceof RequestInterface
+            $callback = $toInspect instanceof RequestInterface
                 ? $this->router->inspect($toInspect)
                 : $toInspect;
             if ($callback instanceof RequestInterface) {
@@ -112,7 +115,7 @@ class Application implements ApplicationInterface
                 $callback = $this->checkCallback($callback);
                 $toInspect = $callback->execute();
             } else {
-                throw new Exception('No route to request found', 404);
+                throw new CoreException('Unknown route requested', 404);
             }
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
@@ -120,7 +123,7 @@ class Application implements ApplicationInterface
         //Transform the Result
         $formatter = $this->getFormatter();
         if (!$formatter) {
-            throw new Exception('Could not find appropriate Formatter', 400);
+            throw new CoreException('Unsupported format requested', 415);
         }
         return $formatter->transform($toInspect);
     }
@@ -135,6 +138,7 @@ class Application implements ApplicationInterface
      * @param mixed $callback The callback to check.
      *
      * @return CallbackInterface
+     * @throws \Backend\Core\Exception When the callback is invalid.
      */
     protected function checkCallback($callback)
     {
@@ -142,7 +146,7 @@ class Application implements ApplicationInterface
             $callback = Callback::fromString($callback[0], $callback[1]);
         }
         if (!($callback instanceof CallbackInterface)) {
-            throw new \Exception('Invalid Callback');
+            throw new CoreException('Invalid Callback');
         }
         $class = $callback->getClass();
         if (is_subclass_of($class, '\Backend\Interfaces\ControllerInterface')) {
@@ -163,6 +167,16 @@ class Application implements ApplicationInterface
     public function getRequest()
     {
         return $this->request;
+    }
+
+    /**
+     * Get the router for the application.
+     *
+     * @return \Backend\Interfaces\RouterInterface
+     */
+    public function getRouter()
+    {
+        return $this->router;
     }
 
     /**
