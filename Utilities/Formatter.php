@@ -97,7 +97,7 @@ class Formatter implements FormatterInterface
 
     /**
      * Get the available Format classes.
-     * 
+     *
      * @return array The list of available Formatter classes.
      */
     public static function getFormats()
@@ -105,7 +105,8 @@ class Formatter implements FormatterInterface
         $formatFiles = array();
         foreach (array(VENDOR_FOLDER, SOURCE_FOLDER) as $base) {
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
-            $files  = glob($folder . '*/*/Formats/*.php');
+            $glob   = str_replace('/', DIRECTORY_SEPARATOR, '*/*/Formats/*.php');
+            $files  = glob($folder . $glob);
             $formatFiles = array_merge($formatFiles, $files);
         }
         $formatFiles = array_map(
@@ -137,8 +138,8 @@ class Formatter implements FormatterInterface
     }
 
     /**
-     * Check if a class is a valid Format 
-     * 
+     * Check if a class is a valid Format
+     *
      * @param mixed $className The class to check
      *
      * @return boolean
