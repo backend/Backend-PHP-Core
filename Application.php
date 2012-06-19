@@ -20,6 +20,7 @@ use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Formatter;
+//TODO Remove this dependancy
 use Backend\Modules\Callback;
 /**
  * The main application class.
@@ -111,8 +112,7 @@ class Application implements ApplicationInterface
                 $callback = $this->checkCallback($callback);
                 $toInspect = $callback->execute();
             } else {
-                //TODO 404 or something
-                $toInspect = null;
+                throw new Exception('No route to request found', 404);
             }
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);

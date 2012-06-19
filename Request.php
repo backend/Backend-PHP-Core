@@ -13,7 +13,6 @@
  */
 namespace Backend\Core;
 use Backend\Interfaces\RequestInterface;
-use Backend\Core\Utilities\ApplicationEvent;
 /**
  * The Request class which helps determine the Path and request format.
  *
@@ -101,7 +100,6 @@ class Request implements RequestInterface
         $this->setPayload($payload);
 
         $message = 'Request: ' . $this->getMethod() . ': ' . $this->getPath();
-        new ApplicationEvent($message, ApplicationEvent::SEVERITY_DEBUG);
     }
 
     /**

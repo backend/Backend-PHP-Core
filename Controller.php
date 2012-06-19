@@ -23,7 +23,7 @@ use Backend\Interfaces\RequestInterface;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Controller extends Decorable implements ControllerInterface
+class Controller implements ControllerInterface
 {
     /**
      * @var \Backend\nterfaces\RequestInterface This contains the Request that's
@@ -78,34 +78,5 @@ class Controller extends Decorable implements ControllerInterface
         $response = new Response('Redirecting to ' . $location, $responseCode);
         $response->addHeader('Location', $location);
         return $response;
-    }
-
-    /**
-     * Return the Model name derived from the Controller
-     *
-     * @param mixed $controllerName The name of the controller, or the controller
-     * itself
-     *
-     * @return string The name of the corresponding Model.
-     */
-    public static function getModelName($controllerName = false)
-    {
-        if (is_object($controllerName)) {
-            $controllerName = get_class($controllerName);
-        }
-        $controllerName = $controllerName ?: get_called_class();
-        $reflector = new \ReflectionClass($controllerName);
-        $namespace = preg_replace(
-            '/\\\\Controllers$/', '\\Models', $reflector->getNamespaceName()
-        );
-        $modelName = basename(
-            str_replace('\\', DIRECTORY_SEPARATOR, $controllerName)
-        );
-        $modelName = Utilities\Strings::singularize(
-            preg_replace('/Controller$/', '', $modelName)
-        );
-        $modelName = Utilities\Strings::className($modelName);
-        $modelName = $namespace . '\\' . $modelName;
-        return $modelName;
     }
 }

@@ -12,7 +12,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-namespace Backend\Core\Utilities;
+namespace Backend\Core;
 /**
  * The main autoloader.
  *
@@ -33,7 +33,7 @@ class Autoloader
     public static function register()
     {
         //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('\Backend\Core\Utilities\Autoloader', 'autoload'), true, true);
+        spl_autoload_register(array('\Backend\Core\Autoloader', 'autoload'), true, true);
     }
 
     /**
