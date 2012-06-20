@@ -32,8 +32,8 @@ class Autoloader
      */
     public static function register()
     {
-        //Prepend the master autoload function to the beginning of the stack
-        spl_autoload_register(array('\Backend\Core\Autoloader', 'autoload'), true, true);
+        //Prepend the master autoload function to the stack
+        spl_autoload_register(array('\Backend\Core\Autoloader', 'autoload'), true);
     }
 
     /**
@@ -49,30 +49,30 @@ class Autoloader
     {
         $className = ltrim($className, '\\');
 
-        //Check only namespaced classes
         $lastNsPos = strripos($className, '\\');
-        if (!$lastNsPos) {
-            return false;
-        }
-        $namespace = substr($className, 0, $lastNsPos);
-        $className = substr($className, $lastNsPos + 1);
-        $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
-        $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+        if ($lastNsPos) {
+            //Check namespaced classes
+            $namespace = substr($className, 0, $lastNsPos);
+            $namespace = str_replace('\\', DIRECTORY_SEPARATOR, $namespace);
+            $className = substr($className, $lastNsPos + 1);
+            $className = str_replace('_', DIRECTORY_SEPARATOR, $className);
+            $fileName  = $namespace  . DIRECTORY_SEPARATOR . $className . '.php';
 
-        //Check the bases for the file
-        $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);
-        foreach ($baseFolders as $folder) {
-            if (file_exists($folder . $fileName)) {
-                include_once $folder . $fileName;
-                return true;
+            //Check the bases for the file
+            $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);
+            foreach ($baseFolders as $folder) {
+                if (file_exists($folder . $fileName)) {
+                    include_once $folder . $fileName;
+                    return true;
+                }
             }
+        } else {
+            $fileName = $className . '.php';
         }
-        //Last gasp attempt, should catch most PSR-0 compliant classes
-        if (function_exists('stream_resolve_include_path')) {
-        	if (stream_resolve_include_path($fileName)) {
-            	include_once $fileName;
-            	return true;
-        	}
+        //Last gasp attempt, should catch most PSR-0 compliant classes and non
+        //namespaced classes
+        if (@include_once $fileName) {
+            return true;
         }
         return false;
     }
