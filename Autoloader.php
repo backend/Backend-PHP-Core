@@ -71,8 +71,12 @@ class Autoloader
         }
         //Last gasp attempt, should catch most PSR-0 compliant classes and non
         //namespaced classes
-        if (@include_once $fileName) {
-            return true;
+        $paths = explode(PATH_SEPARATOR, get_include_path());
+        foreach ($paths as $path) {
+            if (file_exists($path . '/' . $fileName)) {
+                include_once $fileName;
+                return true;
+            }
         }
         return false;
     }
