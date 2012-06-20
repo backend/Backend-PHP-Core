@@ -59,8 +59,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $application = new Application($router, $formatter);
         $this->assertSame($router, $application->getRouter());
         $this->assertSame($formatter, $application->getFormatter());
-        $this->markTestIncomplete('Check that the error, shutdown and exception handlers are set correctly');
-
     }
 
     /**
@@ -71,15 +69,21 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testMain()
     {
         //Setup
-        $request = $this->getMockForAbstractClass('\Backend\Interfaces\RequestInterface');
-        $callback = $this->getMockForAbstractClass('\Backend\Interfaces\CallbackInterface');
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
             ->expects($this->exactly(2))
             ->method('inspect')
             ->with($request)
             ->will($this->onConsecutiveCalls($request, $callback));
-        $response  = $this->getMockForAbstractClass('\Backend\Interfaces\ResponseInterface');
+        $response  = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ResponseInterface'
+        );
         $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
         $formatter
             ->expects($this->once())
@@ -91,6 +95,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         //Asserts
         $this->assertSame($response, $result);
+        $this->assertSame($request, $application->getRequest());
     }
 
     /**
@@ -103,7 +108,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testMainWith404()
     {
         //Setup
-        $request = $this->getMockForAbstractClass('\Backend\Interfaces\RequestInterface');
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
             ->expects($this->once())
@@ -124,8 +131,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testMainWith415()
     {
         //Setup
-        $request = $this->getMockForAbstractClass('\Backend\Interfaces\RequestInterface');
-        $callback = $this->getMockForAbstractClass('\Backend\Interfaces\CallbackInterface');
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
             ->expects($this->once())
@@ -134,5 +145,46 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($callback));
         $application = new Application($router);
         $result = $application->main($request);
+    }
+
+    /**
+     * Test an invalid callback
+     *
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Invalid Callback
+     * @return void
+     */
+    public function testInvalidCallback()
+    {
+        $application = new Application();
+        $application->checkCallback(array(0, 1, 2));
+    }
+
+    /**
+     * Test the checking of callbacks
+     *
+     * @return void
+     */
+    public function testCheckCallback()
+    {
+        $application = new Application();
+        $controller = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ControllerInterface'
+        );
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
+        $callback
+            ->expects($this->once())
+            ->method('getClass');
+        $callback
+            ->expects($this->once())
+            ->method('getMethod')
+            ->will($this->returnValue('some'));
+        $callback
+            ->expects($this->once())
+            ->method('setMethod')
+            ->with('someAction');
+        $application->checkCallback($callback);
     }
 }

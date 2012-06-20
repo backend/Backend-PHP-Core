@@ -140,7 +140,7 @@ class Application implements ApplicationInterface
      * @return CallbackInterface
      * @throws \Backend\Core\Exception When the callback is invalid.
      */
-    protected function checkCallback($callback)
+    public function checkCallback($callback)
     {
         if (is_array($callback) && count($callback) == 2) {
             $callback = Callback::fromString($callback[0], $callback[1]);
@@ -193,9 +193,7 @@ class Application implements ApplicationInterface
         RequestInterface $request = null, ConfigInterface $config = null
     ) {
         $request = $request ?: $this->request;
-        if (!$this->formatter) {
-            $this->formatter = Formatter::factory($request, $config);
-        }
+        $this->formatter = $this->formatter ?: Formatter::factory($request, $config);
         return $this->formatter;
     }
 
