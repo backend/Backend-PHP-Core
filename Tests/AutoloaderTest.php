@@ -103,12 +103,12 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
             )
         );
         $this->assertFalse(
-            class_exists('\AutoloadTestIncludeClass', false)
+            class_exists('\TestController', false)
         );
-        $result = Autoloader::autoload('AutoloadTestIncludeClass');
+        $result = Autoloader::autoload('TestController');
         $this->assertTrue($result);
         $this->assertTrue(
-            class_exists('AutoloadTestIncludeClass', false)
+            class_exists('\TestController', false)
         );
     }
 
