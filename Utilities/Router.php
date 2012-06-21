@@ -100,7 +100,7 @@ class Router
     {
         if ($this->config->routes) {
             foreach ($this->config->routes as $key => $route) {
-                $callback = $this->check($request, $route)
+                $callback = $this->check($request, $route);
                 if ($callback) {
                     return $callback;
                 }
