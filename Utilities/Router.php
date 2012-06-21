@@ -15,7 +15,7 @@
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\CallbackFactoryInterface;
-use Backend\Modules\Config;
+use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\CallbackFactory;
 use Backend\Core\Exceptions\ConfigException;
 use Backend\Interfaces\RequestInterface;
@@ -76,7 +76,9 @@ class Router
      */
     public function getFileName()
     {
-        if (file_exists(PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml')) {
+        $stateFile = PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE
+            . '.yaml';
+        if (file_exists($stateFile)) {
             return PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml';
         } else if (file_exists(PROJECT_FOLDER . 'configs/routes.yaml')) {
             return PROJECT_FOLDER . 'configs/routes.yaml';
@@ -98,7 +100,8 @@ class Router
     {
         if ($this->config->routes) {
             foreach ($this->config->routes as $key => $route) {
-                if ($callback = $this->check($request, $route)) {
+                $callback = $this->check($request, $route)
+                if ($callback) {
                     return $callback;
                 }
             }
@@ -128,17 +131,23 @@ class Router
         }
 
         $factory  = $this->getCallbackFactory();
-        $defaults = array_key_exists('defaults', $route) ? $route['defaults'] : array();
+        $defaults = array_key_exists('defaults', $route) ? $route['defaults']
+            : array();
+        $pregMatch = preg_match_all(
+            '/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches
+        );
         //Try to match the route
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
             return $factory->fromString($route['callback'], $defaults);
-        } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches)) {
+        } else if ($pregMatch) {
             //Compile the Regex
             $varNames = $matches[1];
             $search   = $matches[0];
             $replace  = '(/([^/]*))?';
-            $regex    = str_replace('/', '\/', str_replace($search, $replace, $route['route']));
+            $regex    = str_replace(
+                '/', '\/', str_replace($search, $replace, $route['route'])
+            );
             if (preg_match_all('/' . $regex . '/', $request->getPath(), $matches)) {
                 $arguments = array();
                 $index = 2;

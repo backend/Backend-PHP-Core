@@ -12,7 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use Backend\Modules\Callback;
+use Backend\Core\Utilities\Callback;
 use Backend\Core\Exception as CoreException;
 /**
  * Class to create callbacks from strings and arrays.

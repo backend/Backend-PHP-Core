@@ -21,8 +21,7 @@ use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Formatter;
 use Backend\Core\Exception as CoreException;
-//TODO Remove this dependancy
-use Backend\Modules\Callback;
+use Backend\Core\Utilities\Callback;
 /**
  * The main application class.
  *
