@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining Routes
+ * File defining Backend\Core\Utilities\Routes
  *
  * PHP Version 5.3
  *
@@ -14,7 +14,9 @@
  */
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\ConfigInterface;
+use Backend\Interfaces\CallbackFactoryInterface;
 use Backend\Modules\Config;
+use Backend\Core\Utilities\CallbackFactory;
 use Backend\Core\Exceptions\ConfigException;
 use Backend\Interfaces\RequestInterface;
 /**
@@ -35,13 +37,25 @@ class Router
      * @var array
      */
     protected $routes;
+
+    /**
+     * The callback factory used to construct callbacks.
+     *
+     * @var Backend\Interfaces\CallbackFactoryInterface
+     */
+    protected $factory;
+
     /**
      * The class constructor.
      *
-     * @param mixed $config The routes config or path to the routes file.
+     * @param Backend\Interfaces\ConfigInterface|string    $config  The routes
+     * config or path to the routes file.
+     * @param \Backend\Interfaces\CallbackFactoryInterface $factory A callback
+     * factory used to create callbacks from strings.
      */
-    public function __construct($config = null)
-    {
+    public function __construct(
+        $config = null, CallbackFactoryInterface $factory = null
+    ) {
         $config = $config ?: $this->getFileName();
         if (!($config instanceof ConfigInterface)) {
             $config = new Config($config);
@@ -52,6 +66,7 @@ class Router
             );
         }
         $this->config = $config;
+        $this->factory = $factory;
     }
 
     /**
@@ -82,7 +97,7 @@ class Router
     public function inspect(RequestInterface $request)
     {
         if ($this->config->routes) {
-            foreach($this->config->routes as $key => $route) {
+            foreach ($this->config->routes as $key => $route) {
                 if ($callback = $this->check($request, $route)) {
                     return $callback;
                 }
@@ -94,18 +109,30 @@ class Router
         return false;
     }
 
-    protected function check(RequestInterface $request, $route)
+    /**
+     * Check the request against the supplied route. If they match, return an array
+     * containing the callback and its arguments.
+     *
+     * @param \Backend\Interfaces\RequestInterface $request The request to compare
+     * with the route.
+     * @param array                                $route   The route information
+     * to compare with the request.
+     *
+     * @return boolean|array
+     */
+    protected function check(RequestInterface $request, array $route)
     {
         //If the verb is defined, and it doesn't match, skip
         if (!empty($route['verb']) && $route['verb'] != $request->getMethod()) {
             return false;
         }
 
+        $factory  = $this->getCallbackFactory();
         $defaults = array_key_exists('defaults', $route) ? $route['defaults'] : array();
         //Try to match the route
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
-            return array($route['callback'], $defaults);
+            return $factory->fromString($route['callback'], $defaults);
         } else if (preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches)) {
             //Compile the Regex
             $varNames = $matches[1];
@@ -133,9 +160,34 @@ class Router
      * @param mixed $callback Either a callback or a string representation of
      * a callback.
      *
-     * @return RequestInterface
+     * @return \Backend\Interfaces\RequestInterface
      */
     public function resolve($callback)
     {
+    }
+
+    /**
+     * Set the Callback Factory.
+     *
+     * @param \Backend\Interfaces\CallbackFactoryInterface $factory The Callback
+     * Factory.
+     *
+     * @return \Backend\Core\Utilities\Router
+     */
+    public function setCallbackFactory(CallbackFactoryInterface $factory)
+    {
+        $this->factory = $factory;
+        return $this;
+    }
+
+    /**
+     * Get the Callback Factory.
+     *
+     *  @return \Backend\Interfaces\CallbackFactoryInterface
+     */
+    public function getCallbackFactory()
+    {
+        $this->factory = $this->factory ?: new CallbackFactory();
+        return $this->factory;
     }
 }

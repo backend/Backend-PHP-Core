@@ -97,7 +97,7 @@ class Application implements ApplicationInterface
      *
      * @return \Backend\Interfaces\ResponseInterface
      * @throws \Backend\Core\Exception When there's no route or formatter for the
-     * request. 
+     * request.
      */
     public function main(RequestInterface $request = null)
     {
@@ -111,8 +111,16 @@ class Application implements ApplicationInterface
             if ($callback instanceof RequestInterface) {
                 $this->request = $callback;
                 continue;
-            } else if ($callback) {
-                $callback = $this->checkCallback($callback);
+            } else if ($callback instanceof CallbackInterface) {
+                //Transform the callback a bit if it's a controller
+                $class = $callback->getClass();
+                if (is_subclass_of($class, '\Backend\Interfaces\ControllerInterface')) {
+                    $controller = new $class();
+                    $controller->setRequest($this->getRequest());
+                    $callback->setObject($controller);
+                    //Set the method name as actionAction
+                    $callback->setMethod($callback->getMethod() . 'Action');
+                }
                 $toInspect = $callback->execute();
             } else {
                 throw new CoreException('Unknown route requested', 404);
@@ -126,37 +134,6 @@ class Application implements ApplicationInterface
             throw new CoreException('Unsupported format requested', 415);
         }
         return $formatter->transform($toInspect);
-    }
-
-    /**
-     * Check the validity of the callback, and transform as necessary.
-     *
-     * If the $callback parameter is an array, the first element must be the string
-     * representation of the callback (in the form class::method), and the second
-     * the arguments for the callback.
-     *
-     * @param mixed $callback The callback to check.
-     *
-     * @return CallbackInterface
-     * @throws \Backend\Core\Exception When the callback is invalid.
-     */
-    public function checkCallback($callback)
-    {
-        if (is_array($callback) && count($callback) == 2) {
-            $callback = Callback::fromString($callback[0], $callback[1]);
-        }
-        if (!($callback instanceof CallbackInterface)) {
-            throw new CoreException('Invalid Callback');
-        }
-        $class = $callback->getClass();
-        if (is_subclass_of($class, '\Backend\Interfaces\ControllerInterface')) {
-            $controller = new $class();
-            $controller->setRequest($this->getRequest());
-            $callback->setObject($controller);
-        }
-        //Set the method name as actionAction
-        $callback->setMethod($callback->getMethod() . 'Action');
-        return $callback;
     }
 
     /**
