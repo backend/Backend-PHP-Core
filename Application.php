@@ -221,9 +221,13 @@ class Application implements ApplicationInterface
      */
     public function exception(\Exception $exception, $return = false)
     {
+        $code = $exception->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
         $response = new Response(
             $exception->getMessage(),
-            $exception->getCode()
+            $code
         );
         if ($return) {
             return $response;
