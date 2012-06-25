@@ -44,15 +44,37 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the bare constructor.
+     *
+     * @return void
+     */
+    public function testConstructor()
+    {
+        $request = new Request();
+        $this->assertEquals('/', $request->getPath());
+        $this->assertEquals('GET', $request->getMethod());
+        $this->assertInternalType('array', $request->getPayload());
+    }
+
+    /**
      * Test an URL without the index.php part
      *
      * @return void
      */
     public function testNoIndex()
     {
+        //Without Trailing Slash
+        $request = new Request('http://backend-php.net', 'GET');
+        $this->assertEquals('/', $request->getPath());
+        $this->assertEquals(
+            'http://backend-php.net/index.php/', $request->getSiteUrl()
+        );
+        //With Trailing Slash
         $request = new Request('http://backend-php.net/', 'GET');
         $this->assertEquals('/', $request->getPath());
-        $this->assertEquals('http://backend-php.net/index.php/', $request->getSiteUrl());
+        $this->assertEquals(
+            'http://backend-php.net/index.php/', $request->getSiteUrl()
+        );
     }
 
     /**
@@ -75,6 +97,9 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
         $request = new Request('http://backend-php.net/index.php/something', 'GET');
         $this->assertEquals('/something', $request->getPath());
+        //With Trailing Slash
+        $request = new Request('http://backend-php.net/index.php/something/', 'GET');
+        $this->assertEquals('/something', $request->getPath());
     }
 
     /**
@@ -84,8 +109,12 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testSiteURl()
     {
-        $request = new Request('http://backend-php.net/index.php/something/else', 'POST');
-        $this->assertEquals('http://backend-php.net/index.php/', $request->getSiteUrl());
+        $request = new Request(
+            'http://backend-php.net/index.php/something/else', 'POST'
+        );
+        $this->assertEquals(
+            'http://backend-php.net/index.php/', $request->getSiteUrl()
+        );
     }
 
     /**
@@ -98,6 +127,49 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request = new Request('http://backend-php.net:8080/index.php/something');
         $serverInfo = $request->getServerInfo();
         $this->assertEquals(8080, $serverInfo['SERVER_PORT']);
+    }
+
+    /**
+     * Test HTTPS
+     *
+     * @return void
+     */
+    public function testHttps()
+    {
+        $request = new Request('https://backend-php.net');
+        $this->assertEquals('on', $request->getServerInfo('https'));
+        $this->assertEquals('443', $request->getServerInfo('server_port'));
+    }
+
+    /**
+     * Data provider for testPayload.
+     *
+     * @return array
+     */
+    public function dataPayload()
+    {
+        $result = array();
+        $payload = new \StdClass();
+        $payload->var = 'value';
+        $result[] = array($payload);
+        $result[] = array('var=value');
+        $result[] = array(array('var' => 'value'));
+        return $result;
+    }
+
+    /**
+     * Test the payload.
+     *
+     * @param mixed $payload The payload to test.
+     *
+     * @dataProvider dataPayload
+     * @return void
+     */
+    public function testPayload($payload)
+    {
+        $request = new Request(null, null, $payload);
+        $this->assertInternalType('array', $request->getPayload());
+        $this->assertEquals(array('var' => 'value'), $request->getPayload());
     }
 
     /**

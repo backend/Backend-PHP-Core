@@ -101,7 +101,7 @@ class Application implements ApplicationInterface
     public function main(RequestInterface $request = null)
     {
         //Inspect the request and subsequent results, chain if necessary
-        $toInspect = $request ?: Request::fromState();
+        $toInspect = $request ?: new Request();
         $this->request = $toInspect;
         do {
             $callback = $toInspect instanceof RequestInterface
