@@ -13,6 +13,7 @@
  */
 namespace Backend\Core;
 use Backend\Interfaces\RequestInterface;
+use Backend\Core\Exception as CoreException;
 /**
  * The Request class which helps determine the Path and request format.
  *
@@ -58,6 +59,11 @@ class Request implements RequestInterface
      */
     protected $extension = null;
 
+    /**
+     * Create a request from the current state of the request.
+     *
+     * @return \Backend\Core\Request
+     */
     public static function fromState()
     {
         return new self();
@@ -72,14 +78,18 @@ class Request implements RequestInterface
      * 3. The REQUEST_METHOD
      *
      * @param mixed  $url     The URL of the request
-     * @param string $method  The request method. Can be one of GET, POST, PUT, DELETE or HEAD
-     * @param mixed  $payload The request data. Defaults to the HTTP request data if not supplied
+     * @param string $method  The request method. Can be one of GET, POST, PUT,
+     * DELETE or HEAD
+     * @param mixed  $payload The request data. Defaults to the HTTP request data
+     * if not supplied
      */
     function __construct($url = null, $method = null, $payload = null)
     {
         if (is_null($url)) {
             $this->serverInfo = $_SERVER;
-            $this->serverInfo['PATH_INFO'] = array_key_exists('PATH_INFO', $_SERVER) ? $_SERVER['PATH_INFO'] : '';
+            $this->serverInfo['PATH_INFO']
+                = array_key_exists('PATH_INFO', $_SERVER)
+                    ? $_SERVER['PATH_INFO'] : '';
         } else {
             $this->parseUrl($url);
             $method = is_null($method) ? 'GET' : $method;
@@ -94,8 +104,6 @@ class Request implements RequestInterface
             parse_str($payload, $payload);
         } else if (is_object($payload)) {
             $payload = (array)$payload;
-        } else if (is_array($payload)) {
-            $payload = $payload;
         }
         $this->setPayload($payload);
 
@@ -113,8 +121,10 @@ class Request implements RequestInterface
     {
         $urlParts = parse_url($url);
         $this->serverInfo['HTTP_HOST']    = $urlParts['host'];
-        $this->serverInfo['QUERY_STRING'] = array_key_exists('query', $urlParts) ? $urlParts['query'] : '';
-        $urlParts['path']                 = array_key_exists('path', $urlParts) ? $urlParts['path'] : '';
+        $this->serverInfo['QUERY_STRING'] = array_key_exists('query', $urlParts)
+            ? $urlParts['query'] : '';
+        $urlParts['path']                 = array_key_exists('path', $urlParts)
+            ? $urlParts['path'] : '';
         //TODO For now we're assuming all URL's passed will have an index.php in them
         if (strpos($urlParts['path'], 'index.php') === false) {
             if (substr($urlParts['path'], -1) != '/') {
@@ -125,7 +135,6 @@ class Request implements RequestInterface
         $this->serverInfo['REQUEST_URI']  = $urlParts['path'];
         $pathInfo = explode('index.php', $urlParts['path'], 2);
         $this->serverInfo['PATH_INFO'] = end($pathInfo);
-        //$this->serverInfo['PATH_INFO'] = str_replace($_SERVER['SCRIPT_NAME'], '', $urlParts['path']);
         $this->serverInfo['REQUEST_TIME'] = time();
         if ($urlParts['scheme'] == 'https') {
             $this->serverInfo['HTTPS']       = 'on';
@@ -139,204 +148,6 @@ class Request implements RequestInterface
         //Keep all $_SERVER details we haven't set
         $this->serverInfo = array_merge($_SERVER, $this->serverInfo);
         return $this;
-    }
-
-    /**
-     * Return the link that will result in this request
-     *
-     * @return string
-     */
-    public function getLink()
-    {
-
-    }
-
-    /**
-     * Return the path of the Request.
-     *
-     * @return string
-     */
-    public function getPath()
-    {
-        if (is_null($this->path)) {
-            $this->setPath(urldecode($this->serverInfo['PATH_INFO']));
-        }
-        return $this->path;
-    }
-
-    /**
-     * Set and cleanup the path.
-     *
-     * The path should be URL decoded before calling this method.
-     *
-     * @param string $path The path
-     *
-     * @return Object The current object
-     */
-    public function setPath($path)
-    {
-        //Clean up the path
-        //No trailing slash
-        if (substr($path, -1) == '/') {
-            $path = substr($path, 0, strlen($path) - 1);
-        }
-        if (substr($path, 0, 1) != '/') {
-            $path = '/' . $path;
-        }
-
-        $this->path = $path;
-
-        //Remove the extension if present
-        if ($extension = $this->getExtension()) {
-            $this->path = preg_replace('/[_\.]' . $extension . '$/', '', $this->path);
-        }
-        return $this;
-    }
-
-    /**
-     * Get the Site URL
-     *
-     * @return string The API end point
-     */
-    public function getSiteUrl()
-    {
-        if (is_null($this->siteUrl)) {
-            $this->prepareSiteUrl();
-        }
-        return $this->siteUrl;
-    }
-
-    /**
-     * Prepare the SITE URL
-     *
-     * @return null
-     */
-    protected function prepareSiteUrl()
-    {
-        //Construct the current URL
-        $this->siteUrl = 'http';
-        if ($this->serverInfo['SERVER_PORT'] == 443
-            || (!empty($this->serverInfo['HTTPS']) && $this->serverInfo['HTTPS'] == 'on')
-        ) {
-            $this->siteUrl .= 's';
-        }
-        $this->siteUrl .= '://' . $this->serverInfo['HTTP_HOST'];
-        if ('index.php' == basename($this->serverInfo['PHP_SELF'])) {
-            $this->siteUrl .= $this->serverInfo['PHP_SELF'];
-        } else {
-            $pattern = '/' . str_replace('/', '\\/', $this->serverInfo['PATH_INFO']) . '$/';
-            $subject = explode('?', $this->serverInfo['REQUEST_URI']);
-            $subject = reset($subject);
-            $this->siteUrl .= preg_replace($pattern, '', $subject);
-        }
-        if (substr($this->siteUrl, -1) != '/') {
-            $this->siteUrl .= '/';
-        }
-    }
-
-    /**
-     * Get the Site Path
-     *
-     * @return string The Site Path
-     */
-    public function getSitePath()
-    {
-        if (is_null($this->sitePath)) {
-            $this->prepareSitePath();
-        }
-        return $this->sitePath;
-    }
-
-    /**
-     * Prepare the Site Path
-     *
-     * @return null
-     */
-    protected function prepareSitePath()
-    {
-        $path = dirname($this->getSiteUrl());
-        if (substr($path, -1) != '/') {
-            $path .= '/';
-        }
-        $this->sitePath = $path;
-    }
-
-    /**
-     * Return the serverInfo property
-     *
-     * @return array The serverInfo property
-     */
-    public function getServerInfo()
-    {
-        return $this->serverInfo;
-    }
-
-    /**
-     * Determine the requested format for the request
-     *
-     * @return string The format for the request
-     */
-    public function getSpecifiedFormat()
-    {
-        //Check the format parameter
-        if (array_key_exists('format', $this->payload)) {
-            return $this->payload['format'];
-        }
-
-        //Third CL parameter is the required format
-        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
-            return $this->serverInfo['argv'][3];
-        }
-        return false;
-    }
-
-    /**
-     * Get the Request Extension
-     *
-     * @return string The extension of the request
-     */
-    public function getExtension()
-    {
-        if (is_null($this->extension)) {
-            $this->prepareExtension();
-        }
-        return $this->extension;
-    }
-
-    /**
-     * Determine the extension for the request
-     *
-     * @return string The extension for the request
-     */
-    public function prepareExtension()
-    {
-        preg_match('/[^\/]+\.(.*)\??.*$/', $this->getPath(), $matches);
-        if (!empty($matches[1])) {
-            $this->extension = $matches[1];
-        } else {
-            $this->extension = false;
-        }
-    }
-
-    /**
-     * Determine the requested MIME Type for the request
-     *
-     * @return string The MIME Type for the request
-     */
-    public function getMimeType()
-    {
-        if (self::fromCli()) {
-            return 'cli';
-        } else if (array_key_exists('HTTP_ACCEPT', $this->serverInfo)) {
-            //No format found, check if there's an Accept Header
-            $mimeType = $this->serverInfo['HTTP_ACCEPT'];
-            //Try to get the first type
-            $types = explode(',', $mimeType);
-            //Remove the preference variable
-            $mimeType = explode(';', reset($types));
-            return reset($mimeType);
-        }
-        return false;
     }
 
     /**
@@ -382,12 +193,206 @@ class Request implements RequestInterface
     public function setMethod($method)
     {
         $method = strtoupper($method);
-        if (!in_array($method, array('DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'))) {
-            throw new Exceptions\UnsupportedHttpMethodException('Unsupported method ' . $method);
+        $allowedMethods = array('DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT');
+        if (!in_array($method, $allowedMethods)) {
+            throw new CoreException('Unsupported method ' . $method);
         }
         $this->method = $method;
         $this->serverInfo['REQUEST_METHOD'] = $method;
         return $this;
+    }
+
+    /**
+     * Return the path of the Request.
+     *
+     * @return string
+     */
+    public function getPath()
+    {
+        if (is_null($this->path)) {
+            $this->setPath(urldecode($this->serverInfo['PATH_INFO']));
+        }
+        return $this->path;
+    }
+
+    /**
+     * Set and cleanup the path.
+     *
+     * The path should be URL decoded before calling this method.
+     *
+     * @param string $path The path
+     *
+     * @return Object The current object
+     */
+    public function setPath($path)
+    {
+        //Clean up the path
+        //No trailing slash
+        if (substr($path, -1) == '/') {
+            $path = substr($path, 0, strlen($path) - 1);
+        }
+        if (substr($path, 0, 1) != '/') {
+            $path = '/' . $path;
+        }
+
+        $this->path = $path;
+
+        //Remove the extension if present
+        $extension = $this->getExtension();
+        if ($extension) {
+            $this->path = preg_replace(
+                '/[_\.]' . $extension . '$/', '', $this->path
+            );
+        }
+        return $this;
+    }
+
+    /**
+     * Return the link that will result in this request
+     *
+     * @return string
+     */
+    public function getLink()
+    {
+
+    }
+
+    /**
+     * Determine the requested MIME Type for the request
+     *
+     * @return string The MIME Type for the request
+     */
+    public function getMimeType()
+    {
+        if (self::fromCli()) {
+            return 'cli';
+        } else if (array_key_exists('HTTP_ACCEPT', $this->serverInfo)) {
+            //No format found, check if there's an Accept Header
+            $mimeType = $this->serverInfo['HTTP_ACCEPT'];
+            //Try to get the first type
+            $types = explode(',', $mimeType);
+            //Remove the preference variable
+            $mimeType = explode(';', reset($types));
+            return reset($mimeType);
+        }
+        return false;
+    }
+
+    /**
+     * Determine the requested format for the request
+     *
+     * @return string The format for the request
+     */
+    public function getSpecifiedFormat()
+    {
+        //Check the format parameter
+        if (array_key_exists('format', $this->payload)) {
+            return $this->payload['format'];
+        }
+
+        //Third CL parameter is the required format
+        if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
+            return $this->serverInfo['argv'][3];
+        }
+        return false;
+    }
+
+    /**
+     * Get the Request Extension
+     *
+     * @return string The extension of the request
+     */
+    public function getExtension()
+    {
+        if (is_null($this->extension)) {
+            preg_match('/[^\/]+\.(.*)\??.*$/', $this->getPath(), $matches);
+            if (!empty($matches[1])) {
+                $this->extension = $matches[1];
+            } else {
+                $this->extension = false;
+            }
+        }
+        return $this->extension;
+    }
+
+    /**
+     * Get the Site URL
+     *
+     * @return string The API end point
+     */
+    public function getSiteUrl()
+    {
+        if (is_null($this->siteUrl)) {
+            $this->prepareSiteUrl();
+        }
+        return $this->siteUrl;
+    }
+
+    /**
+     * Prepare the SITE URL
+     *
+     * @return null
+     */
+    protected function prepareSiteUrl()
+    {
+        //Construct the current URL
+        $this->siteUrl = 'http';
+        if ($this->getServerInfo('SERVER_PORT') == 443
+            || $this->getServerInfo('HTTPS') == 'on'
+        ) {
+            $this->siteUrl .= 's';
+        }
+        $this->siteUrl .= '://' . $this->getServerInfo('HOST');
+        if ('index.php' == basename($this->serverInfo['PHP_SELF'])) {
+            $this->siteUrl .= $this->serverInfo['PHP_SELF'];
+        } else {
+            $pattern = '/' . str_replace('/', '\\/', $this->serverInfo['PATH_INFO'])
+                . '$/';
+            $subject = explode('?', $this->serverInfo['REQUEST_URI']);
+            $subject = reset($subject);
+            $this->siteUrl .= preg_replace($pattern, '', $subject);
+        }
+        if (substr($this->siteUrl, -1) != '/') {
+            $this->siteUrl .= '/';
+        }
+    }
+
+    /**
+     * Get the Site Path
+     *
+     * @return string The Site Path
+     */
+    public function getSitePath()
+    {
+        if (is_null($this->sitePath)) {
+            $path = dirname($this->getSiteUrl());
+            if (substr($path, -1) != '/') {
+                $path .= '/';
+            }
+            $this->sitePath = $path;
+        }
+        return $this->sitePath;
+    }
+
+    /**
+     * Return the serverInfo property
+     *
+     * @param string $name A specific piece of Server Info
+     *
+     * @return array The serverInfo property
+     */
+    public function getServerInfo($name = false)
+    {
+        if (!$name) {
+            return $this->serverInfo;
+        }
+        $name = strtoupper($name);
+        if (array_key_exists($name, $this->serverInfo)) {
+            return $this->serverInfo[$name];
+        } else if (array_key_exists('HTTP_' . $name, $this->serverInfo)) {
+            return $this->serverInfo['HTTP_' . $name ];
+        }
+        return null;
     }
 
     /**
@@ -487,7 +492,8 @@ class Request implements RequestInterface
             }
         }
         if (!empty($this->serverInfo['CONTENT_TYPE'])
-            && $payload = $this->parseContent()) {
+            && $payload = $this->parseContent()
+        ) {
             $this->setPayload($payload);
             return $this->payload;
         }
@@ -542,7 +548,10 @@ class Request implements RequestInterface
         case 'application/xml':
             //TODO
         default:
-            throw new Exceptions\UnrecognizedRequestException('Unknown Content Type: ' . $type);
+            throw new CoreException(
+                'Unknown Content Type: ' . $type,
+                400
+            );
             break;
         }
         return $payload;
