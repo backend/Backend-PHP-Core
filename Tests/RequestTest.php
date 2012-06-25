@@ -51,7 +51,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testNoIndex()
     {
         $request = new Request('http://backend-php.net/', 'GET');
-        $this->assertEquals('/', $request->getQuery());
+        $this->assertEquals('/', $request->getPath());
         $this->assertEquals('http://backend-php.net/index.php/', $request->getSiteUrl());
     }
 
@@ -63,7 +63,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testEmptyQuery()
     {
         $request = new Request('http://backend-php.net/index.php', 'GET');
-        $this->assertEquals('/', $request->getQuery());
+        $this->assertEquals('/', $request->getPath());
     }
 
     /**
@@ -74,7 +74,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testSimpleQuery()
     {
         $request = new Request('http://backend-php.net/index.php/something', 'GET');
-        $this->assertEquals('/something', $request->getQuery());
+        $this->assertEquals('/something', $request->getPath());
     }
 
     /**

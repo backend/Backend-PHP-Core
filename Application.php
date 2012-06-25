@@ -113,12 +113,18 @@ class Application implements ApplicationInterface
             } else if ($callback instanceof CallbackInterface) {
                 //Transform the callback a bit if it's a controller
                 $class = $callback->getClass();
-                if (is_subclass_of($class, '\Backend\Interfaces\ControllerInterface')) {
-                    $controller = new $class();
-                    $controller->setRequest($this->getRequest());
-                    $callback->setObject($controller);
-                    //Set the method name as actionAction
-                    $callback->setMethod($callback->getMethod() . 'Action');
+                if ($class) {
+                    $interfaces = class_implements($class);
+                    $implements = array_key_exists(
+                        'Backend\Interfaces\ControllerInterface', $interfaces
+                    );
+                    if ($implements) {
+                        $controller = new $class();
+                        $controller->setRequest($this->getRequest());
+                        $callback->setObject($controller);
+                        //Set the method name as actionAction
+                        $callback->setMethod($callback->getMethod() . 'Action');
+                    }
                 }
                 $toInspect = $callback->execute();
             } else {
@@ -188,18 +194,19 @@ class Application implements ApplicationInterface
      * Called by set_error_handler. Some types of errors will be converted into
      * excceptions.
      *
-     * @param int    $errno   The error number
-     * @param string $errstr  The error string
-     * @param string $errfile The file the error occured in
-     * @param int    $errline The line number the errro occured on
+     * @param int    $errno   The error number.
+     * @param string $errstr  The error string.
+     * @param string $errfile The file the error occured in.
+     * @param int    $errline The line number the errro occured on.
+     * @param bool   $return  Return the exception instead of running it.
      *
-     * @return null
+     * @return \Exception
      */
-    public function error($errno, $errstr, $errfile, $errline)
+    public function error($errno, $errstr, $errfile, $errline, $return = false)
     {
-        $this->exception(
-            new \ErrorException($errstr, 500, $errno, $errfile, $errline)
-        );
+        $exception = new \ErrorException($errstr, 500, $errno, $errfile, $errline);
+        $this->exception($exception, $return);
+        return $exception;
     }
 
     /**
@@ -207,16 +214,20 @@ class Application implements ApplicationInterface
      *
      * Called by set_exception_handler.
      *
-     * @param \Exception $exception The thrown exception
+     * @param \Exception $exception The thrown exception.
+     * @param bool       $return    Return the response instead of outputting it.
      *
-     * @return null
+     * @return \Backend\Interfaces\ResponseInterface
      */
-    public function exception(\Exception $exception)
+    public function exception(\Exception $exception, $return = false)
     {
         $response = new Response(
             $exception->getMessage(),
             $exception->getCode()
         );
+        if ($return) {
+            return $response;
+        }
         $response->output();
     }
 }

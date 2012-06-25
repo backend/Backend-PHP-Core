@@ -75,6 +75,18 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $callback = $this->getMockForAbstractClass(
             '\Backend\Interfaces\CallbackInterface'
         );
+        $callback
+            ->expects($this->once())
+            ->method('getClass')
+            ->will($this->returnValue('\Backend\Core\Controller'));
+        $callback
+            ->expects($this->once())
+            ->method('setObject')
+            ->with($this->isInstanceOf('\Backend\Core\Controller'));
+        $callback
+            ->expects($this->once())
+            ->method('setMethod')
+            ->with($this->stringEndsWith('Action'));
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
             ->expects($this->exactly(2))
@@ -99,7 +111,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the main function with no route for the request 
+     * Test the main function with no route for the request
      *
      * @return void
      * @expectedException \Backend\Core\Exception
@@ -122,7 +134,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the main function with no route for the request 
+     * Test the main function with no route for the request
      *
      * @return void
      * @expectedException \Backend\Core\Exception
@@ -148,43 +160,30 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test an invalid callback
+     * Run the error code.
      *
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Invalid Callback
      * @return void
      */
-    public function testInvalidCallback()
+    public function testError()
     {
-        $application = new Application();
-        $application->checkCallback(array(0, 1, 2));
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $application = new Application($router);
+        $result = $application->error(0, 'Some Error', __FILE__, __LINE__, true);
+        $this->assertInstanceOf('\Exception', $result);
+        $this->assertEquals(500, $result->getCode());
+        $this->assertEquals('Some Error', $result->getMessage());
     }
 
     /**
-     * Test the checking of callbacks
+     * Run the Exception Code.
      *
      * @return void
      */
-    public function testCheckCallback()
+    public function testException()
     {
-        $application = new Application();
-        $controller = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\ControllerInterface'
-        );
-        $callback = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\CallbackInterface'
-        );
-        $callback
-            ->expects($this->once())
-            ->method('getClass');
-        $callback
-            ->expects($this->once())
-            ->method('getMethod')
-            ->will($this->returnValue('some'));
-        $callback
-            ->expects($this->once())
-            ->method('setMethod')
-            ->with('someAction');
-        $application->checkCallback($callback);
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $application = new Application($router);
+        $result = $application->exception(new \Exception('Message', 500), true);
+        $this->assertInstanceOf('\Backend\Interfaces\ResponseInterface', $result);
     }
 }
