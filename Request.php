@@ -60,14 +60,13 @@ class Request implements RequestInterface
     protected $extension = null;
 
     /**
-     * Create a request from the current state of the request.
+     * HTTP Methods allowed in the Request.
      *
-     * @return \Backend\Core\Request
+     * @var array
      */
-    public static function fromState()
-    {
-        return new self();
-    }
+    public static $allowedMethods = array(
+        'DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'
+    );
 
     /**
      * The constructor for the class
@@ -100,14 +99,9 @@ class Request implements RequestInterface
 
         if (is_null($payload)) {
             $payload = $this->getPayload();
-        } else if (is_string($payload)) {
-            parse_str($payload, $payload);
-        } else if (is_object($payload)) {
-            $payload = (array)$payload;
+        } else {
+            $this->setPayload($payload);
         }
-        $this->setPayload($payload);
-
-        $message = 'Request: ' . $this->getMethod() . ': ' . $this->getPath();
     }
 
     /**
@@ -174,6 +168,9 @@ class Request implements RequestInterface
                 //First CL parameter is the method
                 $method = count($this->serverInfo['argv']) >= 2
                     ? $this->serverInfo['argv'][1] : 'GET';
+                if (!in_array($method, self::$allowedMethods)) {
+                    $method = 'GET';
+                }
             } else {
                 $method = $this->serverInfo['REQUEST_METHOD'];
             }
@@ -193,8 +190,7 @@ class Request implements RequestInterface
     public function setMethod($method)
     {
         $method = strtoupper($method);
-        $allowedMethods = array('DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT');
-        if (!in_array($method, $allowedMethods)) {
+        if (!in_array($method, self::$allowedMethods)) {
             throw new CoreException('Unsupported method ' . $method);
         }
         $this->method = $method;
@@ -560,12 +556,19 @@ class Request implements RequestInterface
     /**
      * Set the request's payload.
      *
-     * @param array $payload The Request's Payload
+     * Strings will be parsed for variables and objects will be casted to arrays.
+     *
+     * @param mixed $payload The Request's Payload
      *
      * @return The current object
      */
-    public function setPayload(array $payload)
+    public function setPayload($payload)
     {
+        if (is_string($payload)) {
+            parse_str($payload, $payload);
+        } else if (is_object($payload)) {
+            $payload = (array)$payload;
+        }
         $this->payload = $payload;
         return $this;
     }
