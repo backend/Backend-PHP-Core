@@ -28,12 +28,16 @@ class Request implements RequestInterface
     protected $serverInfo = array();
 
     /**
-     * @var string The absolute path to the site. Used for links to assets
+     * The absolute path to the site. Used for links to assets.
+     *
+     * @var string
      */
     protected $sitePath = null;
 
     /**
-     * @var string The site end point. Used for calls to the site
+     * The site end point. Used for calls to the site.
+     *
+     * @var string
      */
     protected $siteUrl = null;
 
@@ -45,19 +49,32 @@ class Request implements RequestInterface
     protected $path   = null;
 
     /**
-     * @var array The payload of the request
+     * The payload of the request.
+     *
+     * @var array
      */
     protected $payload = null;
 
     /**
-     * @var string The method of the request. Can be one of GET, POST, PUT or DELETE
+     * The method of the request. Can be one of GET, POST, PUT or DELETE.
+     *
+     * @var string
      */
     protected $method  = null;
 
     /**
-     * @var string The extension of the request.
+     * The extension of the request.
+     *
+     * @var string
      */
     protected $extension = null;
+
+    /**
+     * Stream location to read content from.
+     *
+     * @var string
+     */
+    protected $inputStream = 'php://input';
 
     /**
      * HTTP Methods allowed in the Request.
@@ -97,11 +114,7 @@ class Request implements RequestInterface
             $this->setMethod($method);
         }
 
-        if (is_null($payload)) {
-            $payload = $this->getPayload();
-        } else {
-            $this->setPayload($payload);
-        }
+        $this->setPayload($payload);
     }
 
     /**
@@ -109,7 +122,7 @@ class Request implements RequestInterface
      *
      * @param string $url The URL to parse
      *
-     * @return Object The current object
+     * @return Request The current object
      */
     protected function parseUrl($url)
     {
@@ -218,7 +231,7 @@ class Request implements RequestInterface
      *
      * @param string $path The path
      *
-     * @return Object The current object
+     * @return Request The current object
      */
     public function setPath($path)
     {
@@ -377,18 +390,36 @@ class Request implements RequestInterface
      *
      * @return array The serverInfo property
      */
-    public function getServerInfo($name = false)
+    public function getServerInfo($name = null)
     {
-        if (!$name) {
+        if ($name === null) {
             return $this->serverInfo;
         }
-        $name = strtoupper($name);
+        if (in_array($name, array('argv')) === false) {
+            $name = strtoupper($name);
+        }
         if (array_key_exists($name, $this->serverInfo)) {
             return $this->serverInfo[$name];
         } else if (array_key_exists('HTTP_' . $name, $this->serverInfo)) {
             return $this->serverInfo['HTTP_' . $name ];
         }
         return null;
+    }
+
+    /**
+     * Set serverInfo values.
+     *
+     * @param string $name  The name of the serverInfo value to set.
+     * @param string $value The value of the serverInfo value.
+     *
+     * @return Request The current object
+     */
+    public function setServerInfo($name, $value)
+    {
+        if (in_array($name, array('argv')) === false) {
+            $name = strtoupper($name);
+        }
+        $this->serverInfo[$name] = $value;
     }
 
     /**
@@ -464,70 +495,27 @@ class Request implements RequestInterface
     }
 
     /**
-     * Return the request's payload.
-     *
-     * @return array The Request Payload
-     */
-    public function getPayload()
-    {
-        if (!is_null($this->payload)) {
-            return $this->payload;
-        }
-        if (self::fromCli()) {
-            $payload = array(
-                //Second CL parameter is the query. This will be picked up later
-                count($this->serverInfo['argv']) >= 3
-                    ? $this->serverInfo['argv'][2] : '' => '',
-            );
-            if (count($this->serverInfo['argv']) >= 5) {
-                //Fourth CL parameter is a query string
-                parse_str($this->serverInfo['argv'][4], $queryVars);
-                if (is_array($queryVars)) {
-                    $payload = array_merge($this->payload, $queryVars);
-                }
-            }
-        }
-        if (!empty($this->serverInfo['CONTENT_TYPE'])
-            && $payload = $this->parseContent()
-        ) {
-            $this->setPayload($payload);
-            return $this->payload;
-        }
-        $payload = null;
-        switch ($this->getMethod()) {
-        case 'GET':
-            $payload = isset($_GET) ? $_GET : array();
-            break;
-        case 'POST':
-        case 'PUT':
-            $payload = isset($_POST) ? $_POST : array();
-            break;
-        }
-        if (is_null($payload)) {
-            $payload = isset($_REQUEST) ? $_REQUEST : array();
-        }
-        $this->setPayload($payload);
-        return $this->payload;
-    }
-
-    /**
      * Parse the content / body of the Request
      *
-     * @param string $content The content to parse
      * @param string $type    The type of the content
+     * @param string $content The content to parse
      *
      * @todo Expand this to include XML and other content types
      * @return array The payload as an array? This might change
      */
-    public function parseContent($content = null, $type = null)
+    public function parseContent($type, $content = null)
     {
-        $type = $type ?: $this->serverInfo['CONTENT_TYPE'];
-        if (is_null($content)) {
+        if ($type === null) {
+            return null;
+        }
+        if ($content === null) {
             $data     = '';
-            $fpointer = fopen('php://input', 'r');
-            while ($chunk = fread($fpointer, 1024)) {
+            $fpointer = fopen($this->getInputStream(), 'r');
+            while ($fpointer && $chunk = fread($fpointer, 1024)) {
                 $data .= $chunk;
             }
+        } else {
+            $data = $content;
         }
         $payload = null;
         switch ($type) {
@@ -554,13 +542,53 @@ class Request implements RequestInterface
     }
 
     /**
+     * Return the request's payload.
+     *
+     * @return array The Request Payload
+     */
+    public function getPayload()
+    {
+        if (!is_null($this->payload)) {
+            return $this->payload;
+        }
+        if ($this->fromCli()) {
+            if (count($this->serverInfo['argv']) >= 5) {
+                //Fourth CL parameter is a query string
+                parse_str($this->serverInfo['argv'][4], $queryVars);
+                $this->payload = $queryVars;
+                return $this->payload;
+            }
+        }
+        $payload = $this->parseContent($this->getServerInfo('content_type'));
+        if ($payload) {
+            $this->setPayload($payload);
+            return $this->payload;
+        }
+        $payload = null;
+        switch ($this->getMethod()) {
+        case 'GET':
+            $payload = isset($_GET) ? $_GET : array();
+            break;
+        case 'POST':
+        case 'PUT':
+            $payload = isset($_POST) ? $_POST : array();
+            break;
+        }
+        if (is_null($payload)) {
+            $payload = isset($_REQUEST) ? $_REQUEST : array();
+        }
+        $this->setPayload($payload);
+        return $this->payload;
+    }
+
+    /**
      * Set the request's payload.
      *
      * Strings will be parsed for variables and objects will be casted to arrays.
      *
      * @param mixed $payload The Request's Payload
      *
-     * @return The current object
+     * @return Request The current object.
      */
     public function setPayload($payload)
     {
@@ -580,7 +608,29 @@ class Request implements RequestInterface
      */
     public function fromCli()
     {
-        return !array_key_exists('REQUEST_METHOD', $this->serverInfo)
+        return array_key_exists('REQUEST_METHOD', $this->serverInfo) === false
             && array_key_exists('argv', $this->serverInfo);
+    }
+
+    /**
+     * Set the input stream.
+     *
+     * @param string $stream The stream.
+     *
+     * @return Request The current object.
+     */
+    public function setInputStream($stream)
+    {
+        $this->inputStream = $stream;
+    }
+
+    /**
+     * Get the input stream.
+     *
+     * @return string
+     */
+    public function getInputStream()
+    {
+        return $this->inputStream;
     }
 }

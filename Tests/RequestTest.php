@@ -142,6 +142,84 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Data for the testParseContent method.
+     *
+     * @return array
+     */
+    public function dataParseContent()
+    {
+        $result = array();
+        // Test json payload
+        $result[] = array(
+            'application/json', dirname(__FILE__) . '/auxiliary/payload.json',
+        );
+        $result[] = array(
+            'text/json', dirname(__FILE__) . '/auxiliary/payload.json',
+        );
+        $result[] = array(
+            'text/javascript', dirname(__FILE__) . '/auxiliary/payload.json',
+        );
+        // Test www form payload
+        $result[] = array(
+            'application/x-www-form-urlencoded',
+            dirname(__FILE__) . '/auxiliary/payload.txt',
+        );
+        $result[] = array(
+            'text/plain', dirname(__FILE__) . '/auxiliary/payload.txt',
+        );
+        // Test xml payload
+        $result[] = array(
+            'application/xml', dirname(__FILE__) . '/auxiliary/payload.xml',
+        );
+        return $result;
+    }
+
+    /**
+     * Test the parsing of content.
+     *
+     * @param string $contentType The content type.
+     * @param string $filename    The name of file where input should be read from.
+     *
+     * @dataProvider dataParseContent
+     * @return void
+     */
+    public function testParseContent($contentType, $filename)
+    {
+        $request = new Request();
+        $content = file_get_contents($filename);
+        $result = $request->parseContent($contentType, $content);
+        $this->assertEquals(array('var' => 'value'), $result);
+
+    }
+
+    /**
+     * Test parsing content from a file
+     *
+     * @return void
+     */
+    public function testParseFileContent()
+    {
+        $request = new Request();
+        $request->setInputStream(dirname(__FILE__) . '/auxiliary/payload.json');
+        $result = $request->parseContent('application/json');
+        $this->assertEquals(array('var' => 'value'), $result);
+    }
+
+    /**
+     * Test unknown content
+     *
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unknown Content Type: unknown/content
+     * @expectedExceptionCode 400
+     * @return void
+     */
+    public function testUnknownContent()
+    {
+        $request = new Request();
+        $request->parseContent('unknown/content');
+    }
+
+    /**
      * Data provider for testPayload.
      *
      * @return array
@@ -158,7 +236,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the payload.
+     * Test setting the payload.
      *
      * @param mixed $payload The payload to test.
      *
@@ -168,8 +246,62 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testPayload($payload)
     {
         $request = new Request(null, null, $payload);
-        $this->assertInternalType('array', $request->getPayload());
         $this->assertEquals(array('var' => 'value'), $request->getPayload());
+    }
+
+    /**
+     * Test getting the payload.
+     *
+     * @return void
+     */
+    public function testGetPayload()
+    {
+        // Test empty payload
+        $request = new Request(null, 'delete');
+        $this->assertEquals(array(), $request->getPayload());
+
+        // Test GET and POST/PUT
+        $request = new Request(null, 'get');
+        $this->assertEquals($_GET, $request->getPayload());
+
+        $request = new Request(null, 'post');
+        $this->assertEquals($_POST, $request->getPayload());
+
+        $request = new Request(null, 'put');
+        $this->assertEquals($_POST, $request->getPayload());
+
+        // Test content from parseContent
+        $request = $this->getMock(
+            '\Backend\Core\Request',
+            array('parseContent'),
+            array(null, 'delete')
+        );
+        $request
+            ->expects($this->once())
+            ->method('parseContent')
+            ->will($this->returnValue(array('var' => 'value')));
+        $this->assertEquals(array('var' => 'value'), $request->getPayload());
+    }
+
+    /**
+     * Test getting the payload from the CLI
+     *
+     * @return void
+     */
+    public function testGetPayloadFromCli()
+    {
+        $request = new Request();
+        $argv = $request->getServerInfo('argv');
+        $argv = array_pad($argv, 5, null);
+        $argv[4] = 'var=value';
+        $request->setServerInfo('argv', $argv);
+        $this->assertEquals(array('var' => 'value'), $request->getPayload());
+
+        $request = new Request();
+        $argv = $request->getServerInfo('argv');
+        $argv = array_pad($argv, 5, null);
+        $argv[4] = 'jannie verjaar';
+        $this->assertEquals(array(), $request->getPayload());
     }
 
     /**
