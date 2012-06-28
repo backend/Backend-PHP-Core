@@ -103,21 +103,6 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tear down the test
-     *
-     * @return void
-     */
-    public function testSiteURl()
-    {
-        $request = new Request(
-            'http://backend-php.net/index.php/something/else', 'POST'
-        );
-        $this->assertEquals(
-            'http://backend-php.net/index.php/', $request->getSiteUrl()
-        );
-    }
-
-    /**
      * Test a Custom Port
      *
      * @return void
@@ -139,6 +124,150 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request = new Request('https://backend-php.net');
         $this->assertEquals('on', $request->getServerInfo('https'));
         $this->assertEquals('443', $request->getServerInfo('server_port'));
+    }
+
+    /**
+     * Test getMethod.
+     *
+     * @return void
+     */
+    public function testGetSetMethod()
+    {
+        //Default to GET for non CLI and non Request
+        $request = new Request();
+        $request->setServerInfo('argv', array());
+        $request->setServerInfo('REQUEST_METHOD', null);
+        $this->assertEquals('GET', $request->getMethod());
+
+        //Default to REQUEST_METHOD for Requests
+        $request = new Request();
+        $request->setServerInfo('REQUEST_METHOD', 'GET');
+        $this->assertEquals('GET', $request->getMethod());
+
+        //Default to GET for CLI
+        $request = new Request();
+        $this->assertEquals('GET', $request->getMethod());
+
+        //Set in CLI
+        $request = new Request();
+        $request->setServerInfo('argv', array('script', 'POST'));
+        $this->assertEquals('POST', $request->getMethod());
+
+        //Check that it's set correctly
+        $request = new Request(null, 'post');
+        $request->setServerInfo('REQUEST_METHOD', 'GET');
+        $this->assertEquals('POST', $request->getMethod());
+        $request->setMethod('options');
+        $this->assertEquals('OPTIONS', $request->getMethod());
+
+        //Check setting the method in the payload
+        $request = new Request();
+        $request->setServerInfo('REQUEST_METHOD', 'GET');
+        $request->setPayload(array('_method' => 'put'));
+        $this->assertEquals('PUT', $request->getMethod());
+
+        //Check setting the method in the headers
+        $request = new Request();
+        $request->setServerInfo('REQUEST_METHOD', 'GET');
+        $request->setServerInfo('HTTP_METHOD_OVERRIDE', 'delete');
+        $this->assertEquals('DELETE', $request->getMethod());
+
+        //Check the default set in REQUEST_METHOD
+        $request = new Request();
+        $request->setServerInfo('REQUEST_METHOD', 'GET');
+        $this->assertEquals('GET', $request->getMethod());
+    }
+
+    /**
+     * Test the setMethod method.
+     *
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unsupported method SOMETHING
+     * @return void
+     */
+    public function testSetMethodException()
+    {
+        new Request(null, 'something');
+    }
+
+    /**
+     * Test the getSiteURL and prepareSiteURL methods
+     *
+     * @return void
+     */
+    public function testSiteUrl()
+    {
+        $request = new Request('https://backend-php.net/index.php/something/else');
+        $this->assertEquals(
+            'https://backend-php.net/index.php/', $request->getSiteUrl()
+        );
+        $request = new Request('https://backend-php.net/index.php/something/else');
+        $request->setServerInfo('PHP_SELF', '/index.php');
+        $this->assertEquals(
+            'https://backend-php.net/index.php/', $request->getSiteUrl()
+        );
+    }
+
+    /**
+     * Test getSitePath
+     *
+     * @return void
+     */
+    public function testGetSitePath()
+    {
+    }
+
+    /**
+     * Test setting a server info value.
+     *
+     * @return void
+     */
+    public function testGetSetServerInfo()
+    {
+        $request = new Request();
+        $request->setServerInfo('Some', 'Value');
+        $this->assertEquals('Value', $request->getServerInfo('some'));
+
+        //argv is a special case
+        $request->setServerInfo('argv', array('one' => 'two'));
+        $this->assertEquals(array('one' => 'two'), $request->getServerInfo('argv'));
+
+        //values starting with HTTP_ can be accessed without it
+        $request->setServerInfo('HTTP_SOMETHING', 'HTTP Value');
+        $this->assertEquals('HTTP Value', $request->getServerInfo('something'));
+
+        //Check deprecated X_ values
+        $request->setServerInfo('X_HTTP_VALUE', 'XHTTPValue');
+        $this->assertEquals('XHTTPValue', $request->getServerInfo('VALUE'));
+        $this->assertEquals('XHTTPValue', $request->getServerInfo('X_HTTP_VALUE'));
+
+        $request->setServerInfo('X_VALUE', 'XValue');
+        $this->assertEquals('XValue', $request->getServerInfo('VALUE'));
+        $this->assertEquals('XValue', $request->getServerInfo('X_VALUE'));
+
+        //Return null on failure
+        $this->assertNull($request->getServerInfo('random_value'));
+    }
+
+    /**
+     * Test the different isMethod functions.
+     *
+     * @return void
+     */
+    public function testIsMethod()
+    {
+        $request = new Request(null, 'post');
+        $this->assertTrue($request->isPost());
+        $request = new Request(null, 'put');
+        $this->assertTrue($request->isPut());
+        $request = new Request(null, 'get');
+        $this->assertTrue($request->isGet());
+        $request = new Request(null, 'delete');
+        $this->assertTrue($request->isDelete());
+        $request = new Request(null, 'head');
+        $this->assertTrue($request->isHead());
+        $request = new Request(null, 'options');
+        $this->assertTrue($request->isOptions());
     }
 
     /**

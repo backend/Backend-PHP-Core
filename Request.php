@@ -101,16 +101,15 @@ class Request implements RequestInterface
      */
     function __construct($url = null, $method = null, $payload = null)
     {
-        if (is_null($url)) {
+        if ($url === null) {
             $this->serverInfo = $_SERVER;
             $this->serverInfo['PATH_INFO']
                 = array_key_exists('PATH_INFO', $_SERVER)
                     ? $_SERVER['PATH_INFO'] : '';
         } else {
             $this->parseUrl($url);
-            $method = is_null($method) ? 'GET' : $method;
         }
-        if (!is_null($method)) {
+        if ($method !== null) {
             $this->setMethod($method);
         }
 
@@ -164,29 +163,30 @@ class Request implements RequestInterface
      */
     public function getMethod()
     {
-        if (!is_null($this->method)) {
+        if ($this->method !== null) {
             return $this->method;
         }
+        //Default to GET
+        $method = 'GET';
         //Copied the way to determine the method from CakePHP
         //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
         switch (true) {
-        case array_key_exists('_method', $_POST):
-            $method = $_POST['_method'];
+        case is_array($this->payload) && array_key_exists('_method', $this->payload):
+            $method = $this->payload['_method'];
             break;
-        case array_key_exists('X_HTTP_METHOD_OVERRIDE', $this->serverInfo):
-            $method = $this->serverInfo['X_HTTP_METHOD_OVERRIDE'];
+        case $this->getServerInfo('METHOD_OVERRIDE') !== null:
+            $method = $this->getServerInfo('METHOD_OVERRIDE');
+            break;
+        //First CL parameter is the method
+        case self::fromCli()
+            && count($this->serverInfo['argv']) >= 2
+            && in_array(strtoupper($this->serverInfo['argv'][1]), self::$allowedMethods):
+            $method = $this->serverInfo['argv'][1];
+            break;
+        case $this->getServerInfo('request_method') !== null:
+            $method = $this->getServerInfo('request_method');
             break;
         default:
-            if (self::fromCli()) {
-                //First CL parameter is the method
-                $method = count($this->serverInfo['argv']) >= 2
-                    ? $this->serverInfo['argv'][1] : 'GET';
-                if (!in_array($method, self::$allowedMethods)) {
-                    $method = 'GET';
-                }
-            } else {
-                $method = $this->serverInfo['REQUEST_METHOD'];
-            }
             break;
         }
         $this->setMethod($method);
@@ -218,7 +218,7 @@ class Request implements RequestInterface
      */
     public function getPath()
     {
-        if (is_null($this->path)) {
+        if ($this->path === null) {
             $this->setPath(urldecode($this->serverInfo['PATH_INFO']));
         }
         return $this->path;
@@ -295,7 +295,7 @@ class Request implements RequestInterface
     public function getSpecifiedFormat()
     {
         //Check the format parameter
-        if (array_key_exists('format', $this->payload)) {
+        if (is_array($this->payload) && array_key_exists('format', $this->payload)) {
             return $this->payload['format'];
         }
 
@@ -313,7 +313,7 @@ class Request implements RequestInterface
      */
     public function getExtension()
     {
-        if (is_null($this->extension)) {
+        if ($this->extension === null) {
             preg_match('/[^\/]+\.(.*)\??.*$/', $this->getPath(), $matches);
             if (!empty($matches[1])) {
                 $this->extension = $matches[1];
@@ -331,7 +331,7 @@ class Request implements RequestInterface
      */
     public function getSiteUrl()
     {
-        if (is_null($this->siteUrl)) {
+        if ($this->siteUrl === null) {
             $this->prepareSiteUrl();
         }
         return $this->siteUrl;
@@ -352,12 +352,12 @@ class Request implements RequestInterface
             $this->siteUrl .= 's';
         }
         $this->siteUrl .= '://' . $this->getServerInfo('HOST');
-        if ('index.php' == basename($this->serverInfo['PHP_SELF'])) {
+        if ('index.php' == basename($this->getServerInfo('PHP_SELF'))) {
             $this->siteUrl .= $this->serverInfo['PHP_SELF'];
         } else {
-            $pattern = '/' . str_replace('/', '\\/', $this->serverInfo['PATH_INFO'])
+            $pattern = '/' . str_replace('/', '\\/', $this->getServerInfo('PATH_INFO'))
                 . '$/';
-            $subject = explode('?', $this->serverInfo['REQUEST_URI']);
+            $subject = explode('?', $this->getServerInfo('REQUEST_URI'));
             $subject = reset($subject);
             $this->siteUrl .= preg_replace($pattern, '', $subject);
         }
@@ -373,10 +373,10 @@ class Request implements RequestInterface
      */
     public function getSitePath()
     {
-        if (is_null($this->sitePath)) {
+        if ($this->sitePath !== null) {
             $path = dirname($this->getSiteUrl());
-            if (substr($path, -1) != '/') {
-                $path .= '/';
+            if (substr($path, -1) === '/') {
+                $path = substr($path, 0, -1);
             }
             $this->sitePath = $path;
         }
@@ -398,10 +398,25 @@ class Request implements RequestInterface
         if (in_array($name, array('argv')) === false) {
             $name = strtoupper($name);
         }
-        if (array_key_exists($name, $this->serverInfo)) {
+        if (substr($name, 0, 2) === 'X_') {
+            $name = substr($name, 2);
+        }
+        switch (true) {
+        case array_key_exists($name, $this->serverInfo):
             return $this->serverInfo[$name];
-        } else if (array_key_exists('HTTP_' . $name, $this->serverInfo)) {
+            break;
+        case array_key_exists('HTTP_' . $name, $this->serverInfo):
             return $this->serverInfo['HTTP_' . $name ];
+            break;
+        //Check for deprecated X- values http://tools.ietf.org/html/rfc6648
+        case array_key_exists('X_' . $name, $this->serverInfo):
+            return $this->serverInfo['X_' . $name ];
+            break;
+        case array_key_exists('X_HTTP_' . $name, $this->serverInfo):
+            return $this->serverInfo['X_HTTP_' . $name ];
+            break;
+        default:
+            break;
         }
         return null;
     }
@@ -501,6 +516,7 @@ class Request implements RequestInterface
      * @param string $content The content to parse
      *
      * @todo Expand this to include XML and other content types
+     * @todo Refactor so that we can use thirdparty / external parsers
      * @return array The payload as an array? This might change
      */
     public function parseContent($type, $content = null)
@@ -548,7 +564,7 @@ class Request implements RequestInterface
      */
     public function getPayload()
     {
-        if (!is_null($this->payload)) {
+        if ($this->payload !== null) {
             return $this->payload;
         }
         if ($this->fromCli()) {
@@ -574,7 +590,7 @@ class Request implements RequestInterface
             $payload = isset($_POST) ? $_POST : array();
             break;
         }
-        if (is_null($payload)) {
+        if ($payload === null ) {
             $payload = isset($_REQUEST) ? $_REQUEST : array();
         }
         $this->setPayload($payload);
