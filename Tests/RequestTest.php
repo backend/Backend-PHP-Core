@@ -67,13 +67,13 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request = new Request('http://backend-php.net', 'GET');
         $this->assertEquals('/', $request->getPath());
         $this->assertEquals(
-            'http://backend-php.net/index.php/', $request->getSiteUrl()
+            'http://backend-php.net', $request->getUrl()
         );
         //With Trailing Slash
         $request = new Request('http://backend-php.net/', 'GET');
         $this->assertEquals('/', $request->getPath());
         $this->assertEquals(
-            'http://backend-php.net/index.php/', $request->getSiteUrl()
+            'http://backend-php.net', $request->getUrl()
         );
     }
 
@@ -85,7 +85,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testEmptyQuery()
     {
         $request = new Request('http://backend-php.net/index.php', 'GET');
-        $this->assertEquals('/', $request->getPath());
+        $this->assertEquals('/index.php', $request->getPath());
     }
 
     /**
@@ -96,10 +96,10 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testSimpleQuery()
     {
         $request = new Request('http://backend-php.net/index.php/something', 'GET');
-        $this->assertEquals('/something', $request->getPath());
+        $this->assertEquals('/index.php/something', $request->getPath());
         //With Trailing Slash
-        $request = new Request('http://backend-php.net/index.php/something/', 'GET');
-        $this->assertEquals('/something', $request->getPath());
+        $request = new Request('http://backend-php.net/base/index.php/something/', 'GET');
+        $this->assertEquals('/base/index.php/something', $request->getPath());
     }
 
     /**
@@ -191,30 +191,170 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the getSiteURL and prepareSiteURL methods
+     * Test getPath
      *
      * @return void
      */
-    public function testSiteUrl()
+    public function testSetGetPath()
     {
+        // Root path given
+        $request = new Request('https://backend-php.net/index.php/');
+        $this->assertEquals('/index.php', $request->getPath());
+
+        // Root path given
+        $request = new Request('https://backend-php.net/');
+        $this->assertEquals('/', $request->getPath());
+
+        // Path given
+        $request = new Request('https://backend-php.net/index.php/something/else');
+        $this->assertEquals('/index.php/something/else', $request->getPath());
+
+        // Other file given
+        $request = new Request('https://backend-php.net/somewhere/index.html');
+        $this->assertEquals('/somewhere/index.html', $request->getPath());
+
+        // Clean up the path
+        $request = new Request();
+        $request->setPath('/somewhere/');
+        $this->assertEquals('/somewhere', $request->getPath());
+
+        // Empty path equals root path
+        $request = new Request();
+        $request->setPath('');
+        $this->assertEquals('/', $request->getPath());
+    }
+
+    /**
+     * Test the getUrl and prepareUrl methods
+     *
+     * @return void
+     */
+    public function testUrl()
+    {
+        // With index.php
         $request = new Request('https://backend-php.net/index.php/something/else');
         $this->assertEquals(
-            'https://backend-php.net/index.php/', $request->getSiteUrl()
+            'https://backend-php.net/index.php', $request->getUrl()
         );
-        $request = new Request('https://backend-php.net/index.php/something/else');
+
+        // Root index
+        $request = new Request('https://backend-php.net/something/else');
         $request->setServerInfo('PHP_SELF', '/index.php');
         $this->assertEquals(
-            'https://backend-php.net/index.php/', $request->getSiteUrl()
+            'https://backend-php.net/index.php', $request->getUrl()
+        );
+
+        // Base index
+        $request = new Request('https://backend-php.net/base/here');
+        $request->setServerInfo('PHP_SELF', '/base/index.php');
+        $this->assertEquals(
+            'https://backend-php.net/base/index.php', $request->getUrl()
+        );
+
+        // Set Request URI
+        $request = new Request('https://backend-php.net/base/here/');
+        $request->setServerInfo('REQUEST_URI', '/base/index.php/here/');
+        $this->assertEquals(
+            'https://backend-php.net/base/index.php/here', $request->getUrl()
         );
     }
 
     /**
-     * Test getSitePath
+     * Test the getMimeType method for the CLI or empty mime types.
      *
      * @return void
      */
-    public function testGetSitePath()
+    public function testCliOrEmptyGetMimeType()
     {
+        $request = new Request();
+        $request->setServerInfo('argv', array());
+        $this->assertEquals('cli', $request->getMimeType());
+
+        $request = new Request();
+        $request->setServerInfo('request_method', 'get');
+        $this->assertNull($request->getMimeType());
+    }
+
+    /**
+     * Data provider for testGetMimeType.
+     *
+     * @return array
+     */
+    public function dataGetMimeType()
+    {
+        $result = array();
+        $result[] = array('text/html', 'text/html');
+        $result[] = array('text/html, application/xml', 'text/html');
+        $result[] = array('text/html; q=0.2', 'text/html');
+        $result[] = array('text/*, text/html', 'text/html');
+        $result[] = array('application/xml; q=0.2, text/html', 'text/html');
+        $result[] = array(null, null);
+        return $result;
+    }
+
+    /**
+     * Test the getMimeType method.
+     *
+     * @param string $acceptHeader The accept header to check.
+     * @param string $expected     The expected result.
+     *
+     * @dataProvider dataGetMimeType();
+     * @return void
+     */
+    public function testGetMimeType($acceptHeader, $expected)
+    {
+        $request = new Request();
+        $request->setServerInfo('request_method', 'get');
+        $request->setServerInfo('http_accept', $acceptHeader);
+        $this->assertEquals($expected, $request->getMimeType());
+
+        //And check it again
+        $this->assertEquals($expected, $request->getMimeType());
+    }
+
+    /**
+     * Test the getSpecifiedFormat methos.
+     *
+     * @return void
+     */
+    public function testGetSpecifiedFormat()
+    {
+        $request = new Request();
+        $request->setServerInfo('argv', array('index.php', 'GET', 'home', 'xml'));
+        $this->assertEquals('xml', $request->getSpecifiedFormat());
+
+        $request = new Request(null, null, array('format' => 'json'));
+        $this->assertEquals('json', $request->getSpecifiedFormat());
+
+        //And check it again
+        $this->assertEquals('json', $request->getSpecifiedFormat());
+
+        $request = new Request();
+        $this->assertNull($request->getSpecifiedFormat());
+    }
+
+    /**
+     * Test the getExtension method.
+     *
+     * @return void
+     */
+    public function testGetExtension()
+    {
+        $request = new Request('http://backend-php.net/index.html');
+        $this->assertEquals('html', $request->getExtension());
+
+        $request = new Request('http://backend-php.net/index.something.html');
+        $this->assertEquals('html', $request->getExtension());
+
+        $request = new Request('http://backend-php.net/index.php/list.json');
+        $this->assertEquals('json', $request->getExtension());
+
+        //And check it again
+        $this->assertEquals('json', $request->getExtension());
+
+        $request = new Request('http://backend-php.net/');
+        $this->assertNull($request->getExtension());
+
     }
 
     /**
@@ -433,13 +573,15 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(), $request->getPayload());
     }
 
-    /**
-     * Test the Site Path
-     *
-     * @return void
-     */
-    public function testSitePath()
+    public function testFromCli()
     {
-        //TODO
+        $this->markTestIncomplete();
     }
+
+    public function testGetSetInputStream()
+    {
+        $this->markTestIncomplete();
+    }
+
+
 }
