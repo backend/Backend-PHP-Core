@@ -12,8 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
-use Backend\Interfaces\ControllerInterface;
-use Backend\Interfaces\RequestInterface;
+use \Backend\Interfaces\ControllerInterface;
+use \Backend\Interfaces\RequestInterface;
+use \Backend\Core\Exception as CoreException;
 /**
  * Controller that acts as the connection between Models and Views.
  *
@@ -73,7 +74,7 @@ class Controller implements ControllerInterface
     public function redirect($location, $responseCode = 302)
     {
         if (substr($responseCode, 0, 1) !== '3') {
-            throw new \Exception('Invalid Redirection Response Code');
+            throw new CoreException('Invalid Redirection Response Code');
         }
         $response = new Response('Redirecting to ' . $location, $responseCode);
         $response->addHeader('Location', $location);

@@ -15,6 +15,7 @@ namespace Backend\Core\Tests;
 use \Backend\Core\Controller;
 use \Backend\Core\Request;
 use \Backend\Core\Response;
+use \Backend\Core\Exception as CoreException;
 /**
  * Class to test the \Backend\Core\Controller class
  *
@@ -26,6 +27,22 @@ use \Backend\Core\Response;
  */
 class ControllerTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * Test setting and getting the request
+     *
+     * @return void
+     */
+    public function testRequestAccessors()
+    {
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $controller = new Controller();
+        $request = new \Backend\Core\Request();
+        $controller->setRequest($request);
+        $this->assertSame($request, $controller->getRequest());
+    }
+
     /**
      * Test a Relative Redirect
      *
@@ -72,22 +89,13 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test an Invalid Redirect
      *
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Invalid Redirection Response Code
      * @return null
      */
     public function testInvalidRedirect()
     {
         $controller = new Controller();
-    }
-
-    /**
-     * Test an Invalid Model Name
-     *
-     * @expectedException UnknownModelException
-     * @return null
-     */
-    public function testInvalidModel()
-    {
-        //TODO
-        $this->markTestIncomplete('Not Implemented Yet');
+        $controller->redirect('/somewhere', 400);
     }
 }
