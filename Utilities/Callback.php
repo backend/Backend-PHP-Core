@@ -14,6 +14,7 @@
  */
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\CallbackInterface;
+use Backend\Core\Exception as CoreException;
 /**
  * Class to handle application configs.
  *
@@ -72,13 +73,13 @@ class Callback implements CallbackInterface
     public function setClass($class)
     {
         if (!is_string($class)) {
-            throw new \Exception(
+            throw new CoreException(
                 'Invalid type for class name, string expected, got '
                 . gettype($class)
             );
         }
         if (!class_exists($class, true)) {
-            throw new \Exception(
+            throw new CoreException(
                 'Trying to set non-existant class in Callback: ' . $class
             );
         }
@@ -108,8 +109,8 @@ class Callback implements CallbackInterface
     public function setObject($object)
     {
         if (!is_object($object)) {
-            throw new \Exception(
-                'Invalid type for class name, object expected, got '
+            throw new CoreException(
+                'Invalid type for object, object expected, got '
                 . gettype($object)
             );
         }
@@ -159,11 +160,16 @@ class Callback implements CallbackInterface
      * @param callable $function The function.
      *
      * @return CallbackInterface The current callback.
+     * @throws \Backend\Core\Exception
+     * @todo Allow for closures
      */
     public function setFunction($function)
     {
-        if (!is_callable($function)) {
-            throw new \Exception('Trying to set an uncallable function');
+        if (is_string($function) === false) {
+            throw new CoreException(
+                'Invalid type for function, string expected, got '
+                . gettype($function)
+            );
         }
         $this->function = $function;
         $this->method = null;
@@ -216,18 +222,14 @@ class Callback implements CallbackInterface
      */
     public function execute(array $arguments = array())
     {
+        if ($this->isValid() === false) {
+            throw new CoreException('Unexecutable Callback');
+        }
         $arguments = $arguments ?: $this->arguments;
         $arguments = array_values($arguments);
         if ($this->method) {
-            if ($this->class) {
-                if (!is_callable(array($this->class, $this->method))) {
-                    throw new \Exception('Invalid Callback: ' . (string)$this);
-                }
-                $callable = array($this->class, $this->method);
-            } else if ($this->object) {
-                if (!is_callable(array($this->object, $this->method))) {
-                    throw new \Exception('Invalid Callback: ' . (string)$this);
-                }
+            $callable = array();
+            if ($this->object) {
                 switch (count($arguments)) {
                 case 1:
                     return $this->object->{$this->method}($arguments[0]);
@@ -243,14 +245,14 @@ class Callback implements CallbackInterface
                     );
                     break;
                 default:
-                    $callable = array($this->object, $this->method);
+                    $callable[] = $this->object;
                     break;
                 }
+            } elseif ($this->class) {
+                $callable[] = $this->class;
             }
+            $callable[] = $this->method;
         } else if ($this->function) {
-            if (!is_callable($this->function)) {
-                throw new \Exception('Invalid Callback: ' . (string)$this);
-            }
             switch (count($arguments)) {
             case 1:
                 return $this->function($arguments[0]);
@@ -266,11 +268,37 @@ class Callback implements CallbackInterface
                 break;
             }
         }
-        if (empty($callable)) {
-            throw new \Exception('Call to an unexecutable Callback');
+        return call_user_func_array($callable, $arguments);
+    }
+
+    /**
+     * Check if it is a valid callback.
+     *
+     * @return string The string representation of callback. Will return false
+     * if all the callback components aren't set.
+     * @throws \Backend\Core\Exception When the set callback is incomplete.
+     */
+    public function isValid()
+    {
+        $callable = array();
+        if ($this->method) {
+            if ($this->class) {
+                $callable[] = $this->class;
+            } elseif ($this->object) {
+                $callable[] = $this->object;
+            } else {
+                return false;
+            }
+            $callable[] = $this->method;
+        } elseif ($this->function) {
+            $callable = $this->function;
         } else {
-            return call_user_func_array($callable, $arguments);
+            return false;
         }
+        if (is_callable($callable, false, $callableName)) {
+            return $callableName;
+        }
+        throw new CoreException('Unexecutable Callback');
     }
 
     /**
@@ -282,15 +310,25 @@ class Callback implements CallbackInterface
      */
     public function __toString()
     {
+        try {
+            $string = $this->isValid();
+        } catch (CoreException $e) {
+        }
+        if (empty($string) === false) {
+            return $string;
+        }
         if ($this->method) {
             if ($this->class) {
                 return $this->class . '::' . $this->method;
-            } else if ($this->object) {
-                return get_class($object) . '::' . $this->method;
+            } elseif ($this->object) {
+                return get_class($this->object) . '::' . $this->method;
+            } else {
+                return '(null)::' . $this->method;
             }
-        } else if ($this->function) {
+            $callable = $this->method;
+        } elseif ($this->function) {
             return $this->function;
         }
-        throw new \Exception('Cannot convert invalid callback to string');
+        return '(Invalid Callback)';
     }
 }
