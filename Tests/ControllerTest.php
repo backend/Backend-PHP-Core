@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining ControllerTest
+ * File defining \Backend\Core\Tests\ControllerTest
  *
  * PHP Version 5.3
  *
@@ -26,10 +26,24 @@ use \Backend\Core\Response;
  */
 class ControllerTest extends \PHPUnit_Framework_TestCase
 {
+
+    /**
+     * Test the setters and getters for Request
+     *
+     * @return void
+     */
+    public function testRequestAccessors()
+    {
+        $request = new Request();
+        $controller = new Controller();
+        $controller->setRequest($request);
+        $this->assertSame($request, $controller->getRequest());
+    }
+
     /**
      * Test a Relative Redirect
      *
-     * @return null
+     * @return void
      */
     public function testRelativeRedirect()
     {
@@ -43,7 +57,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test an Absolute Redirect
      *
-     * @return null
+     * @return void
      */
     public function testAbsoluteRedirect()
     {
@@ -57,7 +71,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test a Permanent Redirect
      *
-     * @return null
+     * @return void
      */
     public function testPermanentRedirect()
     {
@@ -72,22 +86,13 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test an Invalid Redirect
      *
-     * @return null
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Invalid Redirection Response Code
+     * @return void
      */
     public function testInvalidRedirect()
     {
         $controller = new Controller();
-    }
-
-    /**
-     * Test an Invalid Model Name
-     *
-     * @expectedException UnknownModelException
-     * @return null
-     */
-    public function testInvalidModel()
-    {
-        //TODO
-        $this->markTestIncomplete('Not Implemented Yet');
+        $controller->redirect('/somewhere', 401);
     }
 }
