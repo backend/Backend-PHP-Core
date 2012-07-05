@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining ControllerTest
+ * File defining \Backend\Core\Tests\ControllerTest
  *
  * PHP Version 5.3
  *
@@ -27,8 +27,9 @@ use \Backend\Core\Exception as CoreException;
  */
 class ControllerTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
-     * Test setting and getting the request
+     * Test setting and getting the Request
      *
      * @return void
      */
@@ -46,7 +47,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test a Relative Redirect
      *
-     * @return null
+     * @return void
      */
     public function testRelativeRedirect()
     {
@@ -60,7 +61,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test an Absolute Redirect
      *
-     * @return null
+     * @return void
      */
     public function testAbsoluteRedirect()
     {
@@ -74,7 +75,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test a Permanent Redirect
      *
-     * @return null
+     * @return void
      */
     public function testPermanentRedirect()
     {
@@ -91,11 +92,11 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Invalid Redirection Response Code
-     * @return null
+     * @return void
      */
     public function testInvalidRedirect()
     {
         $controller = new Controller();
-        $controller->redirect('/somewhere', 400);
+        $controller->redirect('/somewhere', 401);
     }
 }

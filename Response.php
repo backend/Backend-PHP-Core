@@ -145,6 +145,22 @@ class Response implements ResponseInterface
     }
 
     /**
+     * Get the text associated with a status code
+     *
+     * @param int $code The status code to get the text for
+     *
+     * @return string The status code text
+     */
+    public function getStatusText($code = null)
+    {
+        $code = $code ?: $this->getStatusCode();
+        if (array_key_exists($code, self::$messages)) {
+            return self::$messages[$code];
+        }
+        return 'Unknown Status';
+    }
+
+    /**
      * Return the Response's body
      *
      * @return mixed The Response's body
@@ -223,14 +239,13 @@ class Response implements ResponseInterface
     public function sendHeaders()
     {
         if (headers_sent($file, $line)) {
-            throw new \Exception('Headers already sent in ' . $file . ', line ' . $line);
+            throw new CoreException('Headers already sent in ' . $file . ', line ' . $line);
         }
         //Always send the HTTP status header first
         header($this->httpVersion . ' ' . $this->status . ' ' . $this->getStatusText($this->status));
         if (!array_key_exists('X-Application', $this->headers)) {
             header('X-Application: Backend-PHP (Core)');
         }
-        //TODO: die somewhere if the location header was sent
         $haveLocation = false;
         foreach ($this->headers as $name => $content) {
             if ('location' == strtolower($name)) {
@@ -250,21 +265,6 @@ class Response implements ResponseInterface
     {
         echo $this->body;
         return $this;
-    }
-
-    /**
-     * Get the text associated with a status code
-     *
-     * @param int $code The status code to get the text for
-     *
-     * @return string The status code text
-     */
-    public function getStatusText($code)
-    {
-        if (array_key_exists($code, self::$messages)) {
-            return self::$messages[$code];
-        }
-        return 'Unknown Status';
     }
 
     /**
