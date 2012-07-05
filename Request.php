@@ -578,7 +578,7 @@ class Request implements RequestInterface
             $this->setPayload($payload);
             return $this->payload;
         }
-        $payload = null;
+        $payload = array();
         switch ($this->getMethod()) {
         case 'GET':
             $payload = isset($_GET) ? $_GET : array();
