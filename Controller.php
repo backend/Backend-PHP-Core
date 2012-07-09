@@ -77,7 +77,7 @@ class Controller implements ControllerInterface
             throw new CoreException('Invalid Redirection Response Code');
         }
         $response = new Response('Redirecting to ' . $location, $responseCode);
-        $response->addHeader('Location', $location);
+        $response->addHeader($location, 'Location');
         return $response;
     }
 }

@@ -186,4 +186,29 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $result = $application->exception(new \Exception('Message', 500), true);
         $this->assertInstanceOf('\Backend\Interfaces\ResponseInterface', $result);
     }
+
+    /**
+     * Check that the exception code is a valid HTTP status code.
+     *
+     * @return void
+     */
+    public function testExceptionCode()
+    {
+        $application = new Application();
+        $response = $application->exception(new \Exception('Message', 10), true);
+        $this->assertEquals(500, $response->getStatusCode());
+        $response = $application->exception(new \Exception('Message', 610), true);
+        $this->assertEquals(500, $response->getStatusCode());
+    }
+
+    /**
+     * Run the shutdown code.
+     *
+     * @return void
+     */
+    public function testShutdown()
+    {
+        $application = new Application();
+        $application->shutdown();
+    }
 }

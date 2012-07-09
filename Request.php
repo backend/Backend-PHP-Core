@@ -568,8 +568,8 @@ class Request implements RequestInterface
         if ($this->fromCli()) {
             if (count($this->serverInfo['argv']) >= 5) {
                 //Fourth CL parameter is a query string
-                parse_str($this->serverInfo['argv'][4], $queryVars);
-                $this->payload = $queryVars;
+                parse_str($this->serverInfo['argv'][4], $payload);
+                $this->payload = $payload;
                 return $this->payload;
             }
         }
@@ -578,7 +578,7 @@ class Request implements RequestInterface
             $this->setPayload($payload);
             return $this->payload;
         }
-        $payload = array();
+        $payload = null;
         switch ($this->getMethod()) {
         case 'GET':
             $payload = isset($_GET) ? $_GET : array();

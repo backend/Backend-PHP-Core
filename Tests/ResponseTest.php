@@ -80,8 +80,13 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $response = new Response();
         $response->setHeaders(array());
-        $response->addHeader('Add', 'Header');
+        $response->addHeader('Header', 'Add');
         $this->assertEquals(array('Add' => 'Header'), $response->getHeaders());
+
+        $response->setHeaders(array());
+        $response->addHeader('Add');
+        $response->addHeader('Header');
+        $this->assertEquals(array('Add', 'Header'), $response->getHeaders());
     }
 
     /**
@@ -113,6 +118,78 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($body, $response->getBody());
         $this->assertEquals($code, $response->getStatusCode());
         $this->assertEquals($headers, $response->getHeaders());
+    }
+
+    /**
+     * Test the output method.
+     *
+     * @return void
+     */
+    public function testOutput()
+    {
+        $response = $this->getMock(
+            '\Backend\Core\Response',
+            array('sendHeaders', 'sendBody')
+        );
+        $response
+            ->expects($this->once())
+            ->method('sendHeaders')
+            ->will($this->returnSelf());
+        $response
+            ->expects($this->once())
+            ->method('sendBody');
+        $response->output();
+    }
+
+    /**
+     * Test the sendHeaders method
+     *
+     * @return void
+     */
+    public function testSendHeaders()
+    {
+        $response = $this->getMock(
+            '\Backend\Core\Response',
+            array('writeHeader')
+        );
+        $response
+            ->expects($this->at(0))
+            ->method('writeHeader')
+            ->with('HTTP/1.1 200 OK');
+        $response
+            ->expects($this->at(1))
+            ->method('writeHeader')
+            ->with('Name: with');
+        $response
+            ->expects($this->at(2))
+            ->method('writeHeader')
+            ->with('Without: Name');
+        $response->addHeader('with', 'Name');
+        $response->addHeader('Without: Name');
+        $response->sendHeaders();
+    }
+
+    /**
+     * Test the check for headers already sent
+     *
+     * @return void
+     */
+    public function testHeadersAlreadySentCheck()
+    {
+        echo ' ';
+        $response = new Response();
+        $response->sendHeaders();
+    }
+
+    /**
+     * Test the writeHeader method
+     *
+     * @return void
+     */
+    public function testWriteHeader()
+    {
+        $response = new Response();
+        $response->writeHeader('Test');
     }
 
     /**
