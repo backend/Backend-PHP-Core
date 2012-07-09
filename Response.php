@@ -184,16 +184,25 @@ class Response implements ResponseInterface
     }
 
     /**
-     * Add a header to the Response
+     * Add a header to the Response.
      *
-     * @param string $name    The name of the header
+     * If a name is supplied, the header will be formatted as
+     * $name: $content
+     * Otherwise the header will just be formatted as
+     * $content
+     *
      * @param string $content The content of the header
+     * @param string $name    The optional name of the header
      *
      * @return Response The current object
      */
-    public function addHeader($name, $content)
+    public function addHeader($content, $name = null)
     {
-        $this->headers[$name] = $content;
+        if ($name === null) {
+            $this->headers[] = $content;
+        } else {
+            $this->headers[$name] = $content;
+        }
         return $this;
     }
 
@@ -242,18 +251,32 @@ class Response implements ResponseInterface
             throw new CoreException('Headers already sent in ' . $file . ', line ' . $line);
         }
         //Always send the HTTP status header first
-        header($this->httpVersion . ' ' . $this->status . ' ' . $this->getStatusText($this->status));
+        $httpStatus = $this->httpVersion . ' ' . $this->status
+            . ' ' . $this->getStatusText($this->status);
+        array_unshift($this->headers, $httpStatus);
         if (!array_key_exists('X-Application', $this->headers)) {
-            header('X-Application: Backend-PHP (Core)');
+            $this->headers['X-Application'] = 'Backend-PHP (Core)';
         }
-        $haveLocation = false;
         foreach ($this->headers as $name => $content) {
-            if ('location' == strtolower($name)) {
-                $haveLocation = true;
+            if (is_numeric($name) === false) {
+                $content = ucwords($name) . ': ' . $content;
             }
-            header($name . ': ' . $content);
+            $this->writeHeader($content);
         }
         return $this;
+    }
+
+    /**
+     * Write a HTTP Header.
+     *
+     * @param string $content The contents of the header.
+     *
+     * @return void
+     * @todo This function isn't easily testable. Fix it!
+     */
+    public function writeHeader($content)
+    {
+        header($content);
     }
 
     /**
