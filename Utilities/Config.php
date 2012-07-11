@@ -14,7 +14,8 @@
  */
 namespace Backend\Core\Utilities;
 use \Backend\Interfaces\ConfigInterface;
-use Backend\Core\Exceptions\BackendException;
+use \Backend\Core\Exception as CoreException;
+use \Backend\Core\Exceptions\ConfigException;
 /**
  * Class to handle application configs.
  *
@@ -56,6 +57,9 @@ class Config implements ConfigInterface
         case is_array($config):
             $this->_values = $config;
             break;
+        default:
+            throw new ConfigException('Invalid configuration values passed');
+            break;
         }
         $this->rewind();
     }
@@ -85,7 +89,7 @@ class Config implements ConfigInterface
             }
         }
         if (!is_callable($this->parser)) {
-            throw new \Exception('Could not find Config Parser');
+            throw new CoreException('Could not find Config Parser');
         }
         return $this->parser;
     }
@@ -100,7 +104,7 @@ class Config implements ConfigInterface
     public function setParser($parser)
     {
         if (!is_callable($parser)) {
-            throw new \Exception('Trying to set Uncallable Config Parser');
+            throw new CoreException('Trying to set Uncallable Config Parser');
         }
         $this->parser = $parser;
         return $this;

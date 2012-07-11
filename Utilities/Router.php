@@ -18,6 +18,7 @@ use Backend\Interfaces\CallbackFactoryInterface;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\CallbackFactory;
 use Backend\Core\Exceptions\ConfigException;
+use Backend\Core\Exception as CoreException;
 use Backend\Interfaces\RequestInterface;
 /**
  * Class to inspect the Request to determine what callback should be executed.
@@ -59,11 +60,6 @@ class Router
         $config = $config ?: $this->getFileName();
         if (!($config instanceof ConfigInterface)) {
             $config = new Config($config);
-        }
-        if (!($config instanceof ConfigInterface)) {
-            throw new ConfigException(
-                'Invalid Configuration for ' . get_class($this)
-            );
         }
         $this->config = $config;
         $this->factory = $factory;
@@ -108,6 +104,7 @@ class Router
         }
         if ($this->config->controllers) {
             //TODO
+            throw new CoreException('Unimplemented');
         }
         return false;
     }
@@ -133,14 +130,15 @@ class Router
         $factory  = $this->getCallbackFactory();
         $defaults = array_key_exists('defaults', $route) ? $route['defaults']
             : array();
-        $pregMatch = preg_match_all(
-            '/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches
-        );
         //Try to match the route
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
             return $factory->fromString($route['callback'], $defaults);
-        } else if ($pregMatch) {
+        } 
+        $pregMatch = preg_match_all(
+            '/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches
+        );
+        if ($pregMatch) {
             //Compile the Regex
             $varNames = $matches[1];
             $search   = $matches[0];
@@ -148,7 +146,7 @@ class Router
             $regex    = str_replace(
                 '/', '\/', str_replace($search, $replace, $route['route'])
             );
-            if (preg_match_all('/' . $regex . '/', $request->getPath(), $matches)) {
+            if (preg_match_all('/^' . $regex . '$/', $request->getPath(), $matches)) {
                 $arguments = array();
                 $index = 2;
                 foreach ($varNames as $name) {
@@ -173,6 +171,7 @@ class Router
      */
     public function resolve($callback)
     {
+        throw new CoreException('Unimplemented');
     }
 
     /**
@@ -192,11 +191,21 @@ class Router
     /**
      * Get the Callback Factory.
      *
-     *  @return \Backend\Interfaces\CallbackFactoryInterface
+     * @return \Backend\Interfaces\CallbackFactoryInterface
      */
     public function getCallbackFactory()
     {
         $this->factory = $this->factory ?: new CallbackFactory();
         return $this->factory;
+    }
+
+    /**
+     * Get the Config.
+     *
+     * @return array
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 }

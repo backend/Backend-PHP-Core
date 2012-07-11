@@ -22,7 +22,7 @@ use \Backend\Core\Utilities\Callback;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class ControllerTest extends \PHPUnit_Framework_TestCase
+class CallbackTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Test the Class setter and getter.
