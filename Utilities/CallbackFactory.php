@@ -12,8 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use Backend\Core\Utilities\Callback;
-use Backend\Core\Exception as CoreException;
+use \Backend\Interfaces\CallbackFactoryInterface;
+use \Backend\Core\Utilities\Callback;
+use \Backend\Core\Exception as CoreException;
 /**
  * Class to create callbacks from strings and arrays.
  *
@@ -23,7 +24,7 @@ use Backend\Core\Exception as CoreException;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class CallbackFactory
+class CallbackFactory implements CallbackFactoryInterface
 {
     /**
      * Convert a string to a callback.
