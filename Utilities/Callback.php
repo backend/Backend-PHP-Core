@@ -64,6 +64,33 @@ class Callback implements CallbackInterface
     protected $arguments = array();
 
     /**
+     * Object constructor
+     *
+     * @param mixed $class     The class (string), object or function of the
+     * callback. If it's a function, the second parameter should be omitted.
+     * @param mixed $method    The method of the callback. If given, the first
+     * parameter must be either a class or an object.
+     * @param array $arguments The arguments for the callback.
+     */
+    public function __construct($class = null, $method = null, array $arguments = array())
+    {
+        if ($class === null) {
+            return;
+        }
+        if ($method !== null) {
+            $this->setMethod($method);
+            if (is_object($class)) {
+                $this->setObject($class);
+            } else {
+                $this->setClass($class);
+            }
+        } else {
+            $this->setFunction($class);
+        }
+        $this->setArguments($arguments);
+    }
+
+    /**
      * Set the class name for a static method call.
      *
      * @param string $class The name of the class of the callback.
@@ -231,19 +258,18 @@ class Callback implements CallbackInterface
             $callable = array();
             if ($this->object) {
                 switch (count($arguments)) {
+                case 0:
+                    return $this->object->{$this->method}();
                 case 1:
                     return $this->object->{$this->method}($arguments[0]);
-                    break;
                 case 2:
                     return $this->object->{$this->method}(
                         $arguments[0], $arguments[1]
                     );
-                    break;
                 case 3:
                     return $this->object->{$this->method}(
                         $arguments[0], $arguments[1], $arguments[2]
                     );
-                    break;
                 default:
                     $callable[] = $this->object;
                     break;
@@ -252,17 +278,17 @@ class Callback implements CallbackInterface
                 $callable[] = $this->class;
             }
             $callable[] = $this->method;
-        } else if ($this->function) {
+        } elseif ($this->function) {
+            $function = $this->function;
             switch (count($arguments)) {
+            case 0:
+                return $function();
             case 1:
-                return $this->function($arguments[0]);
-                break;
+                return $function($arguments[0]);
             case 2:
-                return $this->function($arguments[0], $arguments[1]);
-                break;
+                return $function($arguments[0], $arguments[1]);
             case 3:
-                return $this->function($arguments[0], $arguments[1], $arguments[2]);
-                break;
+                return $function($arguments[0], $arguments[1], $arguments[2]);
             default:
                 $callable = $this->function;
                 break;

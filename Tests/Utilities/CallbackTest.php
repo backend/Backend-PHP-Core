@@ -25,6 +25,26 @@ use \Backend\Core\Utilities\Callback;
 class CallbackTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * Test the constructor.
+     *
+     * @return void
+     */
+    public function testConstructor()
+    {
+        $callback = new Callback(__CLASS__, __METHOD__);
+        $this->assertEquals(__CLASS__, $callback->getClass());
+        $this->assertEquals(__METHOD__, $callback->getMethod());
+
+        $callback = new Callback($this, __METHOD__);
+        $this->assertSame($this, $callback->getObject());
+        $this->assertEquals(__METHOD__, $callback->getMethod());
+
+        $callback = new Callback('preg_match', null, array('one' => 'two'));
+        $this->assertEquals('preg_match', $callback->getFunction());
+        $this->assertEquals(array('one' => 'two'), $callback->getArguments());
+    }
+
+    /**
      * Test the Class setter and getter.
      *
      * @return void
@@ -41,10 +61,10 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     /**
      * Test checking for invalid class type.
      *
+     * @return void
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Invalid type for class name, string expected, got
      * object
-     * @return void
      */
     public function testInvalidClassType()
     {
@@ -55,6 +75,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     /**
      * Test checking for a non existing class.
      *
+     * @return void
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Trying to set non-existant class in
      * Callback: \SomeClass
@@ -82,9 +103,9 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     /**
      * Test checking for an invalid object.
      *
+     * @return void
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Invalid type for object, object expected, got string
-     * @return void
      */
     public function testInvalidObject()
     {
@@ -123,6 +144,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     /**
      * Test checking for an invalid function type.
      *
+     * @return void
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Invalid type for function, string expected, got
      * object
@@ -145,6 +167,73 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $callback = new Callback();
         $callback->setArguments($arguments);
         $this->assertEquals($arguments, $callback->getArguments());
+    }
+
+    /**
+     * Data provider for testExecute
+     *
+     * @return array
+     */
+    public function dataExecute()
+    {
+        $result = array();
+        //Functions
+        $result[] = array(new Callback('getcwd'), getcwd());
+        $result[] = array(new Callback('max', null, array(array(1, 0))), 1);
+        $result[] = array(new Callback('max', null, array(1, 2)), 2);
+        $result[] = array(new Callback('max', null, array(3, 2, 1)), 3);
+        $result[] = array(new Callback('max', null, array(3, 4, 2, 1)), 4);
+
+        //Objects
+        $node = $this->getMock('DOMNode');
+        $node
+            ->expects($this->any())
+            ->method('hasChildNodes')
+            ->will($this->returnValue(false));
+        $result[] = array(new Callback($node, 'hasChildNodes'), false);
+        $result[] = array(new Callback($node, 'hasChildNodes', array(1)), false);
+        $result[] = array(new Callback($node, 'hasChildNodes', array(1, 2)), false);
+        $callback = new Callback($node, 'hasChildNodes', array(1, 2, 3));
+        $result[] = array($callback, false);
+        $callback = new Callback($node, 'hasChildNodes', array(1, 2, 3, 4));
+        $result[] = array($callback, false);
+
+        //Class
+        $callback = new Callback(
+            'DateTime',
+            'createFromFormat',
+            array('Y-m-d H:i:s', '2012-07-11 12:34:56')
+        );
+        $expected = \DateTime::createFromFormat('Y-m-d H:i:s', '2012-07-11 12:34:56');
+        $result[] = array($callback, $expected);
+        return $result;
+    }
+
+    /**
+     * Test the different execute paths
+     *
+     * @param \Backend\Core\Utilities\Callback $callback The callback to execute.
+     * @param mixed                            $result   The desired result.
+     *
+     * @dataProvider dataExecute
+     * @return void
+     */
+    public function testExecute(Callback $callback, $result)
+    {
+        $this->assertEquals($result, $callback->execute());
+    }
+
+    /**
+     * Check for invalid callback when executing
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unexecutable Callback
+     */
+    public function testInvalidExecute()
+    {
+        $callback = new Callback;
+        $callback->execute();
     }
 
     /**
@@ -266,4 +355,42 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($result, $callback->isValid());
     }
 
+    /**
+     * Data provider for testToString
+     *
+     * @return array
+     */
+    public function dataForToString()
+    {
+        $result = array();
+        $result[] = array(new Callback, '(Invalid Callback)');
+        $result[] = array(new Callback('DateTime'), 'DateTime');
+        $result[] = array(
+            new Callback('DateTime', 'createFromFormat'),
+            'DateTime::createFromFormat'
+        );
+        $result[] = array(
+            new Callback('DateTime', 'unknownMethod'),
+            'DateTime::unknownMethod'
+        );
+        $result[] = array(
+            new Callback(new \DateTime(), 'unknownMethod'),
+            'DateTime::unknownMethod'
+        );
+        $callback = new Callback;
+        $callback->setMethod('someMethod');
+        $result[] = array($callback, '(null)::someMethod');
+        return $result;
+    }
+
+    /**
+     * Test the __toString method
+     *
+     * @dataProvider dataForToString
+     * @return void
+     */
+    public function testToString(Callback $callback, $result)
+    {
+        $this->assertEquals($result, (string)$callback);
+    }
 }
