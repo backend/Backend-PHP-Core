@@ -13,6 +13,7 @@
  */
 namespace Backend\Core;
 use Backend\Interfaces\ResponseInterface;
+use Backend\Core\Exception as CoreException;
 /**
  * The response that will be sent back to the client
  *

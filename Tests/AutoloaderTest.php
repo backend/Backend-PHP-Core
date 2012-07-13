@@ -17,6 +17,9 @@ use \Backend\Core\Autoloader;
 /**
  * Class to test the \Backend\Core\Utilities\Autoloader class
  *
+ * Notice the use of class_exists($className, FALSE) and an explicit call to the
+ * autokload function to prevent the already registered autoloaders from kicking in.
+ *
  * @category   Backend
  * @package    CoreTests
  * @subpackage Utilities
