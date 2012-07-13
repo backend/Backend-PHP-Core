@@ -28,7 +28,7 @@ use Backend\Core\Response;
 class Formatter implements FormatterInterface
 {
     /**
-     * The request being formatted.
+     * The request reswulting in the response to be formatted.
      *
      * @var \Backend\Interfaces\RequestInterface
      */
@@ -42,6 +42,13 @@ class Formatter implements FormatterInterface
     protected $config;
 
     /**
+     * Formats to check
+     *
+     * @var array
+     */
+    public static $formats = null;
+
+    /**
      * The constructor for the object
      *
      * @param \Backend\Interfaces\RequestInterface $request The request used to
@@ -52,8 +59,12 @@ class Formatter implements FormatterInterface
     function __construct(
         RequestInterface $request = null, ConfigInterface $config = null
     ) {
-        $this->request = $request;
-        $this->config  = $config;
+        if ($request !== null) {
+            $this->setRequest($request);
+        }
+        if ($config !== null) {
+            $this->setConfig($config);
+        }
     }
 
     /**
@@ -84,15 +95,16 @@ class Formatter implements FormatterInterface
         RequestInterface $request = null, ConfigInterface $config = null
     ) {
         $requested = self::getRequestFormats($request);
-        $formats = self::getFormats();
+        $formats   = self::getFormats();
         foreach ($requested as $reqFormat) {
-            foreach ($formats as $viewName) {
-                if (in_array($reqFormat, $viewName::$handledFormats)) {
-                    $view = new $viewName($request, $config);
+            foreach ($formats as $formatName) {
+                if (in_array($reqFormat, $formatName::$handledFormats)) {
+                    $view = new $formatName($request, $config);
                     return $view;
                 }
             }
         }
+        return null;
     }
 
     /**
@@ -102,6 +114,10 @@ class Formatter implements FormatterInterface
      */
     public static function getFormats()
     {
+        if (self::$formats !== null) {
+            return self::$formats;
+        }
+
         $formatFiles = array();
         foreach (array(VENDOR_FOLDER, SOURCE_FOLDER) as $base) {
             $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
@@ -109,11 +125,24 @@ class Formatter implements FormatterInterface
             $files  = glob($folder . $glob);
             $formatFiles = array_merge($formatFiles, $files);
         }
-        $formatFiles = array_map(
+        $formats= array_map(
             array('\Backend\Core\Utilities\Formatter', 'formatClass'), $formatFiles
         );
-        return array_filter(
-            $formatFiles,
+        static::setFormats($formats);
+        return self::$formats;
+    }
+
+    /**
+     * Set the available Format classes.
+     *
+     * @param array An array of Format classes.
+     *
+     * @return void
+     */
+    public static function setFormats(array $formats = null)
+    {
+        self::$formats = $formats === null ? $formats : array_filter(
+            $formats,
             array('\Backend\Core\Utilities\Formatter', 'isValidFormat')
         );
     }
@@ -127,11 +156,13 @@ class Formatter implements FormatterInterface
      */
     public static function getRequestFormats(RequestInterface $request)
     {
-        $formats = array_filter(
-            array(
-                $request->getSpecifiedFormat(),
-                $request->getExtension(),
-                $request->getMimeType(),
+        $formats = array_unique(
+            array_filter(
+                array(
+                    $request->getSpecifiedFormat(),
+                    $request->getExtension(),
+                    $request->getMimeType(),
+                )
             )
         );
         return $formats;
@@ -146,14 +177,21 @@ class Formatter implements FormatterInterface
      */
     public static function isValidFormat($className)
     {
-        return class_exists($className)
-            && is_subclass_of(
-                $className, '\Backend\Interfaces\FormatterInterface'
-            );
+        $className = is_object($className) ? get_class($className) : $className;
+        if (class_exists($className, true) === false) {
+            return false;
+        }
+        //Just use Reflection, unless it's proven to have a performance penalty.
+        //if (PHP_VERSION_ID < 50307) {
+            $ref = new \ReflectionClass($className);
+            return in_array('Backend\Interfaces\FormatterInterface', $ref->getInterfaceNames());
+        /*} else {
+            return is_subclass_of($className, '\Backend\Interfaces\FormatterInterface');
+        }*/
     }
 
     /**
-     * get the Format class of the specified file
+     * Get the Format class of the specified file.
      *
      * @param string $file The filename
      *
@@ -164,9 +202,55 @@ class Formatter implements FormatterInterface
          //Check the format class
          $formatName = str_replace(array(SOURCE_FOLDER, VENDOR_FOLDER), '', $file);
          $formatName = '\\' . str_replace(
-             DIRECTORY_SEPARATOR, '\\',
+             array('/', '\\', DIRECTORY_SEPARATOR), '\\',
              substr($formatName, 0, strlen($formatName) - 4)
          );
          return $formatName;
+    }
+
+    /**
+     * Return the current configuration.
+     *
+     * @return Backend\Interfaces\ConfigInterface
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * Set the configuration to use.
+     *
+     * @param Backend\Interfaces\ConfigInterface The config to set.
+     *
+     * @return Backend\Core\Utilities\Formatter
+     */
+    public function setConfig(\Backend\Interfaces\ConfigInterface $config)
+    {
+        $this->config = $config;
+        return $this;
+    }
+
+    /**
+     * Return the request used to generate the response.
+     *
+     * @return Backend\Interfaces\RequestInterface
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * Set the request used to generate the response.
+     *
+     * @param Backend\Interfaces\RequestInterface $request The request to set.
+     *
+     * @return Backend\Core\Utilities\Formatter
+     */
+    public function setRequest(\Backend\Interfaces\RequestInterface $request)
+    {
+        $this->request = $request;
+        return $this;
     }
 }
