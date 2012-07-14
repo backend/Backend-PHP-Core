@@ -13,7 +13,7 @@
  */
 namespace Backend\Core\Tests\Utilities;
 use \Backend\Core\Utilities\Formatter;
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '..\auxiliary\TestFormat.php';
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '../auxiliary/TestFormat.php';
 /**
  * Class to test the \Backend\Core\Utilities\Formatter class
  *
