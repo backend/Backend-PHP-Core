@@ -32,10 +32,12 @@ class CallbackFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testFromString()
     {
-        $callback = CallbackFactory::fromString('preg_match');
+        $factory  = new CallbackFactory;
+        $callback = $factory->fromString('preg_match');
         $this->assertEquals('preg_match', (string)$callback);
 
-        $callback = CallbackFactory::fromString('DateInterval::createFromDateString');
+        $factory  = new CallbackFactory;
+        $callback = $factory->fromString('DateInterval::createFromDateString');
         $this->assertEquals('DateInterval::createFromDateString', (string)$callback);
     }
 
@@ -48,6 +50,7 @@ class CallbackFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidCallback()
     {
-        $callback = CallbackFactory::fromString('some::invalid::callback');
+        $factory  = new CallbackFactory;
+        $callback = $factory->fromString('some::invalid::callback');
     }
 }
