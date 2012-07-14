@@ -545,6 +545,9 @@ class Request implements RequestInterface
             break;
         case 'application/xml':
             //TODO
+            $payload = simplexml_load_string($data);
+            $payload = is_object($payload) ? (array)$payload : $payload;
+            break;
         default:
             throw new CoreException(
                 'Unknown Content Type: ' . $type,
