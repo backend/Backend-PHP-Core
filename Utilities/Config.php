@@ -48,20 +48,101 @@ class Config implements ConfigInterface
      *
      * @return null
      */
-    public function __construct($config)
+    public function __construct($config = null)
+    {
+        if (empty($config) === false) {
+            $this->setAll($config);
+        }
+    }
+
+    /**
+     * Magic function that returns the config values on request
+     *
+     * @param string $propertyName The name of the property being accessed
+     *
+     * @return mixed The value of the property
+     */
+    public function __get($propertyName)
+    {
+        if (array_key_exists($propertyName, $this->values)) {
+            return $this->values[$propertyName];
+        }
+        return null;
+    }
+
+    /**
+    * Get the named config value.
+    *
+    * @param string $name    The name of the config value. Omit to get the whole
+    * config.
+    * @param mixed  $default The default value to return should the value not
+    * be found.
+    *
+    * @return mixed The config setting
+    */
+    public function get($name = false, $default = null)
+    {
+        if ($name) {
+            $value = $this->__get($name);
+            return $value === null ? $default : $value;
+        } else {
+            return $this->values;
+        }
+    }
+
+    /**
+     * Magic function that set the config values on request
+     *
+     * @param string $propertyName The name of the property being set
+     * @param mixed  $value        The value of the property
+     *
+     * @return void
+     */
+    public function __set($propertyName, $value)
+    {
+        $this->values[$propertyName] = $value;
+    }
+
+    /**
+     * Set a named config value.
+     *
+     * @param string $name  The name of the config value.
+     * @param mixed  $value The value of the setting.
+     *
+     * @return \Backend\Interfaces\ConfigInterface The current config.
+     */
+    public function set($name, $value)
+    {
+        $this->__set($name, $value);
+        return $this;
+    }
+
+    /**
+     * Set the configuration values.
+     *
+     * @param mixed $config The configuration, either as an array of values
+     * or the name of the config file.
+     *
+     * @return \Backend\Interfaces\ConfigInterface The current config.
+     */
+    public function setAll($config)
     {
         switch (true) {
-        case is_string($config):
-            $this->_values = $this->fromFile($config);
+        case is_string($config) && file_exists($config):
+            $this->values = $this->fromFile($config);
             break;
         case is_array($config):
-            $this->_values = $config;
+            $this->values = $config;
+            break;
+        case is_object($config):
+            $this->values = (array)$config;
             break;
         default:
-            throw new ConfigException('Invalid configuration values passed');
+            throw new ConfigException('Invalid configuration values');
             break;
         }
         $this->rewind();
+        return $this;
     }
 
     /**
@@ -121,42 +202,10 @@ class Config implements ConfigInterface
     {
         $parser = $this->getParser();
         $result = call_user_func($parser, file_get_contents($filename));
+        if (empty($result)) {
+            throw new ConfigException('Invalid Configuration File');
+        }
         return is_object($result) ? (array)$result : $result;
-    }
-
-    /**
-     * Magic function that returns the config values on request
-     *
-     * @param string $propertyName The name of the property being accessed
-     *
-     * @return mixed The value of the property
-     */
-    public function __get($propertyName)
-    {
-        if (array_key_exists($propertyName, $this->_values)) {
-            return $this->_values[$propertyName];
-        }
-        return null;
-    }
-
-    /**
-    * Get the named config value.
-    *
-    * @param string $name    The name of the config value. Omit to get the whole
-    * config.
-    * @param mixed  $default The default value to return should the value not
-    * be found.
-    *
-    * @return mixed The config setting
-    */
-    public function get($name = false, $default = null)
-    {
-        if ($name) {
-            $value = $this->__get($name);
-            return $value === null ? $default : $value;
-        } else {
-            return $this->_values;
-        }
     }
 
     /**
@@ -166,7 +215,7 @@ class Config implements ConfigInterface
      */
     public function current()
     {
-        return current($this->_values);
+        return current($this->values);
     }
 
     /**
@@ -176,7 +225,7 @@ class Config implements ConfigInterface
      */
     public function key()
     {
-        return key($this->_values);
+        return key($this->values);
     }
 
     /**
@@ -186,7 +235,7 @@ class Config implements ConfigInterface
      */
     public function next()
     {
-        next($this->_values);
+        next($this->values);
     }
 
     /**
@@ -196,7 +245,7 @@ class Config implements ConfigInterface
      */
     public function rewind()
     {
-        reset($this->_values);
+        reset($this->values);
     }
 
     /**
@@ -206,6 +255,7 @@ class Config implements ConfigInterface
      */
     public function valid()
     {
-        return key($this->_values) !== false;
+        return $this->values
+            && in_array(key($this->values), array(false, null)) === false;
     }
 }
