@@ -29,8 +29,6 @@ class CallbackFactory implements CallbackFactoryInterface
     /**
      * Convert a string to a callback.
      *
-     * If the
-     *
      * @param string $string    The string representation of the callback.
      * @param array  $arguments The arguments for the callback.
      *
@@ -42,7 +40,7 @@ class CallbackFactory implements CallbackFactoryInterface
         $callback = new Callback();
         if (count($arr) == 1) {
             $callback->setFunction($arr[0]);
-        } else if (count($arr == 2)) {
+        } else if (count($arr) == 2) {
             $callback->setClass($arr[0]);
             $callback->setMethod($arr[1]);
         } else {

@@ -72,17 +72,21 @@ class Router
      */
     public function getFileName()
     {
-        $stateFile = PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE
-            . '.yaml';
-        if (file_exists($stateFile)) {
-            return PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml';
-        } else if (file_exists(PROJECT_FOLDER . 'configs/routes.yaml')) {
-            return PROJECT_FOLDER . 'configs/routes.yaml';
-        } else {
-            $string = 'Could not find Routes Configuration file. . Add one to '
-                . PROJECT_FOLDER . 'configs';
-            throw new ConfigException($string);
+        $files = array(
+            PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml',
+            PROJECT_FOLDER . 'configs/routes.yaml',
+        );
+        foreach ($files as $file) {
+            if (file_exists($file) === false) {
+                continue;
+            }
+            return $file;
         }
+        
+        throw new ConfigException(
+            'Could not find Routes Configuration file. . Add one to '
+            . PROJECT_FOLDER . 'configs'
+        );
     }
 
     /**
