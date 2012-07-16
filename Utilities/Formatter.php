@@ -53,17 +53,11 @@ class Formatter implements FormatterInterface
      *
      * @param \Backend\Interfaces\RequestInterface $request The request used to
      * determine what formatter to return.
-     * @param \Backend\Interfaces\ConfigInterface  $config  The current Application
-     * configuration.
      */
-    function __construct(
-        RequestInterface $request = null, ConfigInterface $config = null
-    ) {
+    function __construct(RequestInterface $request = null)
+    {
         if ($request !== null) {
             $this->setRequest($request);
-        }
-        if ($config !== null) {
-            $this->setConfig($config);
         }
     }
 
@@ -86,20 +80,17 @@ class Formatter implements FormatterInterface
      *
      * @param \Backend\Interfaces\RequestInterface $request The request used to
      * determine what formatter to return.
-     * @param \Backend\Interfaces\ConfigInterface  $config  The current Application
-     * configuration.
      *
      * @return \Backend\Interfaces\FormatterInterface
      */
-    public static function factory(
-        RequestInterface $request = null, ConfigInterface $config = null
-    ) {
+    public static function factory(RequestInterface $request = null)
+    {
         $requested = self::getRequestFormats($request);
         $formats   = self::getFormats();
         foreach ($requested as $reqFormat) {
             foreach ($formats as $formatName) {
                 if (in_array($reqFormat, $formatName::$handledFormats)) {
-                    $view = new $formatName($request, $config);
+                    $view = new $formatName($request);
                     return $view;
                 }
             }
@@ -135,7 +126,7 @@ class Formatter implements FormatterInterface
     /**
      * Set the available Format classes.
      *
-     * @param array An array of Format classes.
+     * @param array $formats An array of Format classes.
      *
      * @return void
      */
@@ -221,7 +212,7 @@ class Formatter implements FormatterInterface
     /**
      * Set the configuration to use.
      *
-     * @param Backend\Interfaces\ConfigInterface The config to set.
+     * @param Backend\Interfaces\ConfigInterface $config The config to set.
      *
      * @return Backend\Core\Utilities\Formatter
      */
