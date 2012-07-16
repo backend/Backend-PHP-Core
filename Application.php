@@ -57,18 +57,22 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
     protected $request;
 
     /**
+     * The Application Configuration.
+     *
+     * @var Backend\Interfaces\ConfigInterface
+     */
+    protected $config;
+
+    /**
      * The constructor for the object.
      *
-     * @param \Backend\Interfaces\RouterInterface    $router    The router to use.
-     * @param \Backend\Interfaces\FormatterInterface $formatter The formatter to use.
+     * @param Backend\Interfaces\ConfigInterface $config The Configuration for the
+     * Application.
      */
-    public function __construct(
-        RouterInterface $router = null,
-        FormatterInterface $formatter = null
-    ) {
+    public function __construct(ConfigInterface $config)
+    {
+        $this->config = $config;
         $this->init();
-        $this->router    = $this->get('Backend\Interfaces\RouterInterface');
-        $this->formatter = $formatter;
     }
 
     /**
@@ -82,9 +86,13 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
         if ($ran) {
             return;
         }
+
         //Services
-        $services = Config::getNamed('services');
-        foreach($services as $component => $implementation) {
+        $services = $this->config->get('services');
+        if (empty($services)) {
+            throw new CoreException('Could not set up Application Services');
+        }
+        foreach ($services as $component => $implementation) {
             $this->register($component, $implementation);
         }
 
@@ -99,7 +107,7 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
     /**
      * Main function for the application
      *
-     * @param \Backend\Interfaces\RequestInterface $request The request the
+     * @param Backend\Interfaces\RequestInterface $request The request the
      * application should handle
      *
      * @return \Backend\Interfaces\ResponseInterface
@@ -113,7 +121,7 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
         $this->request = $toInspect;
         do {
             $callback = $toInspect instanceof RequestInterface
-                ? $this->router->inspect($toInspect)
+                ? $this->getRouter()->inspect($toInspect)
                 : $toInspect;
             if ($callback instanceof RequestInterface) {
                 $this->request = $callback;
@@ -141,11 +149,10 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
 
+        $this->register('Backend\Interfaces\RequestInterface', $this->request);
+
         //Transform the Result
         $formatter = $this->getFormatter();
-        if (!$formatter) {
-            throw new CoreException('Unsupported format requested', 415);
-        }
         return $formatter->transform($toInspect);
     }
 
@@ -160,31 +167,90 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
     }
 
     /**
-     * Get the router for the application.
+     * Get the Router for the Application.
      *
-     * @return \Backend\Interfaces\RouterInterface
+     * @return Backend\Interfaces\RouterInterface
      */
     public function getRouter()
     {
+        if (empty($this->router)) {
+            $this->router = $this->get('Backend\Interfaces\RouterInterface');
+        }
         return $this->router;
     }
 
     /**
-     * Get the appropriate formatter object.
+     * Set the Router for the Application.
      *
-     * @param \Backend\Interfaces\RequestInterface $request The request to
+     * @param Backend\Interfaces\RouterInterface $router The router for the Applciation.
+     *
+     * @return Backend\Core\Application
+     */
+    public function setRouter(Backend\Interfaces\RouterInterface $router)
+    {
+        $this->router = $router;
+        return $this;
+    }
+
+    /**
+     * Get the Formatter for the Application.
+     *
+     * @param Backend\Interfaces\RequestInterface $request The request to
      * determine what formatter to return.
-     * @param \Backend\Interfaces\ConfigInterface  $config  The current Application
+     * @param Backend\Interfaces\ConfigInterface  $config  The current Application
      * configuration.
      *
-     * @return \Backend\Interfaces\FormatterInteface
+     * @return \Backend\Interfaces\FormatterInterface
      */
     public function getFormatter(
         RequestInterface $request = null, ConfigInterface $config = null
     ) {
-        $request = $request ?: $this->request;
-        $this->formatter = $this->formatter ?: Formatter::factory($request, $config);
+        if (empty($this->formatter)) {
+            $config  = $config  ?: $this->config;
+            $request = $request ?: $this->request;
+            //$this->formatter = $this->get('Backend\Interfaces\FormatterInterface');
+            $this->formatter = $this->formatter ?: Formatter::factory($request);
+            if (empty($this->formatter)) {
+                throw new CoreException('Unsupported format requested', 415);
+            }
+            $this->formatter->setConfig($config);
+        }
         return $this->formatter;
+    }
+
+    /**
+     * Set the Formatter for the Application.
+     *
+     * @param Backend\Interfaces\FormatterInterface $formatter The Formatter for the
+     * Application.
+     *
+     * @return Backend\Core\Application
+     */
+    public function setFormatter(Backend\Interfaces\FormatterInterface $formatter)
+    {
+        $this->formatter = $formatter;
+        return $this;
+    }
+
+    /**
+     * Implement a Component.
+     *
+     * This method also sets the configuration if the class supports it.
+     *
+     * @param string $className The class name of the component to implement.
+     *
+     * @return object The constructed service
+     * @throws \Backend\Core\Exception
+     */
+    public function implement($className)
+    {
+        $implementation = parent::implement($className);
+        if (is_object($implementation)
+            && method_exists($implementation, 'setConfig')
+        ) {
+            $implementation->setConfig($this->config);
+        }
+        return $implementation;
     }
 
     /**

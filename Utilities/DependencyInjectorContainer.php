@@ -88,7 +88,7 @@ class DependencyInjectorContainer implements DependencyInjectorContainerInterfac
     /**
      * Get the parameters for the constructor of a class
      *
-     * @param  \ReflectionClass $reflection The ReflectionClass of the class we're
+     * @param \ReflectionClass $reflection The ReflectionClass of the class we're
      * inspecting.
      *
      * @return array
@@ -102,7 +102,7 @@ class DependencyInjectorContainer implements DependencyInjectorContainerInterfac
             return false;
         }
         $parameters = array();
-        foreach($constructor->getParameters() as $parameter) {
+        foreach ($constructor->getParameters() as $parameter) {
             if ($parameter->isOptional()) {
                 break;
             }

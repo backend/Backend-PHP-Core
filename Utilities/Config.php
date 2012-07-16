@@ -208,6 +208,17 @@ class Config implements ConfigInterface
         return is_object($result) ? (array)$result : $result;
     }
 
+    /**
+     * Get the named configuration file from the default config locations.
+     *
+     * The environment specific file is tried first, otherwise the global one is used.
+     *
+     * @param string $name The name of the configuration to get.
+     *
+     * @return Backend\Interfaces\ConfigInterface
+         * @throws Backend\Core\Exceptions\ConfigException If the config file can't be
+     * found.
+     */
     public static function getNamed($name)
     {
         $files = array(
@@ -222,7 +233,7 @@ class Config implements ConfigInterface
         }
 
         throw new ConfigException(
-            'Could not find Routes Configuration file. . Add one to '
+            'Could not find ' . ucwords($name) . ' Configuration file. Add one to '
             . PROJECT_FOLDER . 'configs'
         );
     }
