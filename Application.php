@@ -19,9 +19,11 @@ use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Utilities\Router;
+use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\Formatter;
-use Backend\Core\Exception as CoreException;
 use Backend\Core\Utilities\Callback;
+use Backend\Core\Utilities\DependencyInjectorContainer;
+use Backend\Core\Exception as CoreException;
 /**
  * The main application class.
  *
@@ -31,7 +33,7 @@ use Backend\Core\Utilities\Callback;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Application implements ApplicationInterface
+class Application extends DependencyInjectorContainer implements ApplicationInterface
 {
     /**
      * Router to map callbacks to requests, and vice versa.
@@ -65,7 +67,7 @@ class Application implements ApplicationInterface
         FormatterInterface $formatter = null
     ) {
         $this->init();
-        $this->router    = $router  ?: new Router();
+        $this->router    = $this->get('Backend\Interfaces\RouterInterface');
         $this->formatter = $formatter;
     }
 
@@ -80,6 +82,12 @@ class Application implements ApplicationInterface
         if ($ran) {
             return;
         }
+        //Services
+        $services = Config::getNamed('services');
+        foreach($services as $component => $implementation) {
+            $this->register($component, $implementation);
+        }
+
         //PHP Helpers
         register_shutdown_function(array($this, 'shutdown'));
 

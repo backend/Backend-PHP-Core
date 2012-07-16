@@ -208,6 +208,25 @@ class Config implements ConfigInterface
         return is_object($result) ? (array)$result : $result;
     }
 
+    public static function getNamed($name)
+    {
+        $files = array(
+            PROJECT_FOLDER . 'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
+            PROJECT_FOLDER . 'configs/' . $name . '.yml',
+        );
+        foreach ($files as $file) {
+            if (file_exists($file) === false) {
+                continue;
+            }
+            return new static($file);
+        }
+
+        throw new ConfigException(
+            'Could not find Routes Configuration file. . Add one to '
+            . PROJECT_FOLDER . 'configs'
+        );
+    }
+
     /**
      * Iterator function to get the current element.
      *
