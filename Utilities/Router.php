@@ -49,13 +49,13 @@ class Router
     /**
      * The class constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface|string    $config  The routes
-     * config or path to the routes file.
      * @param \Backend\Interfaces\CallbackFactoryInterface $factory A callback
      * factory used to create callbacks from strings.
+     * @param Backend\Interfaces\ConfigInterface|string    $config  The routes
+     * config or path to the routes file.
      */
     public function __construct(
-        $config = null, CallbackFactoryInterface $factory = null
+        CallbackFactoryInterface $factory, $config = null
     ) {
         $config = $config ?: $this->getFileName();
         if (!($config instanceof ConfigInterface)) {
@@ -82,7 +82,7 @@ class Router
             }
             return $file;
         }
-        
+
         throw new ConfigException(
             'Could not find Routes Configuration file. . Add one to '
             . PROJECT_FOLDER . 'configs'
@@ -138,7 +138,7 @@ class Router
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
             return $factory->fromString($route['callback'], $defaults);
-        } 
+        }
         $pregMatch = preg_match_all(
             '/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches
         );

@@ -35,23 +35,15 @@ class DependencyInjectorContainer implements DependencyInjectorContainerInterfac
     /**
      * Register an Implementation of a Component.
      *
-     * The implementation can either be the class of the implementation, or a two
-     * element array, with the first element being the class implementation, and the
-     * second an array of parameters to be passed to the constructor of the
-     * implementation.
-     *
      * @param string $component      The unique identifier for the component
-     * @param mixed  $implementation The implementation. Either pass the class of the
-     * implementation, or a two element array containing the class of the
-     * implementation and the parameters to be passed to the constructor of the
-     * class.
+     * @param mixed  $implementation The class name of the component to implement.
      *
      * @return void
      */
     public function register($component, $implementation)
     {
         if (!is_object($implementation)) {
-            $implementation = static::implement($implementation);
+            $implementation = $this->implement($implementation);
         }
         $component = empty($component) || is_numeric($component)
             ? get_class($implementation) : $component;
@@ -61,44 +53,72 @@ class DependencyInjectorContainer implements DependencyInjectorContainerInterfac
     /**
      * Implement a Component
      *
-     * @param mixed $implementation The details of the component to implement.
+     * @param string $className The class name of the component to implement.
      *
      * @return object The constructed service
      * @throws \Backend\Core\Exception
      */
-    public static function implement($implementation)
+    public function implement($className)
     {
-        if (is_object($implementation)) {
-            return $implementation;
+        if (is_object($className)) {
+            return $className;
         }
-        if (is_string($implementation)) {
-            if ($this->has($implementation)) {
-                return $this->get($implementation);
-            }
-            $implementation = array($implementation, array());
-        }
-        if (!is_array($implementation) || count($implementation) != 2) {
-            throw new CoreException('Incorrect Component Definition');
-        }
-        if (class_exists($implementation[0], true) === false) {
+        if (class_exists($className, true) === false) {
             throw new CoreException(
-                'Undefined Implementation: ' . $implementation[0]
+                'Undefined Implementatio Class: ' . $className
             );
         }
-        if (count($implementation[1]) > 0) {
-            try {
-                $reflection = new \ReflectionClass($implementation[0]);
-                $implementation = call_user_func(
-                    array($reflection, 'newInstance'), $implementation[1]
-                );
-            } catch (\ErrorException $e) {
-                //TODO Log it? Throw the exception?
-                return false;
-            }
+        try {
+            $reflection  = new \ReflectionClass($className);
+        } catch (\ErrorException $e) {
+            //TODO Log it? Throw the exception?
+            return false;
+        }
+        $parameters = self::getParameters($reflection);
+        if (empty($parameters) === false) {
+            $implementation = call_user_func(
+                array($reflection, 'newInstanceArgs'), $parameters
+            );
         } else {
-            $implementation = new $implementation[0];
+            $implementation = new $className;
         }
         return $implementation;
+    }
+
+    /**
+     * Get the parameters for the constructor of a class
+     *
+     * @param  \ReflectionClass $reflection The ReflectionClass of the class we're
+     * inspecting.
+     *
+     * @return array
+     * @todo Allow the passing of default / non service parameters
+     * @todo Try to get named configs for ConfigInterface parameters
+     */
+    protected function getParameters(\ReflectionClass $reflection)
+    {
+        $constructor = $reflection->getConstructor();
+        if (empty($constructor)) {
+            return false;
+        }
+        $parameters = array();
+        foreach($constructor->getParameters() as $parameter) {
+            if ($parameter->isOptional()) {
+                break;
+            }
+            $class = $parameter->getClass();
+            if ($class === null) {
+                //TODO We don't know what to do with non defined parameters for now
+                break;
+            }
+            $component = $class->getName();
+            if ($this->has($component) === false) {
+                //TODO We don't know how to handle undefined components yet.
+                break;
+            }
+            $parameters[] = $this->get($component);
+        }
+        return $parameters;
     }
 
     /**
