@@ -18,6 +18,7 @@ use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
+use Backend\Interfaces\DependencyInjectorContainerInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\Formatter;
@@ -33,7 +34,7 @@ use Backend\Core\Exception as CoreException;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class Application extends DependencyInjectorContainer implements ApplicationInterface
+class Application implements ApplicationInterface
 {
     /**
      * Router to map callbacks to requests, and vice versa.
@@ -64,14 +65,23 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
     protected $config;
 
     /**
+     * The Dependency Injector Container for the Application.
+     *
+     * @var Backend\Interfaces\DependencyInjectorContainerInterface
+     */
+    protected $container;
+
+    /**
      * The constructor for the object.
      *
      * @param Backend\Interfaces\ConfigInterface $config The Configuration for the
      * Application.
      */
-    public function __construct(ConfigInterface $config)
-    {
+    public function __construct(ConfigInterface $config,
+        DependencyInjectorContainerInterface $container
+    ) {
         $this->config = $config;
+        $this->container = $container;
         $this->init();
     }
 
@@ -85,15 +95,6 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
         static $ran = false;
         if ($ran) {
             return;
-        }
-
-        //Services
-        $services = $this->config->get('services');
-        if (empty($services)) {
-            throw new CoreException('Could not set up Application Services');
-        }
-        foreach ($services as $component => $implementation) {
-            $this->register($component, $implementation);
         }
 
         //PHP Helpers
@@ -149,8 +150,6 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
 
-        $this->register('Backend\Interfaces\RequestInterface', $this->request);
-
         //Transform the Result
         $formatter = $this->getFormatter();
         return $formatter->transform($toInspect);
@@ -174,7 +173,7 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
     public function getRouter()
     {
         if (empty($this->router)) {
-            $this->router = $this->get('Backend\Interfaces\RouterInterface');
+            $this->router = $this->container->get('Backend\Interfaces\RouterInterface');
         }
         return $this->router;
     }
@@ -201,6 +200,7 @@ class Application extends DependencyInjectorContainer implements ApplicationInte
      * configuration.
      *
      * @return \Backend\Interfaces\FormatterInterface
+     * @todo Do this with the DIC at some point
      */
     public function getFormatter(
         RequestInterface $request = null, ConfigInterface $config = null

@@ -55,38 +55,10 @@ class Router
      * config or path to the routes file.
      */
     public function __construct(
-        CallbackFactoryInterface $factory, $config = null
+        ConfigInterface $config, CallbackFactoryInterface $factory
     ) {
-        $config = $config ?: $this->getFileName();
-        if (!($config instanceof ConfigInterface)) {
-            $config = new Config($config);
-        }
         $this->config = $config;
         $this->factory = $factory;
-    }
-
-    /**
-     * Method to find the appropriate routes config file.
-     *
-     * @return string
-     */
-    public function getFileName()
-    {
-        $files = array(
-            PROJECT_FOLDER . 'configs/routes.' . BACKEND_SITE_STATE . '.yaml',
-            PROJECT_FOLDER . 'configs/routes.yaml',
-        );
-        foreach ($files as $file) {
-            if (file_exists($file) === false) {
-                continue;
-            }
-            return $file;
-        }
-
-        throw new ConfigException(
-            'Could not find Routes Configuration file. . Add one to '
-            . PROJECT_FOLDER . 'configs'
-        );
     }
 
     /**
