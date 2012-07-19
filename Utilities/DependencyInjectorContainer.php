@@ -33,6 +33,12 @@ class DependencyInjectorContainer extends ContainerBuilder
 {
     protected $container = null;
 
+    /**
+     * The object constructor.
+     *
+     * @param Backend\Interfaces\ConfigInterface $config The configuration file
+     * to check for service and parameter definitions.
+     */
     public function __construct(ConfigInterface $config)
     {
         parent::__construct();
@@ -47,12 +53,22 @@ class DependencyInjectorContainer extends ContainerBuilder
         foreach($parameters as $name => $value) {
             $this->setParameter($name, $value);
         }
-        foreach ($services as $component => $implementation) {
-            $this->addComponent($component, $implementation);
+        foreach ($services as $id => $implementation) {
+            $this->addComponent($id, $implementation);
         }
     }
 
-    protected function addComponent($component, $config)
+    /**
+     * Utility function to add Copmonents to the container.
+     *
+     * @param string $id      The component identifier.
+     * @param mixed  $config  The component definition.
+     *
+     * @return void
+     * @todo  This currently only implements a small subset of the Symfony
+     * DI Component. Extend it.
+     */
+    protected function addComponent($id, $config)
     {
         if (is_string($config)) {
             $config = array('class' => $config);
@@ -62,7 +78,7 @@ class DependencyInjectorContainer extends ContainerBuilder
         );
         $config += $defaults;
 
-        $definition = $this->register($component, $config['class']);
+        $definition = $this->register($id, $config['class']);
         if (empty($config['factory_class']) === false
             && empty($config['factory_method']) === false
         ) {
@@ -83,32 +99,21 @@ class DependencyInjectorContainer extends ContainerBuilder
     }
 
     /**
-     * Remove the Implementation of the specified Component.
-     *
-     * @param string $component The name of the Component to remove.
-     *
-     * @return void
-     */
-    public function remove($component)
-    {
-        parent::removeDefinition($component);
-    }
-
-    /**
      * Get the Implementation of the specified Component.
      *
-     * @param string $component The name of the Component to get.
+     * @param string $id The Component identifier.
+     * @param integer $invalidBehaviour The behavior when the service does not exist.
      *
      * @return object
      * @throws \Backend\Core\Exception
      */
-    public function get($component,
-        $invalidBehavior = ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE)
+    public function get($id,
+        $invalidBehavior = ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
     {
-        if (parent::has($component)) {
-            return parent::get($component, $invalidBehavior);
+        if (parent::has($id)) {
+            return parent::get($id, $invalidBehavior);
         } else {
-            throw new CoreException('Undefined Implementation for ' . $component);
+            throw new CoreException('Undefined Implementation for ' . $id);
         }
     }
 }
