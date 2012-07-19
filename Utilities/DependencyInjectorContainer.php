@@ -13,9 +13,14 @@
  */
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\DependencyInjectorContainerInterface;
+use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Exception as CoreException;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Reference;
 /**
- * A Dependency Injection Container.
+ * A Dependency Injection Container. Currently we just wrap the Symfony
+ * DependencyInjection Component
  *
  * @category Backend
  * @package  Utilities
@@ -23,114 +28,58 @@ use Backend\Core\Exception as CoreException;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class DependencyInjectorContainer implements DependencyInjectorContainerInterface
+class DependencyInjectorContainer extends ContainerBuilder
+    implements DependencyInjectorContainerInterface
 {
-    /**
-     * The collection of Implementated Components.
-     *
-     * @var array
-     */
-    protected $components = array();
+    protected $container = null;
 
-    /**
-     * Register an Implementation of a Component.
-     *
-     * @param string $component      The unique identifier for the component
-     * @param mixed  $implementation The class name of the component to implement.
-     *
-     * @return void
-     */
-    public function register($component, $implementation)
+    public function __construct(ConfigInterface $config)
     {
-        if (!is_object($implementation)) {
-            $implementation = $this->implement($implementation);
+        parent::__construct();
+        //Services
+        $services = $config->get('services');
+        if (empty($services)) {
+            throw new CoreException('Could not set up Services');
         }
-        $component = empty($component) || is_numeric($component)
-            ? get_class($implementation) : $component;
-        $this->components[$component] = $implementation;
+
+        $this->container = new ContainerBuilder();
+        $parameters = $config->get('parameters', array());
+        foreach($parameters as $name => $value) {
+            $this->setParameter($name, $value);
+        }
+        foreach ($services as $component => $implementation) {
+            $this->addComponent($component, $implementation);
+        }
     }
 
-    /**
-     * Implement a Component
-     *
-     * @param string $className The class name of the component to implement.
-     *
-     * @return object The constructed service
-     * @throws \Backend\Core\Exception
-     */
-    public function implement($className)
+    protected function addComponent($component, $config)
     {
-        if (is_object($className)) {
-            return $className;
+        if (is_string($config)) {
+            $config = array('class' => $config);
         }
-        if (class_exists($className, true) === false) {
-            throw new CoreException(
-                'Undefined Implementatio Class: ' . $className
-            );
-        }
-        try {
-            $reflection  = new \ReflectionClass($className);
-        } catch (\ErrorException $e) {
-            //TODO Log it? Throw the exception?
-            return false;
-        }
-        $parameters = self::getParameters($reflection);
-        if (empty($parameters) === false) {
-            $implementation = call_user_func(
-                array($reflection, 'newInstanceArgs'), $parameters
-            );
-        } else {
-            $implementation = new $className;
-        }
-        return $implementation;
-    }
+        $defaults = array(
+            'arguments' => array(), 'calls' => array()
+        );
+        $config += $defaults;
 
-    /**
-     * Get the parameters for the constructor of a class
-     *
-     * @param \ReflectionClass $reflection The ReflectionClass of the class we're
-     * inspecting.
-     *
-     * @return array
-     * @todo Allow the passing of default / non service parameters
-     * @todo Try to get named configs for ConfigInterface parameters
-     */
-    protected function getParameters(\ReflectionClass $reflection)
-    {
-        $constructor = $reflection->getConstructor();
-        if (empty($constructor)) {
-            return false;
+        $definition = $this->register($component, $config['class']);
+        if (empty($config['factory_class']) === false
+            && empty($config['factory_method']) === false
+        ) {
+            $definition->setFactoryClass($config['factory_class']);
+            $definition->setFactoryMethod($config['factory_method']);
         }
-        $parameters = array();
-        foreach ($constructor->getParameters() as $parameter) {
-            if ($parameter->isOptional()) {
-                break;
-            }
-            $class = $parameter->getClass();
-            if ($class === null) {
-                //TODO We don't know what to do with non defined parameters for now
-                break;
-            }
-            $component = $class->getName();
-            if ($this->has($component) === false) {
-                //TODO We don't know how to handle undefined components yet.
-                break;
-            }
-            $parameters[] = $this->get($component);
+        foreach($config['calls'] as $name => $value) {
+            $definition->addMethodCall($name, $value);
         }
-        return $parameters;
-    }
+        foreach($config['arguments'] as $value) {
+            if (substr($value, 0, 1) === '@') {
+                $definition->addArgument(new Reference(substr($value, 1)));
+            } else {
+                $definition->addArgument($value);
+            }
+        }
 
-    /**
-     * Check if there is an Implementation of the specified Component.
-     *
-     * @param string $component The name of the Component to check for.
-     *
-     * @return boolean
-     */
-    public function has($component)
-    {
-        return array_key_exists($component, $this->components);
     }
 
     /**
@@ -142,40 +91,24 @@ class DependencyInjectorContainer implements DependencyInjectorContainerInterfac
      */
     public function remove($component)
     {
-        if ($this->has($component)) {
-            unset($this->components[$component]);
-        }
+        parent::removeDefinition($component);
     }
 
     /**
      * Get the Implementation of the specified Component.
      *
-     * @param string $component The name of the Component to get. Will return all of
-     * the implemented components when omitted.
+     * @param string $component The name of the Component to get.
      *
-     * @return object|array
+     * @return object
      * @throws \Backend\Core\Exception
      */
-    public function get($component)
+    public function get($component,
+        $invalidBehavior = ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE)
     {
-        if ($component) {
-            if ($this->has($component)) {
-                return $this->components[$component];
-            } else {
-                throw new CoreException('Undefined Implementation for ' . $component);
-            }
+        if (parent::has($component)) {
+            return parent::get($component, $invalidBehavior);
         } else {
-            return $this->components;
+            throw new CoreException('Undefined Implementation for ' . $component);
         }
-    }
-
-    /**
-     * Reset and Empty the DependencyInjectorContainer collection
-     *
-     * @return void
-     */
-    public function reset()
-    {
-        $this->components = array();
     }
 }
