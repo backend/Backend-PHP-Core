@@ -227,14 +227,16 @@ class Request implements RequestInterface
      * Return the path of the current Request.
      *
      * In http://backend-php.net/index.php/something, the path will be
-     * /index.php/something
+     * /something
      *
      * @return string
      */
     public function getPath()
     {
         if ($this->path === null) {
-            $this->setPath('');
+            $path = $this->getServerInfo('PATH_INFO');
+            $path = $path ?: '/';
+            $this->setPath($path);
         }
         return $this->path;
     }
