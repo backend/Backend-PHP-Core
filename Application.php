@@ -18,12 +18,12 @@ use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
-use Backend\Interfaces\DependencyInjectorContainerInterface;
+use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\Formatter;
 use Backend\Core\Utilities\Callback;
-use Backend\Core\Utilities\DependencyInjectorContainer;
+use Backend\Core\Utilities\DependencyInjectionContainer;
 use Backend\Core\Exception as CoreException;
 /**
  * The main application class.
@@ -65,9 +65,9 @@ class Application implements ApplicationInterface
     protected $config;
 
     /**
-     * The Dependency Injector Container for the Application.
+     * The Dependency Injection Container for the Application.
      *
-     * @var Backend\Interfaces\DependencyInjectorContainerInterface
+     * @var Backend\Interfaces\DependencyInjectionContainerInterface
      */
     protected $container;
 
@@ -78,10 +78,11 @@ class Application implements ApplicationInterface
      * Application.
      */
     public function __construct(ConfigInterface $config,
-        DependencyInjectorContainerInterface $container
+        DependencyInjectionContainerInterface $container
     ) {
         $this->config = $config;
         $this->container = $container;
+        $this->container->set('backend.application.config', $this->config);
         $this->init();
     }
 
@@ -152,6 +153,7 @@ class Application implements ApplicationInterface
             }
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
+        $this->container->set('backend.request', $this->request);
 
         //Transform the Result
         $formatter = $this->getFormatter();
@@ -176,7 +178,7 @@ class Application implements ApplicationInterface
     public function getRouter()
     {
         if (empty($this->router)) {
-            $this->router = $this->container->get('Backend\Interfaces\RouterInterface');
+            $this->router = $this->container->get('backend.router');
         }
         return $this->router;
     }
@@ -209,14 +211,12 @@ class Application implements ApplicationInterface
         RequestInterface $request = null, ConfigInterface $config = null
     ) {
         if (empty($this->formatter)) {
-            $config  = $config  ?: $this->config;
-            $request = $request ?: $this->request;
             //$this->formatter = $this->get('Backend\Interfaces\FormatterInterface');
-            $this->formatter = $this->formatter ?: Formatter::factory($request);
+            $this->formatter = $this->formatter
+                ?: Formatter::factory($this->getContainer());
             if (empty($this->formatter)) {
                 throw new CoreException('Unsupported format requested', 415);
             }
-            $this->formatter->setConfig($config);
         }
         return $this->formatter;
     }

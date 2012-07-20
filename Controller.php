@@ -14,7 +14,7 @@
 namespace Backend\Core;
 use Backend\Interfaces\ControllerInterface;
 use Backend\Interfaces\RequestInterface;
-use Backend\Interfaces\DependencyInjectorContainerInterface;
+use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Core\Exception as CoreException;
 /**
  * Controller that acts as the connection between Models and Views.
@@ -30,7 +30,7 @@ class Controller implements ControllerInterface
     /**
      * The Dependency Injection Container to be used when getting services.
      *
-     * @var \Backend\nterfaces\DependencyInjectorContainerInterface
+     * @var \Backend\nterfaces\DependencyInjectionContainerInterface
      */
     protected $container = null;
 
@@ -44,7 +44,7 @@ class Controller implements ControllerInterface
     /**
      * The constructor for the object
      */
-    function __construct(DependencyInjectorContainerInterface $container = null,
+    function __construct(DependencyInjectionContainerInterface $container = null,
         RequestInterface $request = null)
     {
         $this->container = $container;

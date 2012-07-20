@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining Backend\Core\Utilities\DependencyInjectorContainer
+ * File defining Backend\Core\Utilities\DependencyInjectionContainer
  *
  * PHP Version 5.3
  *
@@ -12,7 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use Backend\Interfaces\DependencyInjectorContainerInterface;
+use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Exception as CoreException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -28,8 +28,8 @@ use Symfony\Component\DependencyInjection\Reference;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class DependencyInjectorContainer extends ContainerBuilder
-    implements DependencyInjectorContainerInterface
+class DependencyInjectionContainer extends ContainerBuilder
+    implements DependencyInjectionContainerInterface
 {
     protected $container = null;
 
