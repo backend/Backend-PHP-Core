@@ -12,9 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
-use \Backend\Interfaces\ControllerInterface;
-use \Backend\Interfaces\RequestInterface;
-use \Backend\Core\Exception as CoreException;
+use Backend\Interfaces\ControllerInterface;
+use Backend\Interfaces\RequestInterface;
+use Backend\Interfaces\DependencyInjectorContainerInterface;
+use Backend\Core\Exception as CoreException;
 /**
  * Controller that acts as the connection between Models and Views.
  *
@@ -27,16 +28,27 @@ use \Backend\Core\Exception as CoreException;
 class Controller implements ControllerInterface
 {
     /**
-     * @var \Backend\nterfaces\RequestInterface This contains the Request that's
-     * being actioned
+     * The Dependency Injection Container to be used when getting services.
+     *
+     * @var \Backend\nterfaces\DependencyInjectorContainerInterface
+     */
+    protected $container = null;
+
+    /**
+     * This contains the Request that's being actioned.
+     *
+     * @var \Backend\nterfaces\RequestInterface
      */
     protected $request = null;
 
     /**
      * The constructor for the object
      */
-    function __construct()
+    function __construct(DependencyInjectorContainerInterface $container = null,
+        RequestInterface $request = null)
     {
+        $this->container = $container;
+        $this->request = $request;
     }
 
     /**
@@ -61,6 +73,31 @@ class Controller implements ControllerInterface
     public function getRequest()
     {
         return $this->request;
+    }
+
+    /**
+     * Set the Controller's DI Container.
+     *
+     * @param \Backend\Interfaces\DependencyInjectionContainerInterface $container
+     * The DI Container for the Controller.
+     *
+     * @return \Backend\Interfaces\ControllerInterface The current object.
+     */
+    public function setContainer(DependencyInjectionContainerInterface $container)
+    {
+        $this->container = $container;
+        return $this;
+    }
+
+    /**
+     * Get the Controller's DI Container
+     *
+     * @return \Backend\Interfaces\DependencyInjectionContainerInterface The
+     * Controller's DI Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
     }
 
     /**

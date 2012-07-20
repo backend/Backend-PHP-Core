@@ -136,7 +136,10 @@ class Application implements ApplicationInterface
                         'Backend\Interfaces\ControllerInterface', $interfaces
                     );
                     if ($implements) {
-                        $controller = new $class();
+                        $controller = new $class(
+                            $this->getContainer(),
+                            $this->getRequest()
+                        );
                         $controller->setRequest($this->getRequest());
                         $callback->setObject($controller);
                         //Set the method name as actionAction
@@ -230,6 +233,31 @@ class Application implements ApplicationInterface
     {
         $this->formatter = $formatter;
         return $this;
+    }
+
+/**
+     * Set the Controller's DI Container.
+     *
+     * @param \Backend\Interfaces\DependencyInjectionContainerInterface $container
+     * The DI Container for the Controller.
+     *
+     * @return \Backend\Interfaces\ControllerInterface The current object.
+     */
+    public function setContainer(DependencyInjectionContainerInterface $container)
+    {
+        $this->container = $container;
+        return $this;
+    }
+
+    /**
+     * Get the Controller's DI Container
+     *
+     * @return \Backend\Interfaces\DependencyInjectionContainerInterface The
+     * Controller's DI Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
     }
 
     /**
