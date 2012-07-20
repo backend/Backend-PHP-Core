@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining ConfigException
+ * File defining DuckTypeException
  *
  * PHP Version 5.3
  *
@@ -14,7 +14,7 @@
  */
 namespace Backend\Core\Exceptions;
 /**
- * Thrown when there's something wrong with the setup of the system.
+ * Thrown when an object doesn't behave as expected.
  *
  * @category   Backend
  * @package    Core
@@ -23,7 +23,7 @@ namespace Backend\Core\Exceptions;
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-class ConfigException extends \Backend\Core\Exception
+class DuckTypeException extends \Backend\Core\Exception
 {
 }
 

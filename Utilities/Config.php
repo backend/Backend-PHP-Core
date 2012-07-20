@@ -13,9 +13,11 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use \Backend\Interfaces\ConfigInterface;
-use \Backend\Core\Exception as CoreException;
-use \Backend\Core\Exceptions\ConfigException;
+use Backend\Interfaces\ConfigInterface;
+use Backend\Interfaces\ParserInterface;
+use Backend\Core\Exception as CoreException;
+use Backend\Core\Exceptions\ConfigException;
+use Backend\Core\Exceptions\DuckTypeException;
 /**
  * Class to handle application configs.
  *
@@ -31,7 +33,7 @@ class Config implements ConfigInterface
     /**
      * @var object Store for all the config values.
      */
-    protected $values = null;
+    protected $values = array();
 
     /**
      * Parser to parse the config file.
@@ -48,8 +50,12 @@ class Config implements ConfigInterface
      *
      * @return null
      */
-    public function __construct($config = null)
+    public function __construct($parser, $config = null)
     {
+        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
+            throw new DuckTypeException('Expected an object with a parse method.');
+        }
+        $this->parser = $parser;
         if (empty($config) === false) {
             $this->setAll($config);
         }
@@ -148,30 +154,10 @@ class Config implements ConfigInterface
     /**
      * Get the parser to parse a config file.
      *
-     *  If none is set, it tries to use the pecl yaml parser, or the Symfony
-     *  Components YAML parser.
-     *
      *  @return object
      */
     public function getParser()
     {
-        if (empty($this->parser)) {
-            if (function_exists('yaml_parse')) {
-                $this->parser = function($yamlString)
-                {
-                    return \yaml_parse($yamlString);
-                };
-            } else if (class_exists('\sfYamlParser')) {
-                $this->parser = array(new \sfYamlParser(), 'parse');
-            } else if (class_exists('\Symfony\Component\Yaml\Parser')) {
-                $this->parser = array(new \Symfony\Component\Yaml\Parser(), 'parse');
-            } else if (class_exists('\sfYamlParser')) {
-                $this->parser = array(new \sfYamlParser(), 'parse');
-            }
-        }
-        if (!is_callable($this->parser)) {
-            throw new CoreException('Could not find Config Parser');
-        }
         return $this->parser;
     }
 
@@ -184,8 +170,8 @@ class Config implements ConfigInterface
      */
     public function setParser($parser)
     {
-        if (!is_callable($parser)) {
-            throw new CoreException('Trying to set Uncallable Config Parser');
+        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
+            throw new DuckTypeException('Expected an object with a parse method.');
         }
         $this->parser = $parser;
         return $this;
@@ -201,7 +187,7 @@ class Config implements ConfigInterface
     protected function fromFile($filename)
     {
         $parser = $this->getParser();
-        $result = call_user_func($parser, file_get_contents($filename));
+        $result = $parser->parse(file_get_contents($filename));
         if (empty($result)) {
             throw new ConfigException('Invalid Configuration File');
         }
@@ -219,8 +205,11 @@ class Config implements ConfigInterface
          * @throws Backend\Core\Exceptions\ConfigException If the config file can't be
      * found.
      */
-    public static function getNamed($name)
+    public static function getNamed($parser, $name)
     {
+        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
+            throw new DuckTypeException('Expected an object with a parse method.');
+        }
         $files = array(
             PROJECT_FOLDER . 'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
             PROJECT_FOLDER . 'configs/' . $name . '.yml',
@@ -229,7 +218,7 @@ class Config implements ConfigInterface
             if (file_exists($file) === false) {
                 continue;
             }
-            return new static($file);
+            return new static($parser, $file);
         }
 
         throw new ConfigException(
