@@ -107,8 +107,10 @@ class Router
             }
         }
         if ($this->config->controllers) {
-            //TODO
-            throw new CoreException('Unimplemented');
+            $callback = $this->checkControllers($request, $this->config->controllers);
+            if ($callback) {
+                return $callback;
+            }
         }
         return false;
     }
@@ -131,12 +133,12 @@ class Router
             return false;
         }
 
-        $factory  = $this->getCallbackFactory();
         $defaults = array_key_exists('defaults', $route) ? $route['defaults']
             : array();
         //Try to match the route
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
+            $factory  = $this->getCallbackFactory();
             return $factory->fromString($route['callback'], $defaults);
         } 
         $pregMatch = preg_match_all(
@@ -163,6 +165,54 @@ class Router
             }
         }
         return false;
+    }
+
+    /**
+     * Check if the route is linked to a controller.
+     *
+     * @param \Backend\Interfaces\RequestInterface $request     The request to compare
+     * with the route.
+     * @param  array                               $controllers The controllers
+     * linked to routes.
+     *
+     * @return boolean|array
+     */
+    protected function checkControllers(RequestInterface $request, array $controllers)
+    {
+        $queryArr = explode('/', ltrim($request->getPath(), '/'));
+        if (count($queryArr) < 1) {
+            return false;
+        }
+
+        //Resolve the controller
+        $controller = $queryArr[0];
+        if (array_key_exists($controller, $controllers) === false) {
+            return false;
+        }
+        $controller = $controllers[$controller];
+
+        $action = strtolower($request->getMethod());
+        switch ($action) {
+        case 'get':
+            if (count($queryArr) == 1) {
+                $action = 'list';
+            } else {
+                $action = 'read';
+            }
+            break;
+        case 'post':
+            $action = 'create';
+            break;
+        case 'put':
+            $action = 'update';
+            break;
+        case 'delete':
+            break;
+        }
+        $callback = $controller . '::' . $action;
+
+        $factory  = $this->getCallbackFactory();
+        return $factory->fromString($callback, array_slice($queryArr, 1));
     }
 
     /**
