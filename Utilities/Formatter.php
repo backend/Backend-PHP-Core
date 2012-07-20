@@ -13,8 +13,9 @@
  */
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\FormatterInterface;
-use Backend\Interfaces\RequestInterface;
+use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\ConfigInterface;
+use Backend\Interfaces\RequestInterface;
 use Backend\Core\Response;
 /**
  * Transform results into the specified format.
@@ -83,14 +84,20 @@ class Formatter implements FormatterInterface
      *
      * @return \Backend\Interfaces\FormatterInterface
      */
-    public static function factory(RequestInterface $request = null)
-    {
+    public static function factory(
+        DependencyInjectionContainerInterface $container = null
+    ) {
+        $request = $container->get('backend.request');
         $requested = self::getRequestFormats($request);
         $formats   = self::getFormats();
         foreach ($requested as $reqFormat) {
             foreach ($formats as $formatName) {
                 if (in_array($reqFormat, $formatName::$handledFormats)) {
-                    $view = new $formatName($request);
+                    $name = str_replace('\\', '.', $formatName);
+                    if (substr($name, 0, 1) === '.') {
+                        $name = substr($name, 1);
+                    }
+                    $view = $container->get($name);
                     return $view;
                 }
             }
