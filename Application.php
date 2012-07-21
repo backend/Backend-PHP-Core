@@ -20,8 +20,6 @@ use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Core\Utilities\Router;
-use Backend\Core\Utilities\Config;
-use Backend\Core\Utilities\Formatter;
 use Backend\Core\Utilities\Callback;
 use Backend\Core\Utilities\DependencyInjectionContainer;
 use Backend\Core\Exception as CoreException;
@@ -74,7 +72,10 @@ class Application implements ApplicationInterface
     /**
      * The constructor for the object.
      *
-     * @param Backend\Interfaces\ConfigInterface $config The Configuration for the
+     * @param Backend\Interfaces\ConfigInterface                       $config    The
+     * Configuration for the Application.
+     * @param Backend\Interfaces\DependencyInjectionContainerInterface $container The
+     * DI Container for the Application.
      * Application.
      */
     public function __construct(ConfigInterface $config,
@@ -119,7 +120,7 @@ class Application implements ApplicationInterface
     public function main(RequestInterface $request = null)
     {
         //Inspect the request and subsequent results, chain if necessary
-        $toInspect = $request ?: new Request();
+        $toInspect = $request ?: $this->container->get('backend.request');
         $this->request = $toInspect;
         do {
             $callback = $toInspect instanceof RequestInterface
@@ -171,6 +172,16 @@ class Application implements ApplicationInterface
     }
 
     /**
+     * Get the application's configuration.
+     *
+     * @return \Backend\Interfaces\ConfigInterface
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
      * Get the Router for the Application.
      *
      * @return Backend\Interfaces\RouterInterface
@@ -199,23 +210,16 @@ class Application implements ApplicationInterface
     /**
      * Get the Formatter for the Application.
      *
-     * @param Backend\Interfaces\RequestInterface $request The request to
-     * determine what formatter to return.
-     * @param Backend\Interfaces\ConfigInterface  $config  The current Application
-     * configuration.
-     *
      * @return \Backend\Interfaces\FormatterInterface
      * @todo Do this with the DIC at some point
      */
-    public function getFormatter(
-        RequestInterface $request = null, ConfigInterface $config = null
-    ) {
+    public function getFormatter()
+    {
         if (empty($this->formatter)) {
-            //$this->formatter = $this->get('Backend\Interfaces\FormatterInterface');
-            $this->formatter = $this->formatter
-                ?: Formatter::factory($this->getContainer());
-            if (empty($this->formatter)) {
-                throw new CoreException('Unsupported format requested', 415);
+            try {
+                $this->formatter = $this->container->get('backend.formatter');
+            } catch (CoreException $e) {
+                throw new CoreException('Unsupported format requested', 415, $e);
             }
         }
         return $this->formatter;
@@ -235,11 +239,11 @@ class Application implements ApplicationInterface
         return $this;
     }
 
-/**
-     * Set the Controller's DI Container.
+    /**
+     * Set the Application's DI Container.
      *
      * @param \Backend\Interfaces\DependencyInjectionContainerInterface $container
-     * The DI Container for the Controller.
+     * The DI Container for the Application.
      *
      * @return \Backend\Interfaces\ControllerInterface The current object.
      */
@@ -250,35 +254,14 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * Get the Controller's DI Container
+     * Get the Application's DI Container
      *
      * @return \Backend\Interfaces\DependencyInjectionContainerInterface The
-     * Controller's DI Container
+     * Application's DI Container
      */
     public function getContainer()
     {
         return $this->container;
-    }
-
-    /**
-     * Implement a Component.
-     *
-     * This method also sets the configuration if the class supports it.
-     *
-     * @param string $className The class name of the component to implement.
-     *
-     * @return object The constructed service
-     * @throws \Backend\Core\Exception
-     */
-    public function implement($className)
-    {
-        $implementation = parent::implement($className);
-        if (is_object($implementation)
-            && method_exists($implementation, 'setConfig')
-        ) {
-            $implementation->setConfig($this->config);
-        }
-        return $implementation;
     }
 
     /**

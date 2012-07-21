@@ -29,7 +29,7 @@ use Backend\Core\Response;
 class Formatter implements FormatterInterface
 {
     /**
-     * The request reswulting in the response to be formatted.
+     * The request resulting in the response to be formatted.
      *
      * @var \Backend\Interfaces\RequestInterface
      */
@@ -79,13 +79,13 @@ class Formatter implements FormatterInterface
     /**
      * Factory function to generate a formatter object.
      *
-     * @param \Backend\Interfaces\RequestInterface $request The request used to
-     * determine what formatter to return.
+     * @param \Backend\Interfaces\DependencyInjectionContainerInterface $container
+     * The DI Container used to fetch the object.
      *
      * @return \Backend\Interfaces\FormatterInterface
      */
     public static function factory(
-        DependencyInjectionContainerInterface $container = null
+        DependencyInjectionContainerInterface $container
     ) {
         $request = $container->get('backend.request');
         $requested = self::getRequestFormats($request);
