@@ -52,12 +52,10 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
     public function testConstructor()
     {
         $request = $this->getMock('Backend\Interfaces\RequestInterface');
-        $config  = $this->getMock('Backend\Interfaces\ConfigInterface');
 
-        $formatter = new Formatter($request, $config);
+        $formatter = new Formatter($request);
 
         $this->assertSame($request, $formatter->getRequest());
-        $this->assertSame($config, $formatter->getConfig());
     }
 
     /**
@@ -80,8 +78,14 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
      */
     public function testFactory()
     {
-        $request = $this->getMock('Backend\Interfaces\RequestInterface');
-        $this->assertNull(Formatter::factory($request));
+        $request   = $this->getMock('\Backend\Interfaces\RequestInterface');
+        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
+        $container
+            ->expects($this->once())
+            ->method('get')
+            ->with('backend.request')
+            ->will($this->returnValue($request));
+        $this->assertNull(Formatter::factory($container));
 
         Formatter::setFormats(array('\TestFormat'));
 
@@ -90,7 +94,13 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getSpecifiedFormat')
             ->will($this->returnValue('html'));
-        $formatter = Formatter::factory($request);
+        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
+        $container
+            ->expects($this->once())
+            ->method('get')
+            ->with('backend.request')
+            ->will($this->returnValue($request));
+        $formatter = Formatter::factory($container);
         $this->assertNull($formatter);
 
         $request = $this->getMock('Backend\Interfaces\RequestInterface');
@@ -98,7 +108,12 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getSpecifiedFormat')
             ->will($this->returnValue('test'));
-        $formatter = Formatter::factory($request);
+        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
+        $container
+            ->expects($this->exactly(2))
+            ->method('get')
+            ->will($this->onConsecutiveCalls($request, new \TestFormat));
+        $formatter = Formatter::factory($container);
         $this->assertInstanceOf('Backend\Interfaces\FormatterInterface', $formatter);
     }
 
@@ -114,10 +129,21 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
         $filtered = array_filter($formats, 'class_exists');
         $this->assertEquals(count($filtered), count($formats));
 
-        include_once dirname(__FILE__) . DIRECTORY_SEPARATOR
-            . '..\auxiliary\TestFormat.php';
         Formatter::setFormats(array('\TestFormat'));
         $this->assertEquals(array('\TestFormat'), Formatter::getFormats());
+    }
+
+    /**
+     * Test the Config setter and getter.
+     *
+     * @return void
+     */
+    public function testConfigAccessors()
+    {
+        $config = $this->getMock('Backend\Interfaces\ConfigInterface');
+        $formatter = new Formatter;
+        $formatter->setConfig($config);
+        $this->assertSame($config, $formatter->getConfig());
     }
 
     /**
@@ -169,13 +195,9 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsValidFormat()
     {
-        include_once dirname(__FILE__) . DIRECTORY_SEPARATOR
-            . '..\auxiliary\TestFormat.php';
         $actual = Formatter::isValidFormat(new \TestFormat);
         $this->assertTrue($actual);
 
-        include_once dirname(__FILE__) . DIRECTORY_SEPARATOR
-            . '..\auxiliary\TestFormat.php';
         $actual = Formatter::isValidFormat('\TestFormat');
         $this->assertTrue($actual);
 
