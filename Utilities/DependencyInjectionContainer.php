@@ -45,12 +45,12 @@ class DependencyInjectionContainer extends ContainerBuilder
         //Services
         $services = $config->get('services');
         if (empty($services)) {
-            throw new CoreException('Could not set up Services');
+            return;
         }
 
         $this->container = new ContainerBuilder();
         $parameters = $config->get('parameters', array());
-        foreach($parameters as $name => $value) {
+        foreach ($parameters as $name => $value) {
             $this->setParameter($name, $value);
         }
         foreach ($services as $id => $implementation) {
@@ -61,8 +61,8 @@ class DependencyInjectionContainer extends ContainerBuilder
     /**
      * Utility function to add Copmonents to the container.
      *
-     * @param string $id      The component identifier.
-     * @param mixed  $config  The component definition.
+     * @param string $id     The component identifier.
+     * @param mixed  $config The component definition.
      *
      * @return void
      * @todo  This currently only implements a small subset of the Symfony
@@ -85,10 +85,10 @@ class DependencyInjectionContainer extends ContainerBuilder
             $definition->setFactoryClass($config['factory_class']);
             $definition->setFactoryMethod($config['factory_method']);
         }
-        foreach($config['calls'] as $name => $value) {
+        foreach ($config['calls'] as $name => $value) {
             $definition->addMethodCall($name, $value);
         }
-        foreach($config['arguments'] as $value) {
+        foreach ($config['arguments'] as $value) {
             if (substr($value, 0, 1) === '@') {
                 $definition->addArgument(new Reference(substr($value, 1)));
             } else {
@@ -101,19 +101,34 @@ class DependencyInjectionContainer extends ContainerBuilder
     /**
      * Get the Implementation of the specified Component.
      *
-     * @param string $id The Component identifier.
+     * @param string  $id               The Component identifier.
      * @param integer $invalidBehaviour The behavior when the service does not exist.
      *
      * @return object
      * @throws \Backend\Core\Exception
      */
     public function get($id,
-        $invalidBehavior = ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
-    {
+        $invalidBehaviour = ContainerInterface::IGNORE_ON_INVALID_REFERENCE
+    ) {
         if (parent::has($id)) {
-            return parent::get($id, $invalidBehavior);
+            return parent::get($id, $invalidBehaviour);
         } else {
             throw new CoreException('Undefined Implementation for ' . $id);
         }
+    }
+
+    /**
+     * Register an Implementation of the specified Component.
+     *
+     * @param string $id      The component identifier.
+     * @param object $service The component to register.
+     * @param int    $scope   The scope of the component.
+     *
+     * @return object
+     * @throws \Backend\Core\Exception
+     */
+    public function set($id, $service, $scope = ContainerInterface::SCOPE_CONTAINER)
+    {
+        return parent::set($id, $service, $scope);
     }
 }
