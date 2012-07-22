@@ -26,6 +26,18 @@ use \Backend\Interfaces\ConfigInterface;
 class ConfigTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * Check for invalid Parser.
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exceptions\DuckTypeException
+     * @expectedExceptionMessage Expected an object with a parse method
+     */
+    public function testInvalidParser()
+    {
+        $config = new Config(new \stdClass);
+    }
+
+    /**
      * Check for invalid Config values.
      *
      * @return void
@@ -34,7 +46,10 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidConfigValue()
     {
-        $config = new Config(true);
+        $parser = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ParserInterface'
+        );
+        $config = new Config($parser, true);
     }
 
     /**
@@ -59,11 +74,12 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Trying to set Uncallable Config Parser
      */
-    public function testInvalidParser()
+    public function testInvalidParserSetter()
     {
         $config = new Config;
         $config->setParser('something');
     }
+
     /**
      * Test the parser getters and setters.
      *
