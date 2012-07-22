@@ -93,7 +93,7 @@ class Formatter implements FormatterInterface
         foreach ($requested as $reqFormat) {
             foreach ($formats as $formatName) {
                 if (in_array($reqFormat, $formatName::$handledFormats)) {
-                    $name = str_replace('\\', '.', $formatName);
+                    $name = strtolower(str_replace('\\', '.', $formatName));
                     if (substr($name, 0, 1) === '.') {
                         $name = substr($name, 1);
                     }
