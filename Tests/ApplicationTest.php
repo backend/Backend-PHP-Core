@@ -12,8 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests;
-use \Backend\Core\Application;
-use \Backend\Core\Request;
+use Backend\Core\Application;
+use Backend\Core\Request;
+use Backend\Core\Utilities\Config;
+use Backend\Core\Utilities\DependencyInjectionContainer;
 /**
  * Class to test the \Backend\Core\Application class
  *
@@ -27,6 +29,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
     protected $request = null;
 
+    protected $container = null;
+
+    protected $application = null;
+
     /**
      * Set up the test
      *
@@ -36,6 +42,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        $parser = new \Symfony\Component\Yaml\Parser;
+        $config = Config::getNamed($parser, 'application');
+        $this->container   = new DependencyInjectionContainer($config);
+        $this->application = new Application($config, $this->container);
     }
 
     /**
@@ -45,20 +55,26 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function tearDown()
     {
+        $this->application = null;
+        $this->container = null;
     }
 
     /**
-     * Test the constructor
+     * Test the application constructor.
      *
      * @return void
      */
     public function testConstructor()
     {
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
-        $application = new Application($router, $formatter);
-        $this->assertSame($router, $application->getRouter());
-        $this->assertSame($formatter, $application->getFormatter());
+        $config = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ConfigInterface'
+        );
+        $container = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\DependencyInjectionContainerInterface'
+        );
+        $application = new Application($config, $container);
+        $this->assertSame($config, $application->getConfig());
+        $this->assertSame($container, $application->getContainer());
     }
 
     /**
@@ -93,6 +109,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->method('inspect')
             ->with($request)
             ->will($this->onConsecutiveCalls($request, $callback));
+        $this->container->set('backend.router', $router);
         $response  = $this->getMockForAbstractClass(
             '\Backend\Interfaces\ResponseInterface'
         );
@@ -102,12 +119,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->method('transform')
             ->with(null)
             ->will($this->returnValue($response));
-        $application = new Application($router, $formatter);
-        $result = $application->main($request);
+        $this->application->setFormatter($formatter);
+        $result = $this->application->main($request);
 
         //Asserts
         $this->assertSame($response, $result);
-        $this->assertSame($request, $application->getRequest());
+        $this->assertSame($request, $this->application->getRequest());
     }
 
     /**
@@ -129,34 +146,63 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->method('inspect')
             ->with($request)
             ->will($this->returnValue(false));
-        $application = new Application($router);
-        $result = $application->main($request);
+        $this->container->set('backend.router', $router);
+        $result = $this->application->main($request);
     }
 
     /**
-     * Test the main function with no route for the request
+     * Test the Formatter getter and setter.
+     *
+     * @return void
+     */
+    public function testFormatterAccessors()
+    {
+        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
+        $this->application->setFormatter($formatter);
+        $this->assertSame($formatter, $this->application->getFormatter());
+
+        $this->application->setFormatter(null);
+        $this->container->set('backend.formatter', $formatter);
+        $this->assertSame($formatter, $this->application->getFormatter());
+
+        $this->application->setFormatter(null);
+        $this->container->set('backend.formatter', null);
+    }
+
+    /**
+     * Test requesting an unknown formatter.
      *
      * @return void
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Unsupported format requested
      */
-    public function testMainWith415()
+    public function testUnknownFormat()
     {
-        //Setup
-        $request = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\RequestInterface'
-        );
-        $callback = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\CallbackInterface'
-        );
+        $this->application->getFormatter();
+    }
+
+    /**
+     * Test the Container getter and setter.
+     *
+     * @return void
+     */
+    public function testContainerAccessors()
+    {
+        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
+        $this->application->setContainer($container);
+        $this->assertSame($container, $this->application->getContainer());
+    }
+
+    /**
+     * Test the Router getter and setter.
+     *
+     * @return void
+     */
+    public function testRouterAccessors()
+    {
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $application = new Application($router);
-        $result = $application->main($request);
+        $this->application->setRouter($router);
+        $this->assertSame($router, $this->application->getRouter());
     }
 
     /**
@@ -167,8 +213,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testError()
     {
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $application = new Application($router);
-        $result = $application->error(0, 'Some Error', __FILE__, __LINE__, true);
+        $result = $this->application->error(0, 'Some Error', __FILE__, __LINE__, true);
         $this->assertInstanceOf('\Exception', $result);
         $this->assertEquals(500, $result->getCode());
         $this->assertEquals('Some Error', $result->getMessage());
@@ -182,8 +227,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testException()
     {
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $application = new Application($router);
-        $result = $application->exception(new \Exception('Message', 500), true);
+        $result = $this->application->exception(new \Exception('Message', 500), true);
         $this->assertInstanceOf('\Backend\Interfaces\ResponseInterface', $result);
     }
 
@@ -194,10 +238,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionCode()
     {
-        $application = new Application();
-        $response = $application->exception(new \Exception('Message', 10), true);
+        $response = $this->application->exception(new \Exception('Message', 10), true);
         $this->assertEquals(500, $response->getStatusCode());
-        $response = $application->exception(new \Exception('Message', 610), true);
+        $response = $this->application->exception(new \Exception('Message', 610), true);
         $this->assertEquals(500, $response->getStatusCode());
     }
 
@@ -208,7 +251,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testShutdown()
     {
-        $application = new Application();
-        $application->shutdown();
+        $this->application->shutdown();
     }
 }
