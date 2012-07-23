@@ -52,10 +52,7 @@ class Config implements ConfigInterface
      */
     public function __construct($parser, $config = null)
     {
-        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
-            throw new DuckTypeException('Expected an object with a parse method.');
-        }
-        $this->parser = $parser;
+        $this->setParser($parser);
         if (empty($config) === false) {
             $this->setAll($config);
         }
@@ -207,9 +204,6 @@ class Config implements ConfigInterface
      */
     public static function getNamed($parser, $name)
     {
-        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
-            throw new DuckTypeException('Expected an object with a parse method.');
-        }
         $files = array(
             PROJECT_FOLDER . 'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
             PROJECT_FOLDER . 'configs/' . $name . '.yml',
