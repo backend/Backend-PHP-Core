@@ -49,14 +49,21 @@ class Router
     /**
      * The class constructor.
      *
-     * @param \Backend\Interfaces\CallbackFactoryInterface $factory A callback
-     * factory used to create callbacks from strings.
-     * @param Backend\Interfaces\ConfigInterface|string    $config  The routes
+     * @param Backend\Interfaces\ConfigInterface|string         $config  The routes
      * config or path to the routes file.
+     * @param Backend\Interfaces\CallbackFactoryInterface|array $factory A callback
+     * factory used to create callbacks from strings.
      */
     public function __construct(
-        ConfigInterface $config, CallbackFactoryInterface $factory
+        $config, CallbackFactoryInterface $factory
     ) {
+        if ($config instanceof ConfigInterface) {
+            $config = $config->get();
+        } else if (is_object($config)) {
+            $config = (array)$config;
+        } else if (is_array($config) === false) {
+            throw new ConfigException('Invalid Router Configuration');
+        }
         $this->config = $config;
         $this->factory = $factory;
     }
@@ -70,16 +77,16 @@ class Router
      */
     public function inspect(RequestInterface $request)
     {
-        if ($this->config->routes) {
-            foreach ($this->config->routes as $key => $route) {
+        if (array_key_exists('routes', $this->config)) {
+            foreach ($this->config['routes'] as $key => $route) {
                 $callback = $this->check($request, $route);
                 if ($callback) {
                     return $callback;
                 }
             }
         }
-        if ($this->config->controllers) {
-            $callback = $this->checkControllers($request, $this->config->controllers);
+        if (array_key_exists('controllers', $this->config)) {
+            $callback = $this->checkControllers($request, $this->config['controllers']);
             if ($callback) {
                 return $callback;
             }
@@ -151,10 +158,11 @@ class Router
      */
     protected function checkControllers(RequestInterface $request, array $controllers)
     {
-        $queryArr = explode('/', ltrim($request->getPath(), '/'));
-        if (count($queryArr) < 1) {
+        $path = ltrim($request->getPath(), '/');
+        if ($path === '') {
             return false;
         }
+        $queryArr = explode('/', $path);
 
         //Resolve the controller
         $controller = $queryArr[0];
@@ -165,13 +173,6 @@ class Router
 
         $action = strtolower($request->getMethod());
         switch ($action) {
-        case 'get':
-            if (count($queryArr) == 1) {
-                $action = 'list';
-            } else {
-                $action = 'read';
-            }
-            break;
         case 'post':
             $action = 'create';
             break;
@@ -179,6 +180,15 @@ class Router
             $action = 'update';
             break;
         case 'delete':
+            $action = 'delete';
+            break;
+        case 'get':
+        default:
+            if (count($queryArr) == 1) {
+                $action = 'list';
+            } else {
+                $action = 'read';
+            }
             break;
         }
         $callback = $controller . '::' . $action;
