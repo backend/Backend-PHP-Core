@@ -32,31 +32,6 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-<<<<<<< HEAD
-        $config = $this->getMock('\Backend\Interfaces\ConfigInterface');
-        $factory = $this->getMock('Backend\Interfaces\CallbackFactoryInterface');
-        $router = new Router($config, $factory);
-        $this->assertSame($config, $router->getConfig());
-        $this->assertSame($factory, $router->getCallbackFactory());
-
-        $expected = array('some' => 'value');
-        $router = new Router($expected);
-        $this->assertEquals($expected, $router->getConfig()->get());
-    }
-
-    /**
-     * Tet the getFileName method.
-     * 
-     * @return void
-     */
-    public function testGetFileName()
-    {
-        $router = new Router();
-        $this->assertTrue(is_string($router->getFileName()));
-    }
-
-
-=======
         $configArr = array('one' => 'two');
         $config = $this->getMock('\Backend\Interfaces\ConfigInterface');
         $config
@@ -88,7 +63,6 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $router = new Router(false, $factory);
     }
 
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
     /**
      * Test the check method for Routes.
      *
@@ -104,14 +78,10 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('POST'));
         $route  = array('verb' => 'get');
         $config = array('routes' => array('/' => $route));
-<<<<<<< HEAD
-        $router = new Router($config);
-=======
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
 
         $router = new Router($config, $factory);
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
         $this->assertFalse($router->inspect($request));
 
         //Try matching the route
@@ -122,26 +92,16 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('/'));
         $route  = array('route' => '/', 'callback' => 'Some::callback');
         $config = array('routes' => array('/' => $route));
-<<<<<<< HEAD
-        $router = new Router($config);
-=======
 
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
             ->expects($this->once())
             ->method('fromString')
             ->with($route['callback'])
-<<<<<<< HEAD
-            ->will($this->returnSelf());
-        $router->setCallbackFactory($factory);
-        $this->assertSame($factory, $router->inspect($request));
-=======
             ->will($this->returnValue(true));
 
         $router = new Router($config, $factory);
         $this->assertTrue($router->inspect($request));
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
 
         //Try mismatching the route
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
@@ -151,14 +111,10 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('/somewhere/nothere'));
         $route  = array('route' => '/<here>');
         $config = array('routes' => array('/' => $route));
-<<<<<<< HEAD
-        $router = new Router($config);
-=======
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
 
         $router = new Router($config, $factory);
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
         $this->assertFalse($router->inspect($request));
 
         //Try matching the route with a regex
@@ -169,13 +125,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('/somewhere'));
         $route  = array('route' => '/<something>', 'callback' => 'Some::callback');
         $config = array('routes' => array('/' => $route));
-<<<<<<< HEAD
-        $router = new Router($config);
-=======
 
         $factory = $this->getMock('Backend\Interfaces\CallbackFactoryInterface');
         $router = new Router($config, $factory);
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
         $expected = array('Some::callback', array('something' => 'somewhere'));
         $this->assertEquals($expected, $router->inspect($request));
     }
@@ -187,9 +139,6 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCheckForControllers()
     {
-<<<<<<< HEAD
-        $this->markTestIncomplete();
-=======
         //Test an empty path
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
         $request
@@ -359,13 +308,15 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the chec method for Controller with matches
      *
+     * @param \Backend\Interfaces\RouterInterface  $router  Router to check.
+     * @param \Backend\Interfaces\RequestInterface $request The request to inspect
+     *
      * @dataProvider dataCheckForControllersMatches
      * @return void
      */
     public function testCheckForControllersMatches($router, $request)
     {
         $this->assertTrue($router->inspect($request));
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
     }
 
     /**
@@ -385,24 +336,11 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testCallbackFactoryAccessors()
     {
-<<<<<<< HEAD
-        $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
-        $router = new Router();
-        $router->setCallbackFactory($factory);
-        $this->assertSame($factory, $router->getCallbackFactory());
-
-        $router = new Router();
-        $this->assertInstanceOf(
-            '\Backend\Interfaces\CallbackFactoryInterface',
-            $router->getCallbackFactory()
-        );
-=======
         $config = $this->getMock('\Backend\Interfaces\ConfigInterface');
         $factory = $this->getMock('Backend\Interfaces\CallbackFactoryInterface');
         $router = new Router($config, $factory);
         $this->assertSame($factory, $router->getCallbackFactory());
         $router->setCallbackFactory($factory);
         $this->assertSame($factory, $router->getCallbackFactory());
->>>>>>> 6a080a46cbd8bbfb8b709b34769d539c1c0aa188
     }
 }

@@ -84,8 +84,6 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the parser getters and setters.
      *
      * @return void
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Trying to set Uncallable Config Parser
      */
     public function testParserAccessors()
     {
@@ -113,8 +111,6 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the fromFile method.
      *
      * @return void
-     * @expectedException \Backend\Core\Exceptions\ConfigException
-     * @expectedExceptionMessage Invalid Configuration File
      */
     public function testFromFile()
     {
