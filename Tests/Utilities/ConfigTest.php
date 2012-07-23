@@ -59,11 +59,12 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testSet()
     {
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
         $actual = array('one' => 'value');
-        $config = new Config($actual);
+        $config = new Config($parser, $actual);
         $this->assertEquals($actual, $config->get());
 
-        $config = new Config((object)$actual);
+        $config = new Config($parser, (object)$actual);
         $this->assertEquals($actual, $config->get());
     }
 
@@ -71,29 +72,27 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Check for invalid parsers.
      *
      * @return void
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Trying to set Uncallable Config Parser
+     * @expectedException \Backend\Core\Exceptions\DuckTypeException
+     * @expectedExceptionMessage Expected an object with a parse method
      */
     public function testInvalidParserSetter()
     {
-        $config = new Config;
-        $config->setParser('something');
+        $config = new Config(new \stdClass);
     }
 
     /**
      * Test the parser getters and setters.
      *
      * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Trying to set Uncallable Config Parser
      */
     public function testParserAccessors()
     {
-        $config = new Config;
-        $config->setParser('json_decode');
-        $this->assertEquals('json_decode', $config->getParser());
-
-        $config = new Config;
-        $parser = $config->getParser();
-        $this->assertTrue(is_callable($parser));
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $config = new Config($parser);
+        $config->setParser($parser);
+        $this->assertEquals($parser, $config->getParser());
     }
 
     /**
@@ -105,8 +104,8 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidFile()
     {
-        $config = new Config;
-        $config->setParser('json_decode');
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $config = new Config($parser);
         $config->setAll(__FILE__);
     }
 
@@ -114,17 +113,51 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the fromFile method.
      *
      * @return void
+     * @expectedException \Backend\Core\Exceptions\ConfigException
+     * @expectedExceptionMessage Invalid Configuration File
      */
     public function testFromFile()
     {
         $configFile = dirname(__FILE__) . '/../auxiliary/config.json';
-        $config = new Config;
-        $config->setParser('json_decode');
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $parser
+            ->expects($this->once())
+            ->method('parse')
+            ->with(file_get_contents($configFile))
+            ->will($this->returnValue(array('one' => 'two')));
+        $config = new Config($parser);
         $config->setAll($configFile);
-        $this->assertEquals(
-            (array)json_decode(file_get_contents($configFile)), $config->get()
-        );
+        $this->assertEquals(array('one' => 'two'), $config->get());
     }
+
+    /**
+     * Test the getNamed method.
+     *
+     * @return void
+     */
+    public function testGetNamed()
+    {
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $parser
+            ->expects($this->once())
+            ->method('parse')
+            ->will($this->returnValue(array('one' => 'two')));
+        $config = Config::getNamed($parser, 'application');
+        $this->assertInstanceOf('\Backend\Interfaces\ConfigInterface', $config);
+    }
+    /**
+     * Test an unsuccesful getNamed call.
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exceptions\ConfigException
+     * @expectedExceptionMessage Could not find No_such_file Configuration file.
+     */
+    public function testConfigNotFound()
+    {
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $config = Config::getNamed($parser, 'no_such_file');
+    }
+
     /**
      * Test the value getters and setters method.
      *
@@ -132,8 +165,9 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testValueAccessors()
     {
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
         $configArray = array('one' => 'value');
-        $config = new Config($configArray);
+        $config = new Config($parser, $configArray);
         $this->assertEquals($configArray, $config->get());
         $this->assertEquals($configArray['one'], $config->get('one'));
         $this->assertEquals($configArray['one'], $config->one);
@@ -154,10 +188,12 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testIteratorMethods()
     {
-        $config = new Config;
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $config = new Config($parser);
         $this->assertFalse($config->valid());
 
         $config = new Config(
+            $parser,
             array('one' => 'value', 'two' => 'again')
         );
         $this->assertEquals('one', $config->key());

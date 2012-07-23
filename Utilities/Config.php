@@ -45,17 +45,15 @@ class Config implements ConfigInterface
     /**
      * Construct the config class.
      *
-     * @param mixed $config The configuration, either as an array of values
+     * @param object $parser The parser to use when parsing a file.
+     * @param mixed  $config The configuration, either as an array of values
      * or the name of the config file.
      *
      * @return null
      */
     public function __construct($parser, $config = null)
     {
-        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
-            throw new DuckTypeException('Expected an object with a parse method.');
-        }
-        $this->parser = $parser;
+        $this->setParser($parser);
         if (empty($config) === false) {
             $this->setAll($config);
         }
@@ -199,7 +197,8 @@ class Config implements ConfigInterface
      *
      * The environment specific file is tried first, otherwise the global one is used.
      *
-     * @param string $name The name of the configuration to get.
+     * @param object $parser The parser to use when parsing a file.
+     * @param string $name   The name of the configuration to get.
      *
      * @return Backend\Interfaces\ConfigInterface
          * @throws Backend\Core\Exceptions\ConfigException If the config file can't be
@@ -207,9 +206,6 @@ class Config implements ConfigInterface
      */
     public static function getNamed($parser, $name)
     {
-        if (is_object($parser) === false || method_exists($parser, 'parse') === false) {
-            throw new DuckTypeException('Expected an object with a parse method.');
-        }
         $files = array(
             PROJECT_FOLDER . 'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
             PROJECT_FOLDER . 'configs/' . $name . '.yml',
