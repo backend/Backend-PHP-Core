@@ -45,7 +45,8 @@ class Config implements ConfigInterface
     /**
      * Construct the config class.
      *
-     * @param mixed $config The configuration, either as an array of values
+     * @param object $parser The parser to use when parsing a file.
+     * @param mixed  $config The configuration, either as an array of values
      * or the name of the config file.
      *
      * @return null
@@ -196,7 +197,8 @@ class Config implements ConfigInterface
      *
      * The environment specific file is tried first, otherwise the global one is used.
      *
-     * @param string $name The name of the configuration to get.
+     * @param object $parser The parser to use when parsing a file.
+     * @param string $name   The name of the configuration to get.
      *
      * @return Backend\Interfaces\ConfigInterface
          * @throws Backend\Core\Exceptions\ConfigException If the config file can't be

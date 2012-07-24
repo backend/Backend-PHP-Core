@@ -151,7 +151,7 @@ class Router
      *
      * @param \Backend\Interfaces\RequestInterface $request     The request to compare
      * with the route.
-     * @param  array                               $controllers The controllers
+     * @param array                                $controllers The controllers
      * linked to routes.
      *
      * @return boolean|array

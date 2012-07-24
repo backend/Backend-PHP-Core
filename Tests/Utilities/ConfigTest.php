@@ -141,7 +141,6 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         $config = Config::getNamed($parser, 'application');
         $this->assertInstanceOf('\Backend\Interfaces\ConfigInterface', $config);
     }
-
     /**
      * Test an unsuccesful getNamed call.
      *
