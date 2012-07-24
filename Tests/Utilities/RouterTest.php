@@ -308,6 +308,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the chec method for Controller with matches
      *
+     * @param \Backend\Interfaces\RouterInterface  $router  Router to check.
+     * @param \Backend\Interfaces\RequestInterface $request The request to inspect
+     *
      * @dataProvider dataCheckForControllersMatches
      * @return void
      */
