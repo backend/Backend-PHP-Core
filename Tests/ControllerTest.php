@@ -39,9 +39,23 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
             '\Backend\Interfaces\RequestInterface'
         );
         $controller = new Controller();
-        $request = new \Backend\Core\Request();
         $controller->setRequest($request);
         $this->assertSame($request, $controller->getRequest());
+    }
+
+    /**
+     * Test setting and getting the DIC
+     *
+     * @return void
+     */
+    public function testContainerAccessors()
+    {
+        $container = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\DependencyInjectionContainerInterface'
+        );
+        $controller = new Controller();
+        $controller->setContainer($container);
+        $this->assertSame($container, $controller->getContainer());
     }
 
     /**
