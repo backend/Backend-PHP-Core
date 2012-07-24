@@ -15,6 +15,7 @@ namespace Backend\Core\Utilities;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Exception as CoreException;
+use Backend\Core\Exceptions\ConfigException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -82,6 +83,10 @@ class DependencyInjectionContainer extends ContainerBuilder
             'arguments' => array(), 'calls' => array()
         );
         $config += $defaults;
+
+        if (empty($config['class'])) {
+            throw new ConfigException('Invalid Service Definition for ' . $id);
+        }
 
         $definition = $this->register($id, $config['class']);
         if (empty($config['factory_class']) === false
