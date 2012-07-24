@@ -49,8 +49,8 @@ class Router
     /**
      * The class constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface|string         $config  The routes
-     * config or path to the routes file.
+     * @param Backend\Interfaces\ConfigInterface|array          $config  The routes
+     * config as a Config object or an array
      * @param Backend\Interfaces\CallbackFactoryInterface|array $factory A callback
      * factory used to create callbacks from strings.
      */

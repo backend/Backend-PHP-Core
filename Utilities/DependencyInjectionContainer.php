@@ -36,23 +36,28 @@ class DependencyInjectionContainer extends ContainerBuilder
     /**
      * The object constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface $config The configuration file
-     * to check for service and parameter definitions.
+     * @param Backend\Interfaces\ConfigInterface|array $config  The config to check
+     * service and parameter definitions as a Config object or an array.
      */
-    public function __construct(ConfigInterface $config)
+    public function __construct($config = array())
     {
-        parent::__construct();
-        //Services
-        $services = $config->get('services');
-        if (empty($services)) {
-            return;
+        if ($config instanceof ConfigInterface) {
+            $config = $config->get();
+        } else if (is_object($config)) {
+            $config = (array)$config;
+        } else if (is_array($config) === false) {
+            throw new ConfigException('Invalid DIC Configuration');
         }
+        parent::__construct();
 
         $this->container = new ContainerBuilder();
-        $parameters = $config->get('parameters', array());
+        //Parameters
+        $parameters = empty($config['parameters']) ? array() : $config['parameters'];
         foreach ($parameters as $name => $value) {
             $this->setParameter($name, $value);
         }
+        //Services
+        $services = empty($config['services']) ? array() : $config['services'];
         foreach ($services as $id => $implementation) {
             $this->addComponent($id, $implementation);
         }
