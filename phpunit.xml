@@ -1,0 +1,33 @@
+<phpunit
+    backupGlobals               = "false"
+    backupStaticAttributes      = "false"
+    colors                      = "true"
+    convertErrorsToExceptions   = "false"
+    convertNoticesToExceptions  = "false"
+    convertWarningsToExceptions = "false"
+    processIsolation            = "false"
+    stopOnFailure               = "false"
+    syntaxCheck                 = "false"
+    bootstrap                   = "../../../public/bootstrap.php" >
+    <testsuites>
+        <testsuite name="Backend Core">
+            <directory>Tests</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+      <log type="coverage-html" target="../../../reports/coverage/" charset="UTF-8"
+             yui="true" highlight="false"
+                    lowUpperBound="35" highLowerBound="70"/>
+    </logging>
+    <php>
+        <const name="BACKEND_SITE_STATE" value="testing" />
+    </php>
+    <filter>
+        <whitelist  addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">.</directory>
+            <exclude>
+                <directory suffix=".php">Tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>
