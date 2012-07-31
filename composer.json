@@ -2,19 +2,25 @@
     "name": "backend/core",
     "type": "library",
     "description": "Core framework tier that can be used as the beginning of a MVC / SOA system.",
-    "keywords": ["framework", "mvc", "soa", "core"],
+    "keywords": ["backend", "framework", "mvc", "soa", "core"],
     "homepage": "http://backend-php.net",
     "license": "MIT",
     "authors": [
         {
-	    "name": "Jurgens du Toit",
-	    "email": "jrgns@backend-php.net",
-	    "homepage": "http://jrgns.net",
-	    "role": "Designer / Developer"
-	}
+            "name": "Jurgens du Toit",
+            "email": "jrgns@backend-php.net",
+            "homepage": "http://jrgns.net",
+            "role": "Designer / Developer"
+        }
     ],
     "require": {
         "php": ">=5.3.0",
-        "backend/interfaces": "0.1.2"
-    }
+        "backend/interfaces": ">=0.1.2"
+    },
+    "autoload": {
+        "psr-0": {
+            "Backend\\Core": ""
+        }
+    },
+    "target-dir": "Backend/Core"
 }
