@@ -26,6 +26,28 @@ use \Backend\Interfaces\ConfigInterface;
 class ConfigTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * Set up the test
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+        $folders = array();
+        $folders[] = __DIR__ . '/../auxiliary/';
+        Config::setBaseFolders($folders);
+    }
+
+    /**
+     * Test the base folders getter and settor
+     */
+    public function testBaseFoldersAccessors()
+    {
+        $folders = array('one', 'two');;
+        Config::setBaseFolders($folders);
+        $this->assertEquals($folders, Config::getBaseFolders());
+    }
+
+    /**
      * Check for invalid Parser.
      *
      * @return void
@@ -114,7 +136,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testFromFile()
     {
-        $configFile = dirname(__FILE__) . '/../auxiliary/config.json';
+        $configFile = dirname(__FILE__) . '/../auxiliary/configs/config.json';
         $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
         $parser
             ->expects($this->once())
@@ -138,6 +160,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('parse')
             ->will($this->returnValue(array('one' => 'two')));
+        define('JRGNS_DEBUG', 1);
         $config = Config::getNamed($parser, 'application');
         $this->assertInstanceOf('\Backend\Interfaces\ConfigInterface', $config);
     }

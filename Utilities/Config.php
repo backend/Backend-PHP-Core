@@ -31,6 +31,13 @@ use Backend\Core\Exceptions\DuckTypeException;
 class Config implements ConfigInterface
 {
     /**
+     * The folders in which to check for configs.
+     *
+     * @var array
+     */
+    protected static $baseFolders = null;
+
+    /**
      * @var object Store for all the config values.
      */
     protected $values = array();
@@ -142,7 +149,7 @@ class Config implements ConfigInterface
             $this->values = (array)$config;
             break;
         default:
-            throw new ConfigException('Invalid configuration values');
+            throw new ConfigException('Invalid configuration values' . $config);
             break;
         }
         $this->rewind();
@@ -207,19 +214,22 @@ class Config implements ConfigInterface
     public static function getNamed($parser, $name)
     {
         $files = array(
-            PROJECT_FOLDER . 'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
-            PROJECT_FOLDER . 'configs/' . $name . '.yml',
+            'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
+            'configs/' . $name . '.yml',
         );
-        foreach ($files as $file) {
-            if (file_exists($file) === false) {
-                continue;
+        $folders = self::getBaseFolders();
+        foreach($folders as $folder) {
+            foreach ($files as $file) {
+                if (file_exists($folder . $file) === false) {
+                    continue;
+                }
+                return new static($parser, $folder . $file);
             }
-            return new static($parser, $file);
         }
 
         throw new ConfigException(
             'Could not find ' . ucwords($name) . ' Configuration file. Add one to '
-            . PROJECT_FOLDER . 'configs'
+            . reset($folders) . 'configs'
         );
     }
 
@@ -272,5 +282,31 @@ class Config implements ConfigInterface
     {
         return $this->values
             && in_array(key($this->values), array(false, null)) === false;
+    }
+
+    /**
+     * Get the Base folders
+     *
+     * @return array
+     */
+    public static function getBaseFolders()
+    {
+        if (self::$baseFolders === null) {
+            self::$baseFolders = array();
+            defined('PROJECT_FOLDER') && self::$baseFolders[] = PROJECT_FOLDER;
+        }
+        return self::$baseFolders;
+    }
+
+    /**
+     * Set the Base folders.
+     *
+     * @param array $folders The base folders
+     *
+     * @return void
+     */
+    public static function setBaseFolders(array $folders)
+    {
+        self::$baseFolders = $folders;
     }
 }

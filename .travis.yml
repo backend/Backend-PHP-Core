@@ -5,3 +5,9 @@ php:
 
 before_script:
     - composer install
+
+notifications:
+    email:
+        - info@backend-php.net
+    irc: "irc.freenode.org#backend-php"
+

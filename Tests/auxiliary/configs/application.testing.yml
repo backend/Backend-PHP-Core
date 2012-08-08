@@ -1,0 +1,54 @@
+# Reference all tools likely to be used in the application here
+parameters:
+
+services:
+    backend.router.config:
+        class: \Backend\Core\Utilities\Config
+        factory_class: \Backend\Core\Utilities\Config
+        factory_method: getNamed
+        arguments:
+            - @backend.parser
+            - %backend.router.config_file%
+    backend.router:
+        class: \Backend\Core\Utilities\Router
+        arguments:
+            - @backend.router.config
+            - @backend.callback_factory
+    backend.parser:
+        class: \Symfony\Component\Yaml\Parser
+    backend.request:
+        class: \Backend\Core\Request
+    backend.callback_factory:
+        class: \Backend\Core\Utilities\CallbackFactory
+    backend.formatter:
+        class: \Backend\Core\Utilities\Formatter
+        factory_class: \Backend\Core\Utilities\Formatter
+        factory_method: factory
+        arguments:
+            - @service_container
+    backend.renderer:
+        class: \Backend\Modules\TwigRender
+    backend.base.formats.html:
+        class: \Backend\Base\Formats\Html
+        arguments:
+            - @backend.request
+            - @backend.application.config
+            - @backend.renderer
+
+# Add observers to subject classes here. The observers should refer to the tool name
+subjects:
+    Backend\Core\Utilities\ApplicationEvent:
+        observers:
+            - backend.PearLogger
+
+# Set application settings here
+application:
+    values:
+        applicationName: "Backend PHP"
+
+# Set DB Connections here
+database:
+    default:
+        connection:
+            driver: sqlite
+            path: /tmp/backend-core.sqlite

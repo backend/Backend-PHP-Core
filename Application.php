@@ -237,6 +237,9 @@ class Application implements ApplicationInterface
                 throw new CoreException('Unsupported format requested', 415, $e);
             }
         }
+        if (empty($this->formatter)) {
+            throw new CoreException('Unsupported format requested', 415);
+        }
         return $this->formatter;
     }
 
