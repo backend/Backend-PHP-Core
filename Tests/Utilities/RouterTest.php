@@ -126,10 +126,15 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $route  = array('route' => '/<something>', 'callback' => 'Some::callback');
         $config = array('routes' => array('/' => $route));
 
-        $factory = $this->getMock('Backend\Interfaces\CallbackFactoryInterface');
+        define('JRGNS_DEBUG', 1);
+        $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
+        $factory
+            ->expects($this->once())
+            ->method('fromString')
+            ->with($route['callback'], array('something' => 'somewhere'))
+            ->will($this->returnValue(true));
         $router = new Router($config, $factory);
-        $expected = array('Some::callback', array('something' => 'somewhere'));
-        $this->assertEquals($expected, $router->inspect($request));
+        $this->assertEquals(true, $router->inspect($request));
     }
 
     /**

@@ -241,14 +241,14 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         // Root index
         $request = new Request('https://backend-php.net/something/else');
-        $request->setServerInfo('PHP_SELF', '/index.php');
+        $request->setServerInfo('SCRIPT_NAME', '/index.php');
         $this->assertEquals(
             'https://backend-php.net/index.php', $request->getUrl()
         );
 
         // Base index
         $request = new Request('https://backend-php.net/base/here');
-        $request->setServerInfo('PHP_SELF', '/base/index.php');
+        $request->setServerInfo('SCRIPT_NAME', '/base/index.php');
         $this->assertEquals(
             'https://backend-php.net/base/index.php', $request->getUrl()
         );

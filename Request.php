@@ -296,8 +296,8 @@ class Request implements RequestInterface
             $this->url .= 's';
         }
         $this->url .= '://' . $this->getServerInfo('HOST');
-        if ('index.php' == basename($this->getServerInfo('PHP_SELF'))) {
-            $this->url .= $this->serverInfo['PHP_SELF'];
+        if ('index.php' == basename($this->getServerInfo('SCRIPT_NAME'))) {
+            $this->url .= $this->serverInfo['SCRIPT_NAME'];
         } else {
             $pattern = str_replace('/', '\\/', $this->getServerInfo('PATH_INFO'));
             $pattern = '/' . $pattern . '$/';

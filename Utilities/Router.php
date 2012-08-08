@@ -103,7 +103,7 @@ class Router
      * @param array                                $route   The route information
      * to compare with the request.
      *
-     * @return boolean|array
+     * @return boolean|\Backend\Interfaces\CallbackInterface
      */
     protected function check(RequestInterface $request, array $route)
     {
@@ -115,9 +115,9 @@ class Router
         $defaults = array_key_exists('defaults', $route) ? $route['defaults']
             : array();
         //Try to match the route
+        $factory  = $this->getCallbackFactory();
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
-            $factory  = $this->getCallbackFactory();
             return $factory->fromString($route['callback'], $defaults);
         }
         $pregMatch = preg_match_all(
@@ -131,7 +131,8 @@ class Router
             $regex    = str_replace(
                 '/', '\/', str_replace($search, $replace, $route['route'])
             );
-            if (preg_match_all('/^' . $regex . '$/', $request->getPath(), $matches)) {
+            $regex = '/^' . $regex . '$/';
+            if (preg_match_all($regex, $request->getPath(), $matches)) {
                 $arguments = array();
                 $index = 2;
                 foreach ($varNames as $name) {
@@ -140,7 +141,7 @@ class Router
                 }
                 //Regex Match
                 $arguments = array_merge($defaults, $arguments);
-                return array($route['callback'], $arguments);
+                return $factory->fromString($route['callback'], $arguments);
             }
         }
         return false;
