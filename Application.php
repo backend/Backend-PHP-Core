@@ -99,11 +99,26 @@ class Application implements ApplicationInterface
             return;
         }
 
-        //PHP Helpers
+        // PHP Helpers
         register_shutdown_function(array($this, 'shutdown'));
 
         set_exception_handler(array($this, 'exception'));
         set_error_handler(array($this, 'error'));
+
+        // Error Reporting
+        switch (BACKEND_SITE_STATE)
+        {
+            case 'testing':
+            case 'development':
+                error_reporting(-1);
+                ini_set('display_errors', 1);
+                break;
+            default:
+                error_reporting(E_ALL & ~E_DEPRECATED);
+                ini_set('display_errors', 0);
+                break;
+        }
+
         $ran = true;
     }
 
