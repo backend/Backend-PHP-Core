@@ -43,6 +43,15 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        $folders = array();
+        if (file_exists($loader = __DIR__ . '/../libraries/')) {
+            $folders[] = $loader;
+        }
+        if (file_exists($loader = __DIR__ . '/../../../../../../libraries/')) {
+            $folders[] = $loader;
+        }
+        $folders[] = __DIR__ . '/../';
+        Autoloader::setBaseFolders($folders);
     }
 
     /**
@@ -56,6 +65,16 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
             set_include_path($this->originalPath);
             $this->originalPath = null;
         }
+    }
+
+    /**
+     * Test the base folders getter and settor
+     */
+    public function testBaseFoldersAccessors()
+    {
+        $folders = array('one', 'two');;
+        Autoloader::setBaseFolders($folders);
+        $this->assertEquals($folders, Autoloader::getBaseFolders());
     }
 
     /**
@@ -79,12 +98,12 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
     public function testAutoload()
     {
         $this->assertFalse(
-            class_exists('Backend\Core\Tests\AutoloaderTestClass', false)
+            class_exists('Tests\AutoloaderTestClass', false)
         );
-        $result = Autoloader::autoload('Backend\Core\Tests\AutoloaderTestClass');
+        $result = Autoloader::autoload('Tests\AutoloaderTestClass');
         $this->assertTrue($result);
         $this->assertTrue(
-            class_exists('Backend\Core\Tests\AutoloaderTestClass', false)
+            class_exists('Tests\AutoloaderTestClass', false)
         );
     }
 

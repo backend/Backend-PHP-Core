@@ -12,7 +12,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-namespace Backend\Core\Tests;
+namespace Tests;
 /**
  * Class to test the autoloading functionality.
  *

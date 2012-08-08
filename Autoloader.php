@@ -26,6 +26,13 @@ namespace Backend\Core;
 class Autoloader
 {
     /**
+     * The folders in which to check for classes.
+     *
+     * @var array
+     */
+    protected static $baseFolders = null;
+
+    /**
      * Register the autload function
      *
      * @return null
@@ -59,7 +66,7 @@ class Autoloader
             $fileName  = $namespace  . DIRECTORY_SEPARATOR . $className . '.php';
 
             //Check the bases for the file
-            $baseFolders = array(VENDOR_FOLDER, SOURCE_FOLDER);
+            $baseFolders = self::getBaseFolders();
             foreach ($baseFolders as $folder) {
                 if (file_exists($folder . $fileName)) {
                     include_once $folder . $fileName;
@@ -79,5 +86,32 @@ class Autoloader
             }
         }
         return false;
+    }
+
+    /**
+     * Get the Base folders
+     *
+     * @return array
+     */
+    public static function getBaseFolders()
+    {
+        if (self::$baseFolders === null) {
+            self::$baseFolders = array();
+            defined('VENDOR_FOLDER') && self::$baseFolders[] = VENDOR_FOLDER;
+            defined('SOURCE_FOLDER') && self::$baseFolders[] = SOURCE_FOLDER;
+        }
+        return self::$baseFolders;
+    }
+
+    /**
+     * Set the Base folders.
+     *
+     * @param array $folders The base folders
+     *
+     * @return void
+     */
+    public static function setBaseFolders(array $folders)
+    {
+        self::$baseFolders = $folders;
     }
 }
