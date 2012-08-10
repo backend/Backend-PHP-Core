@@ -189,9 +189,6 @@ class Application implements ApplicationInterface
             } catch (CoreException $e) {
             }
         }
-        if ($toInspect instanceof ResponseInterface) {
-            return $toInspect;
-        }
 
         return $formatter->transform($toInspect);
     }

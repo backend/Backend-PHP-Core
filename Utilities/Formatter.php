@@ -71,6 +71,9 @@ class Formatter implements FormatterInterface
      */
     public function transform($result)
     {
+        if ($result instanceof Response) {
+            return $result;
+        }
         $response = new Response();
         $response->setBody($result);
         return $response;
