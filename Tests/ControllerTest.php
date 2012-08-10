@@ -71,6 +71,7 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getUrl')
             ->will($this->returnValue('http://backend-php.net'));
+        $controller->setRequest($request);
         $response = $controller->redirect('/');
         $headers  = $response->getHeaders();
         $this->assertArrayHasKey('Location', $headers);
