@@ -108,7 +108,7 @@ class Router
     protected function check(RequestInterface $request, array $route)
     {
         //If the verb is defined, and it doesn't match, skip
-        if (!empty($route['verb']) && $route['verb'] != $request->getMethod()) {
+        if (!empty($route['verb']) && strtoupper($route['verb']) != $request->getMethod()) {
             return false;
         }
 
