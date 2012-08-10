@@ -182,9 +182,10 @@ class Request implements RequestInterface
         $method = 'GET';
         //Copied the way to determine the method from CakePHP
         //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
+        $payload = $this->payload === null ? $this->getPayload() : $this->payload;
         switch (true) {
-        case is_array($this->payload) && array_key_exists('_method', $this->payload):
-            $method = $this->payload['_method'];
+        case is_array($payload) && array_key_exists('_method', $payload):
+            $method = $payload['_method'];
             break;
         case $this->getServerInfo('METHOD_OVERRIDE') !== null:
             $method = $this->getServerInfo('METHOD_OVERRIDE');
@@ -584,16 +585,15 @@ class Request implements RequestInterface
             return $this->payload;
         }
         $payload = null;
-        switch ($this->getMethod()) {
-        case 'GET':
+        switch (true) {
+        case count($_GET) > 0:
             $payload = isset($_GET) ? $_GET : array();
             break;
-        case 'POST':
-        case 'PUT':
+        case count($_POST) > 0:
             $payload = isset($_POST) ? $_POST : array();
             break;
         }
-        if ($payload === null ) {
+        if ($payload === null) {
             $payload = isset($_REQUEST) ? $_REQUEST : array();
         }
         $this->setPayload($payload);
