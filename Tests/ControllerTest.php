@@ -66,10 +66,15 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     public function testRelativeRedirect()
     {
         $controller = new Controller();
+        $request = $this->getMock('\Backend\Interfaces\RequestInterface');
+        $request
+            ->expects($this->once())
+            ->method('getUrl')
+            ->will($this->returnValue('http://backend-php.net'));
         $response = $controller->redirect('/');
         $headers  = $response->getHeaders();
         $this->assertArrayHasKey('Location', $headers);
-        $this->assertEquals('/', $headers['Location']);
+        $this->assertEquals('http://backend-php.net/', $headers['Location']);
     }
 
     /**
