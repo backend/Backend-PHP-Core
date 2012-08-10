@@ -16,6 +16,7 @@ use Backend\Interfaces\ApplicationInterface;
 use Backend\Interfaces\RouterInterface;
 use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
+use Backend\Interfaces\ResponseInterface;
 use Backend\Interfaces\CallbackInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
@@ -171,8 +172,27 @@ class Application implements ApplicationInterface
             || $toInspect instanceof CallbackInterface);
         $this->container->set('backend.request', $this->request);
 
-        //Transform the Result
+        // Get the Formatter
         $formatter = $this->getFormatter();
+
+        // Transform the Result
+        if ($callback) {
+            $class = get_class($formatter);
+            $class = explode('\\', $class);
+            $method = $callback->getMethod();
+            $method = str_replace('Action', end($class), $method);
+            try {
+                $callback->setMethod($method);
+                if ($callback->isValid()) {
+                    $toInspect = $callback->execute(array($toInspect));
+                }
+            } catch (CoreException $e) {
+            }
+        }
+        if ($toInspect instanceof ResponseInterface) {
+            return $toInspect;
+        }
+
         return $formatter->transform($toInspect);
     }
 
@@ -335,6 +355,6 @@ class Application implements ApplicationInterface
         if ($return) {
             return $response;
         }
-        $response->output();
+        $response->output() && die;
     }
 }
