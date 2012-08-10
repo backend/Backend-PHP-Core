@@ -324,6 +324,9 @@ class Callback implements CallbackInterface
         if (is_callable($callable, false, $callableName)) {
             return $callableName;
         }
+        if (is_callable($callable, true, $callableName)) {
+            throw new CoreException('Unexecutable Callback: ' . $callableName);
+        }
         throw new CoreException('Unexecutable Callback');
     }
 
