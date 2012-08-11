@@ -183,14 +183,9 @@ class Application implements ApplicationInterface
             $method = str_replace('Action', end($class), $method);
             try {
                 $callback->setMethod($method);
-                if ($callback->isValid()) {
-                    $toInspect = $callback->execute(array($toInspect));
-                }
+                $toInspect = $callback->execute(array($toInspect));
             } catch (CoreException $e) {
             }
-        }
-        if ($toInspect instanceof ResponseInterface) {
-            return $toInspect;
         }
 
         return $formatter->transform($toInspect);

@@ -100,9 +100,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->method('setObject')
             ->with($this->isInstanceOf('\Backend\Core\Controller'));
         $callback
-            ->expects($this->once())
-            ->method('setMethod')
-            ->with($this->stringEndsWith('Action'));
+            ->expects($this->exactly(2))
+            ->method('setMethod');
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
             ->expects($this->exactly(2))
