@@ -317,15 +317,16 @@ class Application implements ApplicationInterface
      * Called by set_error_handler. Some types of errors will be converted into
      * excceptions.
      *
-     * @param int    $errno   The error number.
-     * @param string $errstr  The error string.
-     * @param string $errfile The file the error occured in.
-     * @param int    $errline The line number the errro occured on.
-     * @param bool   $return  Return the exception instead of running it.
+     * @param int    $errno      The error number.
+     * @param string $errstr     The error string.
+     * @param string $errfile    The file the error occured in.
+     * @param int    $errline    The line number the error occured on.
+     * @param array  $errcontext The context the error occured in.
+     * @param bool   $return     Return the exception instead of running it.
      *
      * @return \Exception
      */
-    public function error($errno, $errstr, $errfile, $errline, $return = false)
+    public function error($errno, $errstr, $errfile, $errline, $errcontext, $return = false)
     {
         $exception = new \ErrorException($errstr, 500, $errno, $errfile, $errline);
         $this->exception($exception, $return);
