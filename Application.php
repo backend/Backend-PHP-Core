@@ -231,7 +231,7 @@ class Application implements ApplicationInterface
      *
      * @return Backend\Core\Application
      */
-    public function setRouter(Backend\Interfaces\RouterInterface $router)
+    public function setRouter(RouterInterface $router)
     {
         $this->router = $router;
         return $this;
@@ -266,7 +266,7 @@ class Application implements ApplicationInterface
      *
      * @return Backend\Core\Application
      */
-    public function setFormatter(Backend\Interfaces\FormatterInterface $formatter)
+    public function setFormatter(FormatterInterface $formatter)
     {
         $this->formatter = $formatter;
         return $this;
@@ -350,6 +350,9 @@ class Application implements ApplicationInterface
         );
         if ($return) {
             return $response;
+        }
+        if (BACKEND_SITE_STATE === 'testing') {
+            throw $exception;
         }
         $response->output() && die;
     }

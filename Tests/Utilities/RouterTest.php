@@ -126,7 +126,6 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $route  = array('route' => '/<something>', 'callback' => 'Some::callback');
         $config = array('routes' => array('/' => $route));
 
-        define('JRGNS_DEBUG', 1);
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
             ->expects($this->once())

@@ -157,15 +157,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testFormatterAccessors()
     {
         $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
-        $this->application->setFormatter($formatter);
-        $this->assertSame($formatter, $this->application->getFormatter());
-
-        $this->application->setFormatter(null);
         $this->container->set('backend.formatter', $formatter);
         $this->assertSame($formatter, $this->application->getFormatter());
 
-        $this->application->setFormatter(null);
-        $this->container->set('backend.formatter', null);
+        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
+        $this->application->setFormatter($formatter);
+        $this->assertSame($formatter, $this->application->getFormatter());
     }
 
     /**
@@ -212,7 +209,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testError()
     {
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $result = $this->application->error(0, 'Some Error', __FILE__, __LINE__, true);
+        $result = $this->application->error(0, 'Some Error', __FILE__, __LINE__, array(), true);
         $this->assertInstanceOf('\Exception', $result);
         $this->assertEquals(500, $result->getCode());
         $this->assertEquals('Some Error', $result->getMessage());

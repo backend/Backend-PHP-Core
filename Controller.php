@@ -113,7 +113,7 @@ class Controller implements ControllerInterface
         if (substr($responseCode, 0, 1) !== '3') {
             throw new CoreException('Invalid Redirection Response Code');
         }
-        if ($location[0] === '/' && $location[1] !== '/') {
+        if ($location[0] === '/' && (empty($location[1]) || $location[1] !== '/')) {
             // Relative Redirect
             $location = $this->getRequest()->getUrl() . $location;
         }

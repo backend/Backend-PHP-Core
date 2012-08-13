@@ -160,7 +160,6 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('parse')
             ->will($this->returnValue(array('one' => 'two')));
-        define('JRGNS_DEBUG', 1);
         $config = Config::getNamed($parser, 'application');
         $this->assertInstanceOf('\Backend\Interfaces\ConfigInterface', $config);
     }
