@@ -292,6 +292,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $result[] = array('text/html', 'text/html');
         $result[] = array('text/html, application/xml', 'text/html');
         $result[] = array(null, null);
+
         return $result;
     }
 
@@ -443,6 +444,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $result[] = array(
             'application/xml', dirname(__FILE__) . '/auxiliary/payload.xml',
         );
+
         return $result;
     }
 
@@ -504,6 +506,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $result[] = array($payload);
         $result[] = array('var=value');
         $result[] = array(array('var' => 'value'));
+
         return $result;
     }
 
@@ -601,6 +604,5 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
         $this->markTestIncomplete();
     }
-
 
 }

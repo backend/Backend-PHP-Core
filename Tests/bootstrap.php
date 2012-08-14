@@ -78,7 +78,7 @@ define('CONFIG_EXT', 'yaml');
 if (!defined('BACKEND_SITE_STATE')) {
     if (PHP_SAPI == 'cli') {
         define('BACKEND_SITE_STATE', 'testing');
-    } else if (in_array($_SERVER['SERVER_ADDR'], array('::1', '127.0.0.1'))) {
+    } elseif (in_array($_SERVER['SERVER_ADDR'], array('::1', '127.0.0.1'))) {
         define('BACKEND_SITE_STATE', 'development');
     } else {
         define('BACKEND_SITE_STATE', 'production');
@@ -98,6 +98,6 @@ spl_autoload_register(function ($class) {
 
 if (file_exists($loader = __DIR__.'/../vendor/autoload.php')) {
     require_once $loader;
-} else if (file_exists($loader = __DIR__.'/../../../../../autoload.php')) {
+} elseif (file_exists($loader = __DIR__.'/../../../../../autoload.php')) {
     require_once $loader;
 }

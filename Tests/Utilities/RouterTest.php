@@ -46,7 +46,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
         $router = new Router($configArr, $factory);
         $this->assertEquals($configArr, $router->getConfig());
 
-        $router = new Router((object)$configArr, $factory);
+        $router = new Router((object) $configArr, $factory);
         $this->assertEquals($configArr, $router->getConfig());
     }
 
@@ -306,6 +306,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
         $router = new Router($config, $factory);
         $return[] = array($router, $request);
+
         return $return;
     }
 

@@ -12,10 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests;
-use \Backend\Core\Controller;
-use \Backend\Core\Request;
 use \Backend\Core\Response;
-use \Backend\Core\Exception as CoreException;
 /**
  * Class to test the \Backend\Core\Response class
  *
@@ -219,6 +216,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $body = 'Some Body';
         $response = new Response($body);
-        $this->assertEquals($body, (string)$response);
+        $this->assertEquals($body, (string) $response);
     }
 }

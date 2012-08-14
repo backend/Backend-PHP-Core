@@ -86,7 +86,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         $config = new Config($parser, $actual);
         $this->assertEquals($actual, $config->get());
 
-        $config = new Config($parser, (object)$actual);
+        $config = new Config($parser, (object) $actual);
         $this->assertEquals($actual, $config->get());
     }
 

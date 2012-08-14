@@ -37,16 +37,16 @@ class DependencyInjectionContainer extends ContainerBuilder
     /**
      * The object constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface|array $config  The config to check
+     * @param Backend\Interfaces\ConfigInterface|array $config The config to check
      * service and parameter definitions as a Config object or an array.
      */
     public function __construct($config = array())
     {
         if ($config instanceof ConfigInterface) {
             $config = $config->get();
-        } else if (is_object($config)) {
-            $config = (array)$config;
-        } else if (is_array($config) === false) {
+        } elseif (is_object($config)) {
+            $config = (array) $config;
+        } elseif (is_array($config) === false) {
             throw new ConfigException('Invalid DIC Configuration');
         }
         parent::__construct();

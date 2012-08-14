@@ -66,9 +66,9 @@ class Callback implements CallbackInterface
     /**
      * Object constructor
      *
-     * @param mixed $class     The class (string), object or function of the
+     * @param mixed $class The class (string) , object or function of the
      * callback. If it's a function, the second parameter should be omitted.
-     * @param mixed $method    The method of the callback. If given, the first
+     * @param mixed $method The method of the callback. If given, the first
      * parameter must be either a class or an object.
      * @param array $arguments The arguments for the callback.
      */
@@ -113,6 +113,7 @@ class Callback implements CallbackInterface
         $this->class = $class;
         $this->function = null;
         $this->object = null;
+
         return $this;
     }
 
@@ -144,6 +145,7 @@ class Callback implements CallbackInterface
         $this->object = $object;
         $this->function = null;
         $this->class = null;
+
         return $this;
     }
 
@@ -168,6 +170,7 @@ class Callback implements CallbackInterface
     {
         $this->method = $method;
         $this->function = null;
+
         return $this;
     }
 
@@ -186,7 +189,7 @@ class Callback implements CallbackInterface
      *
      * @param callable $function The function.
      *
-     * @return CallbackInterface The current callback.
+     * @return CallbackInterface       The current callback.
      * @throws \Backend\Core\Exception
      * @todo Allow for closures
      */
@@ -202,6 +205,7 @@ class Callback implements CallbackInterface
         $this->method = null;
         $this->class = null;
         $this->object = null;
+
         return $this;
     }
 
@@ -225,6 +229,7 @@ class Callback implements CallbackInterface
     public function setArguments(array $arguments)
     {
         $this->arguments = $arguments;
+
         return $this;
     }
 
@@ -294,6 +299,7 @@ class Callback implements CallbackInterface
                 break;
             }
         }
+
         return call_user_func_array($callable, $arguments);
     }
 
@@ -358,6 +364,7 @@ class Callback implements CallbackInterface
         } elseif ($this->function) {
             return $this->function;
         }
+
         return '(Invalid Callback)';
     }
 }

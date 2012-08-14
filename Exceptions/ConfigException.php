@@ -26,4 +26,3 @@ namespace Backend\Core\Exceptions;
 class ConfigException extends \Backend\Core\Exception
 {
 }
-

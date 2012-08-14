@@ -13,7 +13,6 @@
  */
 namespace Backend\Core\Tests\Utilities;
 use \Backend\Core\Utilities\CallbackFactory;
-use \Backend\Interfaces\CallbackFactoryInterface;
 /**
  * Class to test the \Backend\Core\Utilities\CallbackFactory class
  *
@@ -34,11 +33,11 @@ class CallbackFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $factory  = new CallbackFactory;
         $callback = $factory->fromString('preg_match');
-        $this->assertEquals('preg_match', (string)$callback);
+        $this->assertEquals('preg_match', (string) $callback);
 
         $factory  = new CallbackFactory;
         $callback = $factory->fromString('DateInterval::createFromDateString');
-        $this->assertEquals('DateInterval::createFromDateString', (string)$callback);
+        $this->assertEquals('DateInterval::createFromDateString', (string) $callback);
     }
 
     /**

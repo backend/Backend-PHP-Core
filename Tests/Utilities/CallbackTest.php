@@ -206,6 +206,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         );
         $expected = \DateTime::createFromFormat('Y-m-d H:i:s', '2012-07-11 12:34:56');
         $result[] = array($callback, $expected);
+
         return $result;
     }
 
@@ -258,6 +259,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $callback = new Callback();
         $callback->setObject($this);
         $result[] = array($callback);
+
         return $result;
     }
 
@@ -294,6 +296,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $callback->setObject($this);
         $callback->setMethod('someMethod');
         $result[] = array($callback);
+
         return $result;
     }
 
@@ -380,6 +383,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $callback = new Callback;
         $callback->setMethod('someMethod');
         $result[] = array($callback, '(null)::someMethod');
+
         return $result;
     }
 
@@ -391,6 +395,6 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
      */
     public function testToString(Callback $callback, $result)
     {
-        $this->assertEquals($result, (string)$callback);
+        $this->assertEquals($result, (string) $callback);
     }
 }

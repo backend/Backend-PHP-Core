@@ -26,4 +26,3 @@ namespace Backend\Core\Exceptions;
 class DuckTypeException extends \Backend\Core\Exception
 {
 }
-

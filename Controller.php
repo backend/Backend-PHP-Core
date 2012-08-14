@@ -44,7 +44,7 @@ class Controller implements ControllerInterface
     /**
      * The constructor for the object
      */
-    function __construct(DependencyInjectionContainerInterface $container = null,
+    public function __construct(DependencyInjectionContainerInterface $container = null,
         RequestInterface $request = null)
     {
         $this->container = $container;
@@ -62,6 +62,7 @@ class Controller implements ControllerInterface
     public function setRequest(RequestInterface $request)
     {
         $this->request = $request;
+
         return $this;
     }
 
@@ -86,6 +87,7 @@ class Controller implements ControllerInterface
     public function setContainer(DependencyInjectionContainerInterface $container)
     {
         $this->container = $container;
+
         return $this;
     }
 
@@ -119,6 +121,7 @@ class Controller implements ControllerInterface
         }
         $response = new Response('Redirecting to ' . $location, $responseCode);
         $response->addHeader($location, 'Location');
+
         return $response;
     }
 }

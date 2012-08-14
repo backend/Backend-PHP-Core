@@ -141,7 +141,8 @@ class Response implements ResponseInterface
      */
     public function setStatusCode($code)
     {
-        $this->status = (int)$code;
+        $this->status = (int) $code;
+
         return $this;
     }
 
@@ -158,6 +159,7 @@ class Response implements ResponseInterface
         if (array_key_exists($code, self::$messages)) {
             return self::$messages[$code];
         }
+
         return 'Unknown Status';
     }
 
@@ -181,6 +183,7 @@ class Response implements ResponseInterface
     public function setBody($body)
     {
         $this->body = $body;
+
         return $this;
     }
 
@@ -204,6 +207,7 @@ class Response implements ResponseInterface
         } else {
             $this->headers[$name] = $content;
         }
+
         return $this;
     }
 
@@ -227,6 +231,7 @@ class Response implements ResponseInterface
     public function setHeaders(array $headers)
     {
         $this->headers = $headers;
+
         return $this;
     }
 
@@ -264,6 +269,7 @@ class Response implements ResponseInterface
             }
             $this->writeHeader($content);
         }
+
         return $this;
     }
 
@@ -288,6 +294,7 @@ class Response implements ResponseInterface
     public function sendBody()
     {
         echo $this->body;
+
         return $this;
     }
 
@@ -300,6 +307,7 @@ class Response implements ResponseInterface
     {
         ob_start();
         $this->sendBody();
+
         return ob_get_clean();
     }
 }

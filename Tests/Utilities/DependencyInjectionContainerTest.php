@@ -13,7 +13,6 @@
  */
 namespace Backend\Core\Utilities\Tests;
 use \Backend\Core\Utilities\DependencyInjectionContainer;
-use \Backend\Interfaces\DependencyInjectionContainerInterface;
 require_once dirname(__FILE__) . '/../auxiliary/TestContainer.php';
 /**
  * Class to test the \Backend\Core\Utilities\DependencyInjectionContainer class
@@ -43,7 +42,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
 
         $container = new DependencyInjectionContainer($configArr);
 
-        $container = new DependencyInjectionContainer((object)$configArr);
+        $container = new DependencyInjectionContainer((object) $configArr);
     }
 
     /**

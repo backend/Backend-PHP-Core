@@ -15,7 +15,6 @@ namespace Backend\Core\Tests;
 use \Backend\Core\Controller;
 use \Backend\Core\Request;
 use \Backend\Core\Response;
-use \Backend\Core\Exception as CoreException;
 /**
  * Class to test the \Backend\Core\Controller class
  *

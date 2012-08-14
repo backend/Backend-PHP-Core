@@ -101,13 +101,13 @@ class Request implements RequestInterface
      * 2. A X_HTTP_METHOD_OVERRIDE header
      * 3. The REQUEST_METHOD
      *
-     * @param mixed  $url     The URL of the request
-     * @param string $method  The request method. Can be one of GET, POST, PUT,
+     * @param mixed  $url    The URL of the request
+     * @param string $method The request method. Can be one of GET, POST, PUT,
      * DELETE or HEAD
-     * @param mixed  $payload The request data. Defaults to the HTTP request data
+     * @param mixed $payload The request data. Defaults to the HTTP request data
      * if not supplied
      */
-    function __construct($url = null, $method = null, $payload = null)
+    public function __construct($url = null, $method = null, $payload = null)
     {
         if ($url === null) {
             $this->serverInfo = $_SERVER;
@@ -166,6 +166,7 @@ class Request implements RequestInterface
         }
         //Keep all $_SERVER details we haven't set
         $this->serverInfo = array_merge($_SERVER, $this->serverInfo);
+
         return $this;
     }
 
@@ -204,6 +205,7 @@ class Request implements RequestInterface
             break;
         }
         $this->setMethod($method);
+
         return $this->method;
     }
 
@@ -222,6 +224,7 @@ class Request implements RequestInterface
         }
         $this->method = $method;
         $this->serverInfo['REQUEST_METHOD'] = $method;
+
         return $this;
     }
 
@@ -240,6 +243,7 @@ class Request implements RequestInterface
             $path = $path ?: '/';
             $this->setPath($path);
         }
+
         return $this->path;
     }
 
@@ -278,6 +282,7 @@ class Request implements RequestInterface
         if ($this->url === null) {
             $this->prepareUrl();
         }
+
         return $this->url;
     }
 
@@ -343,15 +348,16 @@ class Request implements RequestInterface
         default:
             break;
         }
+
         return $this->mimeType;
     }
 
     /**
      * Compare two mime types. Used for sorting.
-     * 
+     *
      * @param string $tOne The first mime type.
      * @param string $tTwo The first mime type.
-     * 
+     *
      * @return int
      */
     protected function compareMimeTypes($tOne, $tTwo)
@@ -360,25 +366,26 @@ class Request implements RequestInterface
         $tTwo = $this->prepareMimeType($tTwo);
         if ($tOne['primary'] === '*') {
             return -1;
-        } else if ($tTwo['primary'] === '*') {
+        } elseif ($tTwo['primary'] === '*') {
             return 1;
         }
         if ($tOne['secondary'] === '*') {
             return -1;
-        } else if ($tTwo['secondary'] === '*') {
+        } elseif ($tTwo['secondary'] === '*') {
             return 1;
         }
         if ($tOne['priority'] === $tTwo['priority']) {
             return 0;
         }
+
         return $tOne['priority'] < $tTwo['priority'] ? -1 : 1;
     }
 
     /**
      * Prepare a mime type for comparison.
-     * 
+     *
      * @param string $type The string representation of the mime type to prepare.
-     * 
+     *
      * @return array
      */
     protected function prepareMimeType($type)
@@ -393,6 +400,7 @@ class Request implements RequestInterface
             'secondary' => $parts[1],
             'priority'  => $type[1]['q'],
         );
+
         return $type;
     }
 
@@ -409,10 +417,11 @@ class Request implements RequestInterface
         //Check the format parameter
         if (is_array($this->payload) && array_key_exists('format', $this->payload)) {
             $this->format = $this->payload['format'];
-        } else if (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
+        } elseif (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
             // Third CL parameter is the required format
             $this->format = $this->serverInfo['argv'][3];
         }
+
         return $this->format;
     }
 
@@ -433,6 +442,7 @@ class Request implements RequestInterface
         } else {
             $this->extension = null;
         }
+
         return $this->extension;
     }
 
@@ -471,6 +481,7 @@ class Request implements RequestInterface
         default:
             break;
         }
+
         return null;
     }
 
@@ -593,7 +604,7 @@ class Request implements RequestInterface
         case 'text/json':
         case 'text/javascript':
             $payload = json_decode($data);
-            $payload = is_object($payload) ? (array)$payload : $payload;
+            $payload = is_object($payload) ? (array) $payload : $payload;
             break;
         case 'application/x-www-form-urlencoded':
         case 'text/plain':
@@ -602,7 +613,7 @@ class Request implements RequestInterface
         case 'application/xml':
             //TODO
             $payload = simplexml_load_string($data);
-            $payload = is_object($payload) ? (array)$payload : $payload;
+            $payload = is_object($payload) ? (array) $payload : $payload;
             break;
         default:
             throw new CoreException(
@@ -611,6 +622,7 @@ class Request implements RequestInterface
             );
             break;
         }
+
         return $payload;
     }
 
@@ -629,12 +641,14 @@ class Request implements RequestInterface
                 //Fourth CL parameter is a query string
                 parse_str($this->serverInfo['argv'][4], $payload);
                 $this->payload = $payload;
+
                 return $this->payload;
             }
         }
         $payload = $this->parseContent($this->getServerInfo('content_type'));
         if ($payload) {
             $this->setPayload($payload);
+
             return $this->payload;
         }
         $payload = null;
@@ -652,6 +666,7 @@ class Request implements RequestInterface
             $payload = isset($_REQUEST) ? $_REQUEST : array();
         }
         $this->setPayload($payload);
+
         return $this->payload;
     }
 
@@ -668,10 +683,11 @@ class Request implements RequestInterface
     {
         if (is_string($payload)) {
             parse_str($payload, $payload);
-        } else if (is_object($payload)) {
-            $payload = (array)$payload;
+        } elseif (is_object($payload)) {
+            $payload = (array) $payload;
         }
         $this->payload = $payload;
+
         return $this;
     }
 

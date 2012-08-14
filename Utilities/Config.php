@@ -14,8 +14,6 @@
  */
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\ConfigInterface;
-use Backend\Interfaces\ParserInterface;
-use Backend\Core\Exception as CoreException;
 use Backend\Core\Exceptions\ConfigException;
 use Backend\Core\Exceptions\DuckTypeException;
 /**
@@ -78,6 +76,7 @@ class Config implements ConfigInterface
         if (array_key_exists($propertyName, $this->values)) {
             return $this->values[$propertyName];
         }
+
         return null;
     }
 
@@ -95,6 +94,7 @@ class Config implements ConfigInterface
     {
         if ($name) {
             $value = $this->__get($name);
+
             return $value === null ? $default : $value;
         } else {
             return $this->values;
@@ -125,6 +125,7 @@ class Config implements ConfigInterface
     public function set($name, $value)
     {
         $this->__set($name, $value);
+
         return $this;
     }
 
@@ -146,13 +147,14 @@ class Config implements ConfigInterface
             $this->values = $config;
             break;
         case is_object($config):
-            $this->values = (array)$config;
+            $this->values = (array) $config;
             break;
         default:
             throw new ConfigException('Invalid configuration values' . $config);
             break;
         }
         $this->rewind();
+
         return $this;
     }
 
@@ -179,6 +181,7 @@ class Config implements ConfigInterface
             throw new DuckTypeException('Expected an object with a parse method.');
         }
         $this->parser = $parser;
+
         return $this;
     }
 
@@ -196,7 +199,8 @@ class Config implements ConfigInterface
         if (empty($result)) {
             throw new ConfigException('Invalid Configuration File');
         }
-        return is_object($result) ? (array)$result : $result;
+
+        return is_object($result) ? (array) $result : $result;
     }
 
     /**
@@ -218,11 +222,12 @@ class Config implements ConfigInterface
             'configs/' . $name . '.yml',
         );
         $folders = self::getBaseFolders();
-        foreach($folders as $folder) {
+        foreach ($folders as $folder) {
             foreach ($files as $file) {
                 if (file_exists($folder . $file) === false) {
                     continue;
                 }
+
                 return new static($parser, $folder . $file);
             }
         }
@@ -295,6 +300,7 @@ class Config implements ConfigInterface
             self::$baseFolders = array();
             defined('PROJECT_FOLDER') && self::$baseFolders[] = PROJECT_FOLDER;
         }
+
         return self::$baseFolders;
     }
 

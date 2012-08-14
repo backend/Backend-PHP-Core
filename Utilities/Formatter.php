@@ -55,7 +55,7 @@ class Formatter implements FormatterInterface
      * @param \Backend\Interfaces\RequestInterface $request The request used to
      * determine what formatter to return.
      */
-    function __construct(RequestInterface $request = null)
+    public function __construct(RequestInterface $request = null)
     {
         if ($request !== null) {
             $this->setRequest($request);
@@ -76,6 +76,7 @@ class Formatter implements FormatterInterface
         }
         $response = new Response();
         $response->setBody($result);
+
         return $response;
     }
 
@@ -101,10 +102,12 @@ class Formatter implements FormatterInterface
                         $name = substr($name, 1);
                     }
                     $view = $container->get($name);
+
                     return $view;
                 }
             }
         }
+
         return null;
     }
 
@@ -130,6 +133,7 @@ class Formatter implements FormatterInterface
             array('\Backend\Core\Utilities\Formatter', 'formatClass'), $formatFiles
         );
         static::setFormats($formats);
+
         return self::$formats;
     }
 
@@ -166,6 +170,7 @@ class Formatter implements FormatterInterface
                 )
             )
         );
+
         return $formats;
     }
 
@@ -185,6 +190,7 @@ class Formatter implements FormatterInterface
         //Just use Reflection, unless it's proven to have a performance penalty.
         //if (PHP_VERSION_ID < 50307) {
             $ref = new \ReflectionClass($className);
+
             return in_array('Backend\Interfaces\FormatterInterface', $ref->getInterfaceNames());
         /*} else {
             return is_subclass_of($className, '\Backend\Interfaces\FormatterInterface');
@@ -206,6 +212,7 @@ class Formatter implements FormatterInterface
              array('/', '\\', DIRECTORY_SEPARATOR), '\\',
              substr($formatName, 0, strlen($formatName) - 4)
          );
+
          return $formatName;
     }
 
@@ -229,6 +236,7 @@ class Formatter implements FormatterInterface
     public function setConfig(\Backend\Interfaces\ConfigInterface $config)
     {
         $this->config = $config;
+
         return $this;
     }
 
@@ -252,6 +260,7 @@ class Formatter implements FormatterInterface
     public function setRequest(\Backend\Interfaces\RequestInterface $request)
     {
         $this->request = $request;
+
         return $this;
     }
 }

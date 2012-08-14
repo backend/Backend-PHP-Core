@@ -40,7 +40,7 @@ class CallbackFactory implements CallbackFactoryInterface
         $callback = new Callback();
         if (count($arr) == 1) {
             $callback->setFunction($arr[0]);
-        } else if (count($arr) == 2) {
+        } elseif (count($arr) == 2) {
             $callback->setClass($arr[0]);
             $callback->setMethod($arr[1]);
         } else {

@@ -22,7 +22,6 @@ use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Callback;
-use Backend\Core\Utilities\DependencyInjectionContainer;
 use Backend\Core\Exception as CoreException;
 /**
  * The main application class.
@@ -73,8 +72,8 @@ class Application implements ApplicationInterface
     /**
      * The constructor for the object.
      *
-     * @param Backend\Interfaces\ConfigInterface                       $config    The
-     * Configuration for the Application.
+     * @param Backend\Interfaces\ConfigInterface $config The Configuration for the
+     * Application.
      * @param Backend\Interfaces\DependencyInjectionContainerInterface $container The
      * DI Container for the Application.
      * Application.
@@ -107,8 +106,7 @@ class Application implements ApplicationInterface
         set_error_handler(array($this, 'error'));
 
         // Error Reporting
-        switch (BACKEND_SITE_STATE)
-        {
+        switch (BACKEND_SITE_STATE) {
             case 'testing':
             case 'development':
                 error_reporting(-1);
@@ -130,7 +128,7 @@ class Application implements ApplicationInterface
      * application should handle
      *
      * @return \Backend\Interfaces\ResponseInterface
-     * @throws \Backend\Core\Exception When there's no route or formatter for the
+     * @throws \Backend\Core\Exception               When there's no route or formatter for the
      * request.
      */
     public function main(RequestInterface $request = null)
@@ -145,7 +143,7 @@ class Application implements ApplicationInterface
             if ($callback instanceof RequestInterface) {
                 $this->request = $callback;
                 continue;
-            } else if ($callback instanceof CallbackInterface) {
+            } elseif ($callback instanceof CallbackInterface) {
                 //Transform the callback a bit if it's a controller
                 $class = $callback->getClass();
                 if ($class) {
@@ -221,6 +219,7 @@ class Application implements ApplicationInterface
         if (empty($this->router)) {
             $this->router = $this->container->get('backend.router');
         }
+
         return $this->router;
     }
 
@@ -234,6 +233,7 @@ class Application implements ApplicationInterface
     public function setRouter(RouterInterface $router)
     {
         $this->router = $router;
+
         return $this;
     }
 
@@ -255,6 +255,7 @@ class Application implements ApplicationInterface
         if (empty($this->formatter)) {
             throw new CoreException('Unsupported format requested', 415);
         }
+
         return $this->formatter;
     }
 
@@ -269,6 +270,7 @@ class Application implements ApplicationInterface
     public function setFormatter(FormatterInterface $formatter)
     {
         $this->formatter = $formatter;
+
         return $this;
     }
 
@@ -283,6 +285,7 @@ class Application implements ApplicationInterface
     public function setContainer(DependencyInjectionContainerInterface $container)
     {
         $this->container = $container;
+
         return $this;
     }
 
@@ -325,6 +328,7 @@ class Application implements ApplicationInterface
     {
         $exception = new \ErrorException($errstr, 500, $errno, $errfile, $errline);
         $this->exception($exception, $return);
+
         return $exception;
     }
 

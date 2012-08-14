@@ -49,7 +49,7 @@ class Router
     /**
      * The class constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface|array          $config  The routes
+     * @param Backend\Interfaces\ConfigInterface|array $config The routes
      * config as a Config object or an array
      * @param Backend\Interfaces\CallbackFactoryInterface|array $factory A callback
      * factory used to create callbacks from strings.
@@ -59,9 +59,9 @@ class Router
     ) {
         if ($config instanceof ConfigInterface) {
             $config = $config->get();
-        } else if (is_object($config)) {
-            $config = (array)$config;
-        } else if (is_array($config) === false) {
+        } elseif (is_object($config)) {
+            $config = (array) $config;
+        } elseif (is_array($config) === false) {
             throw new ConfigException('Invalid Router Configuration');
         }
         $this->config = $config;
@@ -91,6 +91,7 @@ class Router
                 return $callback;
             }
         }
+
         return false;
     }
 
@@ -100,7 +101,7 @@ class Router
      *
      * @param \Backend\Interfaces\RequestInterface $request The request to compare
      * with the route.
-     * @param array                                $route   The route information
+     * @param array $route The route information
      * to compare with the request.
      *
      * @return boolean|\Backend\Interfaces\CallbackInterface
@@ -141,18 +142,20 @@ class Router
                 }
                 //Regex Match
                 $arguments = array_merge($defaults, $arguments);
+
                 return $factory->fromString($route['callback'], $arguments);
             }
         }
+
         return false;
     }
 
     /**
      * Check if the route is linked to a controller.
      *
-     * @param \Backend\Interfaces\RequestInterface $request     The request to compare
+     * @param \Backend\Interfaces\RequestInterface $request The request to compare
      * with the route.
-     * @param array                                $controllers The controllers
+     * @param array $controllers The controllers
      * linked to routes.
      *
      * @return boolean|array
@@ -195,6 +198,7 @@ class Router
         $callback = $controller . '::' . $action;
 
         $factory  = $this->getCallbackFactory();
+
         return $factory->fromString($callback, array_slice($queryArr, 1));
     }
 
@@ -222,6 +226,7 @@ class Router
     public function setCallbackFactory(CallbackFactoryInterface $factory)
     {
         $this->factory = $factory;
+
         return $this;
     }
 
@@ -233,6 +238,7 @@ class Router
     public function getCallbackFactory()
     {
         $this->factory = $this->factory ?: new CallbackFactory();
+
         return $this->factory;
     }
 

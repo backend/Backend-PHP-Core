@@ -70,6 +70,7 @@ class Autoloader
             foreach ($baseFolders as $folder) {
                 if (file_exists($folder . $fileName)) {
                     include_once $folder . $fileName;
+
                     return true;
                 }
             }
@@ -82,9 +83,11 @@ class Autoloader
         foreach ($paths as $path) {
             if (file_exists($path . '/' . $fileName)) {
                 include_once $fileName;
+
                 return true;
             }
         }
+
         return false;
     }
 
@@ -100,6 +103,7 @@ class Autoloader
             defined('VENDOR_FOLDER') && self::$baseFolders[] = VENDOR_FOLDER;
             defined('SOURCE_FOLDER') && self::$baseFolders[] = SOURCE_FOLDER;
         }
+
         return self::$baseFolders;
     }
 
