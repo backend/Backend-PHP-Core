@@ -91,7 +91,7 @@ class Formatter implements FormatterInterface
     public static function factory(
         DependencyInjectionContainerInterface $container
     ) {
-        $request = $container->get('backend.request');
+        $request = $container->get('request');
         $requested = self::getRequestFormats($request);
         $formats   = self::getFormats();
         foreach ($requested as $reqFormat) {

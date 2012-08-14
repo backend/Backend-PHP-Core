@@ -108,7 +108,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->method('inspect')
             ->with($request)
             ->will($this->onConsecutiveCalls($request, $callback));
-        $this->container->set('backend.router', $router);
+        $this->container->set('router', $router);
         $response  = $this->getMockForAbstractClass(
             '\Backend\Interfaces\ResponseInterface'
         );
@@ -145,7 +145,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->method('inspect')
             ->with($request)
             ->will($this->returnValue(false));
-        $this->container->set('backend.router', $router);
+        $this->container->set('router', $router);
         $result = $this->application->main($request);
     }
 
@@ -157,7 +157,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testFormatterAccessors()
     {
         $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
-        $this->container->set('backend.formatter', $formatter);
+        $this->container->set('formatter', $formatter);
         $this->assertSame($formatter, $this->application->getFormatter());
 
         $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');

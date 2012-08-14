@@ -2,44 +2,38 @@
 parameters:
 
 services:
-    backend.router.config:
+    router.config:
         class: \Backend\Core\Utilities\Config
         factory_class: \Backend\Core\Utilities\Config
         factory_method: getNamed
         arguments:
-            - @backend.parser
-            - %backend.router.config_file%
-    backend.router:
+            - @parser
+            - %router.config_file%
+    router:
         class: \Backend\Core\Utilities\Router
         arguments:
-            - @backend.router.config
-            - @backend.callback_factory
-    backend.parser:
+            - @router.config
+            - @callback_factory
+    parser:
         class: \Symfony\Component\Yaml\Parser
-    backend.request:
+    request:
         class: \Backend\Core\Request
-    backend.callback_factory:
+    callback_factory:
         class: \Backend\Core\Utilities\CallbackFactory
-    backend.formatter:
+    formatter:
         class: \Backend\Core\Utilities\Formatter
         factory_class: \Backend\Core\Utilities\Formatter
         factory_method: factory
         arguments:
             - @service_container
-    backend.renderer:
+    renderer:
         class: \Backend\Modules\TwigRender
-    backend.base.formats.html:
+    base.formats.html:
         class: \Backend\Base\Formats\Html
         arguments:
-            - @backend.request
-            - @backend.application.config
-            - @backend.renderer
-
-# Add observers to subject classes here. The observers should refer to the tool name
-subjects:
-    Backend\Core\Utilities\ApplicationEvent:
-        observers:
-            - backend.PearLogger
+            - @request
+            - @application.config
+            - @renderer
 
 # Set application settings here
 application:

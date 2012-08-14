@@ -83,7 +83,7 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
         $container
             ->expects($this->once())
             ->method('get')
-            ->with('backend.request')
+            ->with('request')
             ->will($this->returnValue($request));
         $this->assertNull(Formatter::factory($container));
 
@@ -98,7 +98,7 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
         $container
             ->expects($this->once())
             ->method('get')
-            ->with('backend.request')
+            ->with('request')
             ->will($this->returnValue($request));
         $formatter = Formatter::factory($container);
         $this->assertNull($formatter);

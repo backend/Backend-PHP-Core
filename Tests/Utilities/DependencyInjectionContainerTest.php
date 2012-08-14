@@ -54,8 +54,8 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
     {
         $config = array(
             'services' => array(
-                'backend.exception' => '\Backend\Core\Exception',
-                'backend.test' => array(
+                'exception' => '\Backend\Core\Exception',
+                'test' => array(
                     'class' => 'TestContainer',
                     'factory_class' => 'TestContainer',
                     'factory_method' => 'factory',
@@ -73,7 +73,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
             ),
         );
         $container = new DependencyInjectionContainer($config);
-        $test = $container->get('backend.test');
+        $test = $container->get('test');
         //Test class
         $this->assertInstanceOf('\TestContainer', $test);
         //Test factory and arguments
@@ -93,7 +93,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
     {
         $config = array(
             'services' => array(
-                'backend.test' => array()
+                'test' => array()
             )
         );
         $container = new DependencyInjectionContainer($config);

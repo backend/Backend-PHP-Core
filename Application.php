@@ -83,7 +83,7 @@ class Application implements ApplicationInterface
     ) {
         $this->config = $config;
         $this->container = $container;
-        $this->container->set('backend.application.config', $this->config);
+        $this->container->set('application.config', $this->config);
         $this->init();
     }
 
@@ -134,7 +134,7 @@ class Application implements ApplicationInterface
     public function main(RequestInterface $request = null)
     {
         //Inspect the request and subsequent results, chain if necessary
-        $toInspect = $request ?: $this->container->get('backend.request');
+        $toInspect = $request ?: $this->container->get('request');
         $this->request = $toInspect;
         do {
             $callback = $toInspect instanceof RequestInterface
@@ -168,7 +168,7 @@ class Application implements ApplicationInterface
             }
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
-        $this->container->set('backend.request', $this->request);
+        $this->container->set('request', $this->request);
 
         // Get the Formatter
         $formatter = $this->getFormatter();
@@ -217,7 +217,7 @@ class Application implements ApplicationInterface
     public function getRouter()
     {
         if (empty($this->router)) {
-            $this->router = $this->container->get('backend.router');
+            $this->router = $this->container->get('router');
         }
 
         return $this->router;
@@ -247,7 +247,7 @@ class Application implements ApplicationInterface
     {
         if (empty($this->formatter)) {
             try {
-                $this->formatter = $this->container->get('backend.formatter');
+                $this->formatter = $this->container->get('formatter');
             } catch (CoreException $e) {
                 throw new CoreException('Unsupported format requested', 415, $e);
             }
