@@ -22,6 +22,7 @@ use Backend\Core\Exception as CoreException;
  * @author   J Jurgens du Toit <jrgns@backend-php.net>
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
+ * @todo     Refactore MimeType methods into separate class.
  */
 class Request implements RequestInterface
 {
@@ -332,8 +333,10 @@ class Request implements RequestInterface
             if ($mimeType !== null) {
                 //Try to get the first type
                 $types = explode(',', $mimeType);
+                $types = array_map('trim', $types);
+                usort($types, array($this, 'compareMimeTypes'));
                 //Remove the preference variable
-                $mimeType = explode(';', reset($types));
+                $mimeType = explode(';', end($types));
                 $this->mimeType = trim(reset($mimeType));
             }
             break;
@@ -341,6 +344,56 @@ class Request implements RequestInterface
             break;
         }
         return $this->mimeType;
+    }
+
+    /**
+     * Compare two mime types. Used for sorting.
+     * 
+     * @param string $tOne The first mime type.
+     * @param string $tTwo The first mime type.
+     * 
+     * @return int
+     */
+    protected function compareMimeTypes($tOne, $tTwo)
+    {
+        $tOne = $this->prepareMimeType($tOne);
+        $tTwo = $this->prepareMimeType($tTwo);
+        if ($tOne['primary'] === '*') {
+            return -1;
+        } else if ($tTwo['primary'] === '*') {
+            return 1;
+        }
+        if ($tOne['secondary'] === '*') {
+            return -1;
+        } else if ($tTwo['secondary'] === '*') {
+            return 1;
+        }
+        if ($tOne['priority'] === $tTwo['priority']) {
+            return 0;
+        }
+        return $tOne['priority'] < $tTwo['priority'] ? -1 : 1;
+    }
+
+    /**
+     * Prepare a mime type for comparison.
+     * 
+     * @param string $type The string representation of the mime type to prepare.
+     * 
+     * @return array
+     */
+    protected function prepareMimeType($type)
+    {
+        $type = explode(';', $type);
+        $type[1] = empty($type[1]) ? 'q=1' : $type[1];
+        parse_str($type[1], $type[1]);
+        $parts = explode('/', $type[0]);
+        $parts[1] = empty($parts[1]) ? '*' : $parts[1];
+        $type = array(
+            'primary'   => $parts[0],
+            'secondary' => $parts[1],
+            'priority'  => $type[1]['q'],
+        );
+        return $type;
     }
 
     /**
@@ -591,6 +644,8 @@ class Request implements RequestInterface
             break;
         case count($_POST) > 0:
             $payload = isset($_POST) ? $_POST : array();
+            break;
+        default:
             break;
         }
         if ($payload === null) {

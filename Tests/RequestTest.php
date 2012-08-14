@@ -285,11 +285,12 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function dataGetMimeType()
     {
         $result = array();
+        $result[] = array('text/html, text/*, */*', 'text/html');
+        $result[] = array('*/*, text/*, text/html', 'text/html');
+        $result[] = array('application/xml; q=0.2, text/html', 'text/html');
+        $result[] = array('text/html; q=0.2', 'text/html');
         $result[] = array('text/html', 'text/html');
         $result[] = array('text/html, application/xml', 'text/html');
-        $result[] = array('text/html; q=0.2', 'text/html');
-        $result[] = array('text/*, text/html', 'text/html');
-        $result[] = array('application/xml; q=0.2, text/html', 'text/html');
         $result[] = array(null, null);
         return $result;
     }
@@ -533,13 +534,19 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         // Test GET and POST/PUT
         $request = new Request(null, 'get');
+        $old = $_GET;
+        $_GET['one'] = 'two';
         $this->assertEquals($_GET, $request->getPayload());
+        $_GET = $old;
 
         $request = new Request(null, 'post');
+        $old = $_POST;
+        $_POST['one'] = 'two';
         $this->assertEquals($_POST, $request->getPayload());
 
         $request = new Request(null, 'put');
         $this->assertEquals($_POST, $request->getPayload());
+        $_POST = $old;
 
         // Test content from parseContent
         $request = $this->getMock(
