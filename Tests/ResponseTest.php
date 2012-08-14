@@ -148,6 +148,9 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testSendHeaders()
     {
+        if (headers_sent()) {
+            return;
+        }
         $response = $this->getMock(
             '\Backend\Core\Response',
             array('writeHeader')
@@ -173,12 +176,14 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
      * Test the check for headers already sent
      *
      * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Headers already sent in
      */
     public function testHeadersAlreadySentCheck()
     {
-        //echo ' ';
-        //$response = new Response();
-        //$response->sendHeaders();
+        echo ' ';
+        $response = new Response();
+        $response->sendHeaders();
     }
 
     /**
@@ -188,8 +193,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testWriteHeader()
     {
-        //$response = new Response();
-        //$response->writeHeader('Test');
     }
 
     /**
