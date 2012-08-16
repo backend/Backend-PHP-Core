@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining Controller
+ * File defining the Core Controller
  *
  * PHP Version 5.3
  *

@@ -68,7 +68,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function testCheckForRoutes()
+    public function testCheckForNoMatchOnVerb()
     {
         //Test no match on the verb
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
@@ -83,7 +83,15 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
         $router = new Router($config, $factory);
         $this->assertFalse($router->inspect($request));
+    }
 
+    /**
+     * Test the check method for Routes.
+     *
+     * @return void
+     */
+    public function testCheckForMatchOnRoute()
+    {
         //Try matching the route
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
         $request
@@ -102,7 +110,15 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
         $router = new Router($config, $factory);
         $this->assertTrue($router->inspect($request));
+    }
 
+    /**
+     * Test the check method for Routes.
+     *
+     * @return void
+     */
+    public function testCheckForNoMatchOnRoute()
+    {
         //Try mismatching the route
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
         $request
@@ -116,7 +132,15 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
         $router = new Router($config, $factory);
         $this->assertFalse($router->inspect($request));
+    }
 
+    /**
+     * Test the check method for Routes.
+     *
+     * @return void
+     */
+    public function testCheckForMatchRegex()
+    {
         //Try matching the route with a regex
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
         $request
@@ -131,6 +155,36 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('fromString')
             ->with($route['callback'], array('something' => 'somewhere'))
+            ->will($this->returnValue(true));
+        $router = new Router($config, $factory);
+        $this->assertEquals(true, $router->inspect($request));
+    }
+
+    /**
+     * Test the check method for Routes.
+     *
+     * @return void
+     */
+    public function testCheckForMatchRegexWithDefault()
+    {
+        //Try matching the route with a regex
+        $request = $this->getMock('\Backend\Interfaces\RequestInterface');
+        $request
+            ->expects($this->any())
+            ->method('getPath')
+            ->will($this->returnValue('/somewhere/nothere'));
+        $route  = array(
+            'route' => '/<something>/<another>', 'callback' => 'Some::callback',
+            'defaults' => array('another' => 'default')
+        );
+        $config = array('routes' => array('/' => $route));
+
+        $arguments = array('something' => 'somewhere', 'another' => 'nothere');
+        $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
+        $factory
+            ->expects($this->once())
+            ->method('fromString')
+            ->with($route['callback'], $this->identicalTo($arguments))
             ->will($this->returnValue(true));
         $router = new Router($config, $factory);
         $this->assertEquals(true, $router->inspect($request));
@@ -311,7 +365,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the chec method for Controller with matches
+     * Test the check method for Controller with matches
      *
      * @param \Backend\Interfaces\RouterInterface  $router  Router to check.
      * @param \Backend\Interfaces\RequestInterface $request The request to inspect

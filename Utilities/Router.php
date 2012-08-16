@@ -134,15 +134,20 @@ class Router
             );
             $regex = '/^' . $regex . '$/';
             if (preg_match_all($regex, $request->getPath(), $matches)) {
-                $arguments = array();
+                $arguments = array_combine(
+                    $varNames, array_fill(0, count($varNames), null)
+                );
+                // Populate the defaults
+                $arguments = array_merge($arguments, $defaults);
+
+                // Check for passed values
                 $index = 2;
                 foreach ($varNames as $name) {
-                    $arguments[$name] = $matches[$index][0];
+                    if (empty($matches[$index-1][0]) === false) {
+                        $arguments[$name] = $matches[$index][0];
+                    }
                     $index = $index + 2;
                 }
-                //Regex Match
-                $arguments = array_merge($defaults, $arguments);
-
                 return $factory->fromString($route['callback'], $arguments);
             }
         }

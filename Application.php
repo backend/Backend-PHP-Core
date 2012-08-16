@@ -183,6 +183,7 @@ class Application implements ApplicationInterface
                 $callback->setMethod($method);
                 $toInspect = $callback->execute(array($toInspect));
             } catch (CoreException $e) {
+                // If the callback is invalid, it won't be called, toInspect won't change
             }
         }
 
@@ -358,6 +359,7 @@ class Application implements ApplicationInterface
         if (BACKEND_SITE_STATE === 'testing') {
             throw $exception;
         }
-        $response->output() && die;
+        $response->output();
+        die;
     }
 }
