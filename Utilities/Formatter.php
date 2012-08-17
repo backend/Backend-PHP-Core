@@ -116,7 +116,8 @@ class Formatter implements FormatterInterface
         }
 
         $formats = array();
-        foreach (array(VENDOR_FOLDER, SOURCE_FOLDER) as $base) {
+        $bases = array_filter(array(VENDOR_FOLDER, SOURCE_FOLDER), 'file_exists');
+        foreach ($bases as $base) {
             $folder = new \RecursiveDirectoryIterator($base);
             $iter   = new \RecursiveIteratorIterator($folder);
             $regex = implode(DIRECTORY_SEPARATOR, array('', '.*', '.*', 'Formats', '.+'));

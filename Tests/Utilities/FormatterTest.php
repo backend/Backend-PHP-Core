@@ -205,21 +205,4 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse(Formatter::isValidFormat($this));
     }
-
-    /**
-     * Test the formatClass method
-     *
-     * @return void
-     */
-    public function testFormatClass()
-    {
-        $original = array('Backend', 'Core', 'Formats', 'Test.php');
-        $forward = VENDOR_FOLDER . implode('/', $original);
-        $actual = Formatter::formatClass($forward);
-        $this->assertEquals('\Backend\Core\Formats\Test', $actual);
-
-        $back = VENDOR_FOLDER . implode('/', $original);
-        $actual = Formatter::formatClass($back);
-        $this->assertEquals('\Backend\Core\Formats\Test', $actual);
-    }
 }
