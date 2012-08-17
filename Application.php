@@ -249,7 +249,7 @@ class Application implements ApplicationInterface
         if (empty($this->formatter)) {
             try {
                 $this->formatter = $this->container->get('formatter');
-            } catch (CoreException $e) {
+            } catch (\Exception $e) {
                 throw new CoreException('Unsupported format requested', 415, $e);
             }
         }

@@ -36,13 +36,6 @@ class Formatter implements FormatterInterface
     protected $request;
 
     /**
-     * Relavant configuration options.
-     *
-     * @var \Backend\Interfaces\ConfigInterfaces
-     */
-    protected $config;
-
-    /**
      * Formats to check
      *
      * @var array
@@ -122,16 +115,22 @@ class Formatter implements FormatterInterface
             return self::$formats;
         }
 
-        $formatFiles = array();
+        $formats = array();
         foreach (array(VENDOR_FOLDER, SOURCE_FOLDER) as $base) {
-            $folder = str_replace('\\', DIRECTORY_SEPARATOR, $base);
-            $glob   = str_replace('/', DIRECTORY_SEPARATOR, '*/*/Formats/*.php');
-            $files  = glob($folder . $glob);
-            $formatFiles = array_merge($formatFiles, $files);
+            $folder = new \RecursiveDirectoryIterator($base);
+            $iter   = new \RecursiveIteratorIterator($folder);
+            $regex = implode(DIRECTORY_SEPARATOR, array('', '.*', '.*', 'Formats', '.+'));
+            $regex = '|.*(' . $regex . ')\.php$|i';
+            $regex  = new \RegexIterator($iter, $regex, \RecursiveRegexIterator::GET_MATCH);
+            foreach($regex as $file) {
+                $formatName = str_replace(
+                    array('/', '\\', DIRECTORY_SEPARATOR), '\\',
+                    $file[1]
+                );
+                $formats[] = $formatName;
+            }
         }
-        $formats= array_map(
-            array('\Backend\Core\Utilities\Formatter', 'formatClass'), $formatFiles
-        );
+        $formats = array_unique($formats);
         static::setFormats($formats);
 
         return self::$formats;
@@ -195,25 +194,6 @@ class Formatter implements FormatterInterface
         /*} else {
             return is_subclass_of($className, '\Backend\Interfaces\FormatterInterface');
         }*/
-    }
-
-    /**
-     * Get the Format class of the specified file.
-     *
-     * @param string $file The filename
-     *
-     * @return string
-     */
-    public static function formatClass($file)
-    {
-         //Check the format class
-         $formatName = str_replace(array(SOURCE_FOLDER, VENDOR_FOLDER), '', $file);
-         $formatName = '\\' . str_replace(
-             array('/', '\\', DIRECTORY_SEPARATOR), '\\',
-             substr($formatName, 0, strlen($formatName) - 4)
-         );
-
-         return $formatName;
     }
 
     /**
