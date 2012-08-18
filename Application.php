@@ -328,9 +328,10 @@ class Application implements ApplicationInterface
     public function error($errno, $errstr, $errfile, $errline, $errcontext, $return = false)
     {
         $exception = new \ErrorException($errstr, 500, $errno, $errfile, $errline);
-        $this->exception($exception, $return);
-
-        return $exception;
+        if ($return) {
+            return $exception;
+        }
+        throw $exception;
     }
 
     /**
