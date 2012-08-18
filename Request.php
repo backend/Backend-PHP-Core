@@ -193,7 +193,7 @@ class Request implements RequestInterface
             $method = $this->getServerInfo('METHOD_OVERRIDE');
             break;
         //First CL parameter is the method
-        case self::fromCli()
+        case $this->fromCli()
             && count($this->serverInfo['argv']) >= 2
             && in_array(strtoupper($this->serverInfo['argv'][1]), self::$allowedMethods):
             $method = $this->serverInfo['argv'][1];
@@ -417,7 +417,7 @@ class Request implements RequestInterface
         //Check the format parameter
         if (is_array($this->payload) && array_key_exists('format', $this->payload)) {
             $this->format = $this->payload['format'];
-        } elseif (self::fromCli() && count($this->serverInfo['argv']) >= 4) {
+        } elseif ($this->fromCli() && count($this->serverInfo['argv']) >= 4) {
             // Third CL parameter is the required format
             $this->format = $this->serverInfo['argv'][3];
         }
@@ -698,8 +698,7 @@ class Request implements RequestInterface
      */
     public function fromCli()
     {
-        return array_key_exists('REQUEST_METHOD', $this->serverInfo) === false
-            && array_key_exists('argv', $this->serverInfo);
+        return array_key_exists('argv', $this->serverInfo);
     }
 
     /**
