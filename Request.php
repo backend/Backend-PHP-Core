@@ -330,9 +330,6 @@ class Request implements RequestInterface
             return $this->mimeType;
         }
         switch (true) {
-        case $this->fromCli():
-            $this->mimeType = 'cli';
-            break;
         case $this->getServerInfo('http_accept') !== null:
             $mimeType = $this->getServerInfo('http_accept');
             if ($mimeType !== null) {
@@ -344,6 +341,9 @@ class Request implements RequestInterface
                 $mimeType = explode(';', end($types));
                 $this->mimeType = trim(reset($mimeType));
             }
+            break;
+        case $this->fromCli():
+            $this->mimeType = 'cli';
             break;
         default:
             break;
@@ -495,7 +495,7 @@ class Request implements RequestInterface
      */
     public function setServerInfo($name, $value)
     {
-        if (in_array($name, array('argv')) === false) {
+        if (in_array($name, array('argv', 'argc')) === false) {
             $name = strtoupper($name);
         }
         $this->serverInfo[$name] = $value;
@@ -698,7 +698,7 @@ class Request implements RequestInterface
      */
     public function fromCli()
     {
-        return array_key_exists('argv', $this->serverInfo);
+        return !empty($this->serverInfo['argc']);
     }
 
     /**

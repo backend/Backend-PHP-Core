@@ -269,11 +269,14 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testCliOrEmptyGetMimeType()
     {
         $request = new Request();
-        $request->setServerInfo('argv', array());
+        $request->setServerInfo('argc', 1);
+        $request->setServerInfo('argv', array('/usr/bin/phpunit'));
         $this->assertEquals('cli', $request->getMimeType());
 
         $request = new Request();
         $request->setServerInfo('request_method', 'get');
+        $request->setServerInfo('argc', 0);
+        $request->setServerInfo('argv', array());
         $this->assertNull($request->getMimeType());
     }
 
@@ -291,7 +294,6 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $result[] = array('text/html; q=0.2', 'text/html');
         $result[] = array('text/html', 'text/html');
         $result[] = array('text/html, application/xml', 'text/html');
-        $result[] = array(null, null);
 
         return $result;
     }
