@@ -510,7 +510,7 @@ class Request implements RequestInterface
      */
     protected function isMethod($method)
     {
-        return strtoupper($method) == $this->method;
+        return strtoupper($method) === $this->getMethod();
     }
 
     /**
