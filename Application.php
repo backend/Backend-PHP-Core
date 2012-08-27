@@ -142,27 +142,10 @@ class Application implements ApplicationInterface
                 : $toInspect;
             if ($callback instanceof RequestInterface) {
                 $this->request = $callback;
+                $callback = null;
                 continue;
             } elseif ($callback instanceof CallbackInterface) {
-                //Transform the callback a bit if it's a controller
-                $class = $callback->getClass();
-                if ($class) {
-                    $interfaces = class_implements($class);
-                    $implements = array_key_exists(
-                        'Backend\Interfaces\ControllerInterface', $interfaces
-                    );
-                    if ($implements) {
-                        $controller = new $class(
-                            $this->getContainer(),
-                            $this->getRequest()
-                        );
-                        $controller->setRequest($this->getRequest());
-                        $callback->setObject($controller);
-                        //Set the method name as actionAction
-                        $callback->setMethod($callback->getMethod() . 'Action');
-                    }
-                }
-                $toInspect = $callback->execute();
+                $toInspect = $this->executeCallback($callback);
             } else {
                 throw new CoreException('Unknown route requested', 404);
             }
@@ -175,19 +158,68 @@ class Application implements ApplicationInterface
 
         // Transform the Result
         if ($callback) {
-            $class = get_class($formatter);
-            $class = explode('\\', $class);
-            $method = $callback->getMethod();
-            $method = str_replace('Action', end($class), $method);
-            try {
-                $callback->setMethod($method);
-                $toInspect = $callback->execute(array($toInspect));
-            } catch (CoreException $e) {
-                // If the callback is invalid, it won't be called, toInspect won't change
-            }
+            $toInspect = $this->executeFormatCallback($callback, $formatter, $toInspect);
         }
 
         return $formatter->transform($toInspect);
+    }
+
+    /**
+     * Execute the defined callback.
+     *
+     * @param Backend\Interfaces\CallbackInterface $callback.
+     *
+     * @return mixed The result from the callback.
+     */
+    protected function executeCallback(CallbackInterface $callback)
+    {
+        //Transform the callback a bit if it's a controller
+        $class = $callback->getClass();
+        if ($class) {
+            $interfaces = class_implements($class);
+            $implements = array_key_exists(
+                'Backend\Interfaces\ControllerInterface', $interfaces
+            );
+            if ($implements) {
+                $controller = new $class(
+                    $this->getContainer(),
+                    $this->getRequest()
+                );
+                $controller->setRequest($this->getRequest());
+                $callback->setObject($controller);
+                //Set the method name as actionAction
+                $callback->setMethod($callback->getMethod() . 'Action');
+            }
+        }
+        return $callback->execute();
+    }
+
+    /**
+     * Execute the format related callback.
+     *
+     * @param Backend\Interfaces\CallbackInterface  $callback  The callback on which
+     * the call will be based.
+     * @param Backend\Interfaces\FormatterInterface $formatter The formatter on which
+     * the call will be based.
+     * @param mixed                                 $result    The result from the original
+     * callback.
+     *
+     * @return mixed The result of the format callback.
+     */
+    protected function executeFormatCallback(CallbackInterface $callback,
+        FormatterInterface $formatter, $result
+    ) {
+        $class = get_class($formatter);
+        $class = explode('\\', $class);
+        $method = $callback->getMethod();
+        $method = str_replace('Action', end($class), $method);
+        try {
+            $callback->setMethod($method);
+            $toInspect = $callback->execute(array($result));
+        } catch (CoreException $e) {
+            // If the callback is invalid, it won't be called, toInspect won't change
+        }
+        return $toInspect;
     }
 
     /**
