@@ -167,7 +167,7 @@ class Application implements ApplicationInterface
     /**
      * Execute the defined callback.
      *
-     * @param Backend\Interfaces\CallbackInterface $callback.
+     * @param Backend\Interfaces\CallbackInterface $callback The callback to execute.
      *
      * @return mixed The result from the callback.
      */
@@ -219,7 +219,7 @@ class Application implements ApplicationInterface
         } catch (CoreException $e) {
             // If the callback is invalid, it won't be called, toInspect won't change
         }
-        return $toInspect;
+        return $result;
     }
 
     /**
