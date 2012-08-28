@@ -215,7 +215,7 @@ class Application implements ApplicationInterface
         $method = str_replace('Action', end($class), $method);
         try {
             $callback->setMethod($method);
-            $toInspect = $callback->execute(array($result));
+            $result = $callback->execute(array($result));
         } catch (CoreException $e) {
             // If the callback is invalid, it won't be called, toInspect won't change
         }
