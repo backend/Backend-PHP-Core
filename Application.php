@@ -147,7 +147,9 @@ class Application implements ApplicationInterface
             } elseif ($callback instanceof CallbackInterface) {
                 $toInspect = $this->executeCallback($callback);
             } else {
-                throw new CoreException('Unknown route requested', 404);
+                $message = 'Unknown route requested:' . $toInspect->getMethod()
+                    . ' ' . $toInspect->getPath();
+                throw new CoreException($message, 404);
             }
         } while ($toInspect instanceof RequestInterface
             || $toInspect instanceof CallbackInterface);
