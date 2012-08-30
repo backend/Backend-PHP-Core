@@ -145,7 +145,8 @@ class Application implements ApplicationInterface
                 $callback = null;
                 continue;
             } elseif ($callback instanceof CallbackInterface) {
-                $toInspect = $this->executeCallback($callback);
+                $callback  = $this->transformCallback($callback);
+                $toInspect = $callback->execute();
             } else {
                 $message = 'Unknown route requested:' . $toInspect->getMethod()
                     . ' ' . $toInspect->getPath();
@@ -160,68 +161,70 @@ class Application implements ApplicationInterface
 
         // Transform the Result
         if ($callback) {
-            $toInspect = $this->executeFormatCallback($callback, $formatter, $toInspect);
+            try {
+                $callback  = $this->transformFormatCallback($callback, $formatter);
+                $toInspect = $callback->execute(array($toInspect));
+            } catch (CoreException $e) {
+                // If the callback is invalid, it won't be called, toInspect won't change
+            }
         }
 
         return $formatter->transform($toInspect);
     }
 
     /**
-     * Execute the defined callback.
+     * Transform the callback.
      *
-     * @param Backend\Interfaces\CallbackInterface $callback The callback to execute.
+     * @param Backend\Interfaces\CallbackInterface $callback The callback to transform.
      *
-     * @return mixed The result from the callback.
+     * @return Backend\Interfaces\CallbackInterface The transformed callback.
      */
-    protected function executeCallback(CallbackInterface $callback)
+    protected function transformCallback(CallbackInterface $callback)
     {
         //Transform the callback a bit if it's a controller
         $class = $callback->getClass();
-        if ($class) {
-            $interfaces = class_implements($class);
-            $implements = array_key_exists(
-                'Backend\Interfaces\ControllerInterface', $interfaces
-            );
-            if ($implements) {
-                $controller = new $class(
-                    $this->getContainer(),
-                    $this->getRequest()
-                );
-                $controller->setRequest($this->getRequest());
-                $callback->setObject($controller);
-                //Set the method name as actionAction
-                $callback->setMethod($callback->getMethod() . 'Action');
-            }
+        if (empty($class)) {
+            return $callback;
         }
-        return $callback->execute();
+        $interfaces = class_implements($class);
+        $implements = array_key_exists(
+            'Backend\Interfaces\ControllerInterface', $interfaces
+        );
+        if ($implements === false) {
+            return $callback;
+        }
+        $controller = new $class(
+            $this->getContainer(),
+            $this->getRequest()
+        );
+        $controller->setRequest($this->getRequest());
+        $callback->setObject($controller);
+        //Set the method name as actionAction
+        $callback->setMethod($callback->getMethod() . 'Action');
+        return $callback;
     }
 
     /**
-     * Execute the format related callback.
+     * Transform the callback in relation with the format.
      *
      * @param Backend\Interfaces\CallbackInterface  $callback  The callback on which
      * the call will be based.
      * @param Backend\Interfaces\FormatterInterface $formatter The formatter on which
      * the call will be based.
-     * @param mixed                                 $result    The result from the original
-     * callback.
      *
-     * @return mixed The result of the format callback.
+     * @return Backend\Interfaces\CallbackInterface The transformed format callback.
      */
-    protected function executeFormatCallback(CallbackInterface $callback,
-        FormatterInterface $formatter, $result
+    protected function transformFormatCallback(CallbackInterface $callback,
+        FormatterInterface $formatter
     ) {
-        $class = get_class($formatter);
-        $class = explode('\\', $class);
         $method = $callback->getMethod();
-        $method = str_replace('Action', end($class), $method);
-        try {
+        if ($method) {
+            $class = get_class($formatter);
+            $class = explode('\\', $class);
+            $method = str_replace('Action', end($class), $method);
             $callback->setMethod($method);
-            $result = $callback->execute(array($result));
-        } catch (CoreException $e) {
-            // If the callback is invalid, it won't be called, toInspect won't change
         }
-        return $result;
+        return $callback;
     }
 
     /**
