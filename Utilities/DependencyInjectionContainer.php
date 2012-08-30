@@ -95,13 +95,13 @@ class DependencyInjectionContainer extends ContainerBuilder
             $definition->setFactoryClass($config['factory_class']);
             $definition->setFactoryMethod($config['factory_method']);
         }
-        foreach ($config['calls'] as $name => $value) {
-            foreach($value as &$argument) {
+        foreach ($config['calls'] as $name => $arguments) {
+            foreach($arguments as &$argument) {
                 if (substr($argument, 0, 1) === '@') {
                     $argument = new Reference(substr($argument, 1));
                 }
             }
-            $definition->addMethodCall($name, $value);
+            $definition->addMethodCall($name, $arguments);
         }
         foreach ($config['arguments'] as $value) {
             if (substr($value, 0, 1) === '@') {

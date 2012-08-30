@@ -32,6 +32,9 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        $folders = array();
+        $folders[] = __DIR__ . '/../auxiliary/';
+        Formatter::setBaseFolders($folders);
     }
 
     /**
@@ -59,6 +62,16 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the base folders getter and settor
+     */
+    public function testBaseFoldersAccessors()
+    {
+        $folders = array('one', 'two');;
+        Formatter::setBaseFolders($folders);
+        $this->assertEquals($folders, Formatter::getBaseFolders());
+    }
+
+    /**
      * Test the transform method.
      *
      * @return void
@@ -69,6 +82,19 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
         $response  = $formatter->transform('value');
         $this->assertInstanceOf('Backend\Interfaces\ResponseInterface', $response);
         $this->assertEquals('value', $response->getBody());
+    }
+
+    /**
+     * Test the transform method.
+     *
+     * @return void
+     */
+    public function testTransformReturnsResponse()
+    {
+        $formatter = new Formatter();
+        $expected = $this->getMockForAbstractClass('\Backend\Interfaces\ResponseInterface');
+        $actual   = $formatter->transform($expected);
+        $this->assertEquals($expected, $actual);
     }
 
     /**

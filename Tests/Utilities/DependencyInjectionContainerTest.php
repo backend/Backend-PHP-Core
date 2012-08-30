@@ -60,7 +60,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
                     'factory_class' => 'TestContainer',
                     'factory_method' => 'factory',
                     'calls' => array(
-                        'addParam' => array('two'),
+                        'addParam' => array('two', '@service_container'),
                     ),
                     'arguments' => array(
                         '@service_container',

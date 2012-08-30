@@ -105,7 +105,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
      *
      * @return void
      * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Invalid type for object, object expected, got string
+     * @expectedExceptionMessage Invalid type for object, object expected
      */
     public function testInvalidObject()
     {
@@ -128,6 +128,19 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test checking for an invalid method type.
+     *
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Invalid type for method, string expected
+     * @return void
+     */
+    public function testInvalidMethodType()
+    {
+        $callback = new Callback();
+        $callback->setMethod($this);
+    }
+
+    /**
      * Test the Function setter and getter.
      *
      * @return void
@@ -144,10 +157,8 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     /**
      * Test checking for an invalid function type.
      *
-     * @return void
      * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Invalid type for function, string expected, got
-     * object
+     * @expectedExceptionMessage Invalid type for function, string expected
      * @return void
      */
     public function testInvalidFunctionType()
@@ -295,6 +306,8 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $callback = new Callback();
         $callback->setObject($this);
         $callback->setMethod('someMethod');
+        $result[] = array($callback);
+        $callback = new Callback('!');
         $result[] = array($callback);
 
         return $result;

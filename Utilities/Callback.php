@@ -168,6 +168,12 @@ class Callback implements CallbackInterface
      */
     public function setMethod($method)
     {
+        if (is_string($method) === false) {
+            throw new CoreException(
+                'Invalid type for method, string expected, got '
+                . gettype($method)
+            );
+        }
         $this->method = $method;
         $this->function = null;
 
@@ -333,7 +339,6 @@ class Callback implements CallbackInterface
         if (is_callable($callable, true, $callableName)) {
             throw new CoreException('Unexecutable Callback: ' . $callableName);
         }
-        throw new CoreException('Unexecutable Callback');
     }
 
     /**

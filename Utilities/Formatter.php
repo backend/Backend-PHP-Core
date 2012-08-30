@@ -16,6 +16,7 @@ use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\RequestInterface;
+use Backend\Interfaces\ResponseInterface;
 use Backend\Core\Response;
 /**
  * Transform results into the specified format.
@@ -43,6 +44,13 @@ class Formatter implements FormatterInterface
     public static $formats = null;
 
     /**
+     * The folders in which to check for Formatters.
+     *
+     * @var array
+     */
+    protected static $baseFolders = null;
+
+    /**
      * The constructor for the object
      *
      * @param \Backend\Interfaces\RequestInterface $request The request used to
@@ -64,7 +72,7 @@ class Formatter implements FormatterInterface
      */
     public function transform($result)
     {
-        if ($result instanceof Response) {
+        if ($result instanceof ResponseInterface) {
             return $result;
         }
         $response = new Response();
@@ -116,8 +124,7 @@ class Formatter implements FormatterInterface
         }
 
         $formats = array();
-        $bases = array_filter(array(VENDOR_FOLDER, SOURCE_FOLDER), 'file_exists');
-        foreach ($bases as $base) {
+        foreach (self::$baseFolders as $base) {
             $folder = new \RecursiveDirectoryIterator($base);
             $iter   = new \RecursiveIteratorIterator($folder);
             $regex = implode(DIRECTORY_SEPARATOR, array('', '.*', '.*', 'Formats', '.+'));
@@ -243,5 +250,34 @@ class Formatter implements FormatterInterface
         $this->request = $request;
 
         return $this;
+    }
+
+    /**
+     * Get the Base folders
+     *
+     * @return array
+     */
+    public static function getBaseFolders()
+    {
+        if (self::$baseFolders === null) {
+            self::$baseFolders = array();
+            defined('PROJECT_FOLDER') && self::$baseFolders[] = VENDOR_FOLDER;
+            defined('PROJECT_FOLDER') && self::$baseFolders[] = SOURCE_FOLDER;
+            self::$baseFolders = array_filter('file_exists', self::$baseFolders);
+        }
+
+        return self::$baseFolders;
+    }
+
+    /**
+     * Set the Base folders.
+     *
+     * @param array $folders The base folders
+     *
+     * @return void
+     */
+    public static function setBaseFolders(array $folders)
+    {
+        self::$baseFolders = $folders;
     }
 }

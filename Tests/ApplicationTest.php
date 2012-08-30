@@ -102,6 +102,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $callback
             ->expects($this->exactly(2))
             ->method('setMethod');
+        $callback
+            ->expects($this->any())
+            ->method('getMethod')
+            ->will($this->returnValue('action'));
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
             ->expects($this->exactly(2))
@@ -174,6 +178,24 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testUnknownFormat()
     {
+        $this->application->getFormatter();
+    }
+
+    /**
+     * Test requesting an undefined formatter.
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unsupported format requested
+     */
+    public function testUndefinedFormat()
+    {
+        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
+        $container
+            ->expects($this->once())
+            ->method('get')
+            ->will($this->throwException(new \Exception()));
+        $this->application->setContainer($container);
         $this->application->getFormatter();
     }
 
