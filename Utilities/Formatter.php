@@ -124,7 +124,7 @@ class Formatter implements FormatterInterface
         }
 
         $formats = array();
-        foreach (self::$baseFolders as $base) {
+        foreach (self::getBaseFolders() as $base) {
             $folder = new \RecursiveDirectoryIterator($base);
             $iter   = new \RecursiveIteratorIterator($folder);
             $regex = implode(DIRECTORY_SEPARATOR, array('', '.*', '.*', 'Formats', '.+'));
@@ -263,7 +263,7 @@ class Formatter implements FormatterInterface
             self::$baseFolders = array();
             defined('PROJECT_FOLDER') && self::$baseFolders[] = VENDOR_FOLDER;
             defined('PROJECT_FOLDER') && self::$baseFolders[] = SOURCE_FOLDER;
-            self::$baseFolders = array_filter('file_exists', self::$baseFolders);
+            self::$baseFolders = array_filter(self::$baseFolders, 'file_exists');
         }
 
         return self::$baseFolders;
