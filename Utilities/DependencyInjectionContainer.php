@@ -146,4 +146,65 @@ class DependencyInjectionContainer extends ContainerBuilder
     {
         return parent::set($id, $service, $scope);
     }
+
+    /**
+     * Check if the specified Component has been registered with the container.
+     *
+     * @param string $id The Component identifier.
+     *
+     * @return boolean
+     */
+    public function has($id)
+    {
+        return parent::has($id);
+    }
+
+    /**
+     * Get the specified Parameter.
+     *
+     * @param string $name The Parameter name.
+     *
+     * @return mixed
+     */
+    public function getParameter($name)
+    {
+        return parent::getParameter($name);
+    }
+
+    /**
+     * Set the value of the specified Parameter.
+     *
+     * @param string $name  The Parameter name.
+     * @param mixed  $value The value of the Parameter.
+     *
+     * @return void
+     */
+    public function setParameter($name, $value)
+    {
+        return parent::setParameter($name, $value);
+    }
+
+    /**
+     * Check if the specified Parameter has been registered with the container.
+     *
+     * @param string $name The Parameter name.
+     *
+     * @return boolean
+     */
+    public function hasParameter($name)
+    {
+        return parent::hasParameter($name);
+    }
+
+    /**
+     * Remove the Implementation of the specified Component.
+     *
+     * @param string $id The identifier of the Component to remove.
+     *
+     * @return void
+     */
+    public function removeDefinition($id)
+    {
+        return parent::removeDefinition($id);
+    }
 }
