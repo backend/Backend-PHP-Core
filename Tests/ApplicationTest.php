@@ -154,6 +154,22 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the Request getter and setter.
+     *
+     * @return void
+     */
+    public function testRequestAccessors()
+    {
+        $request = $this->getMock('\Backend\Interfaces\RequestInterface');
+        $this->container->set('request', $request);
+        $this->assertSame($request, $this->application->getRequest());
+
+        $request = $this->getMock('\Backend\Interfaces\RequestInterface');
+        $this->application->setRequest($request);
+        $this->assertSame($request, $this->application->getRequest());
+    }
+
+    /**
      * Test the Formatter getter and setter.
      *
      * @return void

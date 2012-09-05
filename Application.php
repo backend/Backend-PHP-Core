@@ -234,7 +234,23 @@ class Application implements ApplicationInterface
      */
     public function getRequest()
     {
+        if ($this->request === null && $this->container->has('request')) {
+            $this->request = $this->container->get('request');
+        }
         return $this->request;
+    }
+
+    /**
+     * Set the request that's will be executed.
+     *
+     * @param \Backend\Interfaces\RequestInterface $request The request to set.
+     *
+     * @return \Backend\Core\Application
+     */
+    public function setRequest($request)
+    {
+        $this->request = $request;
+        return $this;
     }
 
     /**
