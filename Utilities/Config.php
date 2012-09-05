@@ -150,7 +150,7 @@ class Config implements ConfigInterface
             $this->values = (array) $config;
             break;
         default:
-            throw new ConfigException('Invalid configuration values' . $config);
+            throw new ConfigException('Invalid configuration values: ' . $config);
             break;
         }
         $this->rewind();

@@ -78,7 +78,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response = new Response();
         $response->setHeaders(array());
         $response->addHeader('Header', 'Add');
-        $this->assertEquals(array('Add' => 'Header'), $response->getHeaders());
+        $this->assertEquals(array('Add: Header'), $response->getHeaders());
 
         $response->setHeaders(array());
         $response->addHeader('Add');
@@ -98,7 +98,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         );
         $response = new Response();
         $response->setHeaders($headers);
-        $this->assertEquals($headers, $response->getHeaders());
+        $this->assertEquals(array('Some: Header'), $response->getHeaders());
     }
 
     /**
@@ -114,7 +114,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response = new Response($body, $code, $headers);
         $this->assertEquals($body, $response->getBody());
         $this->assertEquals($code, $response->getStatusCode());
-        $this->assertEquals($headers, $response->getHeaders());
+        $this->assertEquals(array('Construct: Header'), $response->getHeaders());
     }
 
     /**

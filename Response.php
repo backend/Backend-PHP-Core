@@ -218,7 +218,14 @@ class Response implements ResponseInterface
      */
     public function getHeaders()
     {
-        return $this->headers;
+        $headers = array();
+        foreach ($this->headers as $name => $content) {
+            if (is_numeric($name) === false) {
+                $content = ucwords($name) . ': ' . $content;
+            }
+            $headers[] = $content;
+        }
+        return $headers;
     }
 
     /**
@@ -263,10 +270,7 @@ class Response implements ResponseInterface
         if (!array_key_exists('X-Application', $this->headers)) {
             $this->headers['X-Application'] = 'Backend-PHP (Core)';
         }
-        foreach ($this->headers as $name => $content) {
-            if (is_numeric($name) === false) {
-                $content = ucwords($name) . ': ' . $content;
-            }
+        foreach ($this->getHeaders() as $content) {
             $this->writeHeader($content);
         }
 
