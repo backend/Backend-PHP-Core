@@ -131,6 +131,74 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test that the app won't fall over if the callback returns a response, but
+     * there's no formatter.
+     *
+     * @return void
+     */
+    public function testReturnResponseWithNoFormatter()
+    {
+        //Setup
+        $request  = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $response = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ResponseInterface'
+        );
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
+        $callback
+            ->expects($this->once())
+            ->method('execute')
+            ->will($this->returnValue($response));
+
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->once())
+            ->method('inspect')
+            ->will($this->returnValue($callback));
+        $this->container->set('router', $router);
+
+        $result = $this->application->main($request);
+
+        //Asserts
+        $this->assertSame($response, $result);
+    }
+
+    /**
+     * Test that the app will fall over if the callback doesn't return a response
+     * when there's no formatter.
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Unsupported format requested
+     */
+    public function testDontReturnResponseWithNoFormatter()
+    {
+        //Setup
+        $request  = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
+        $callback
+            ->expects($this->once())
+            ->method('execute')
+            ->will($this->returnValue(true));
+
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->once())
+            ->method('inspect')
+            ->will($this->returnValue($callback));
+        $this->container->set('router', $router);
+
+        $result = $this->application->main($request);
+    }
+
+    /**
      * Test the main function with no route for the request
      *
      * @return void

@@ -157,7 +157,15 @@ class Application implements ApplicationInterface
         $this->container->set('request', $this->request);
 
         // Get the Formatter
-        $formatter = $this->getFormatter();
+        try {
+            $formatter = $this->getFormatter();
+        } catch (\Backend\Core\Exception $e) {
+            // Don't fall over if we already have a response
+            if ($e->getCode() === 415 && $toInspect instanceof ResponseInterface) {
+                return $toInspect;
+            }
+            throw $e;
+        }
 
         // Transform the Result
         if ($callback) {
