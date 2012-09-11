@@ -90,13 +90,13 @@ class Application implements ApplicationInterface
     /**
      * Initialize the Application.
      *
-     * @return void
+     * @return boolean Returns true if the initialization ran. False otherwise.
      */
     public function init()
     {
         static $ran = false;
         if ($ran) {
-            return;
+            return false;
         }
 
         // PHP Helpers
@@ -119,6 +119,7 @@ class Application implements ApplicationInterface
         }
 
         $ran = true;
+        return true;
     }
 
     /**
