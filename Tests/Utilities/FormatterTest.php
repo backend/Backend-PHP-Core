@@ -160,19 +160,6 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the Config setter and getter.
-     *
-     * @return void
-     */
-    public function testConfigAccessors()
-    {
-        $config = $this->getMock('Backend\Interfaces\ConfigInterface');
-        $formatter = new Formatter;
-        $formatter->setConfig($config);
-        $this->assertSame($config, $formatter->getConfig());
-    }
-
-    /**
      * Test the getRequestFormat method
      *
      * @return void

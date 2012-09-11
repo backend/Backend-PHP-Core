@@ -14,7 +14,6 @@
 namespace Backend\Core\Utilities;
 use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
-use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\ResponseInterface;
 use Backend\Core\Response;
@@ -202,30 +201,6 @@ class Formatter implements FormatterInterface
         /*} else {
             return is_subclass_of($className, '\Backend\Interfaces\FormatterInterface');
         }*/
-    }
-
-    /**
-     * Return the current configuration.
-     *
-     * @return Backend\Interfaces\ConfigInterface
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-    /**
-     * Set the configuration to use.
-     *
-     * @param Backend\Interfaces\ConfigInterface $config The config to set.
-     *
-     * @return Backend\Core\Utilities\Formatter
-     */
-    public function setConfig(\Backend\Interfaces\ConfigInterface $config)
-    {
-        $this->config = $config;
-
-        return $this;
     }
 
     /**
