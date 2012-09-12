@@ -138,9 +138,14 @@ class Response implements ResponseInterface
      * @param int $code The new status code
      *
      * @return Response The current object
+     * @throws \RuntimeException If the response code is smaller than 100 or larger than 600.
      */
     public function setStatusCode($code)
     {
+        $code = (int) $code;
+        if ($code < 100 || $code > 600) {
+            throw new \RuntimeException('HTTP Response Code must be between 100 and 600');
+        }
         $this->status = (int) $code;
 
         return $this;

@@ -218,4 +218,29 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response = new Response($body);
         $this->assertEquals($body, (string) $response);
     }
+
+    /**
+     * Data provider for testStatusCodeCheck.
+     *
+     * @return array The method arguments
+     */
+    public function dataStatusCodeCheck()
+    {
+        return array(
+            array(99),
+            array(601),
+        );
+    }
+
+    /**
+     * Test that the Status Code is correct.
+     *
+     * @return void
+     * @dataProvider dataStatusCodeCheck
+     * @expectedException \RuntimeException
+     */
+    public function testStatusCodeCheck($code)
+    {
+        $response = new Response('body', $code);
+    }
 }

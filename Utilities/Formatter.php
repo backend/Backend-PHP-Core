@@ -74,10 +74,7 @@ class Formatter implements FormatterInterface
         if ($result instanceof ResponseInterface) {
             return $result;
         }
-        $response = new Response();
-        $response->setBody($result);
-
-        return $response;
+        return new Response($result);
     }
 
     /**
