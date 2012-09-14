@@ -73,7 +73,7 @@ class Config implements ConfigInterface
      */
     public function __get($propertyName)
     {
-        if (array_key_exists($propertyName, $this->values)) {
+        if ($this->has($propertyName)) {
             return $this->values[$propertyName];
         }
 
@@ -156,6 +156,18 @@ class Config implements ConfigInterface
         $this->rewind();
 
         return $this;
+    }
+
+    /**
+     * Check if the config has the specified value.
+     *
+     * @param mixed $name The name of the config value to check.
+     *
+     * @return boolean If the config has the specified value.
+     */
+    public function has($name)
+    {
+        return array_key_exists($name, $this->values);
     }
 
     /**
