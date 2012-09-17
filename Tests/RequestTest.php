@@ -170,8 +170,8 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         //Check setting the method in the headers
         $request = new Request();
-        $request->setServerInfo('REQUEST_METHOD', 'GET');
-        $request->setServerInfo('HTTP_METHOD_OVERRIDE', 'delete');
+        $request->setHeader('REQUEST_METHOD', 'GET');
+        $request->setHeader('METHOD_OVERRIDE', 'delete');
         $this->assertEquals('DELETE', $request->getMethod());
 
         //Check the default set in REQUEST_METHOD
@@ -311,7 +311,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
         $request = new Request();
         $request->setServerInfo('request_method', 'get');
-        $request->setServerInfo('http_accept', $acceptHeader);
+        $request->setHeader('accept', $acceptHeader);
         $this->assertEquals($expected, $request->getMimeType());
 
         //And check it again
@@ -378,15 +378,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request->setServerInfo('argv', array('one' => 'two'));
         $this->assertEquals(array('one' => 'two'), $request->getServerInfo('argv'));
 
-        //values starting with HTTP_ can be accessed without it
-        $request->setServerInfo('HTTP_SOMETHING', 'HTTP Value');
-        $this->assertEquals('HTTP Value', $request->getServerInfo('something'));
-
         //Check deprecated X_ values
-        $request->setServerInfo('X_HTTP_VALUE', 'XHTTPValue');
-        $this->assertEquals('XHTTPValue', $request->getServerInfo('VALUE'));
-        $this->assertEquals('XHTTPValue', $request->getServerInfo('X_HTTP_VALUE'));
-
         $request->setServerInfo('X_VALUE', 'XValue');
         $this->assertEquals('XValue', $request->getServerInfo('VALUE'));
         $this->assertEquals('XValue', $request->getServerInfo('X_VALUE'));

@@ -43,35 +43,42 @@ class Request implements RequestInterface
     protected $url = null;
 
     /**
-     * The payload of the request.
+     * The headers of the Request.
+     *
+     * @var array
+     */
+    protected $headers = null;
+
+    /**
+     * The payload of the Request.
      *
      * @var array
      */
     protected $payload = null;
 
     /**
-     * The method of the request. Can be one of GET, POST, PUT or DELETE.
+     * The method of the Request. Can be one of GET, POST, PUT, DELETE, HEAD or OPTIONS.
      *
      * @var string
      */
     protected $method  = null;
 
     /**
-     * The extension of the request.
+     * The extension of the Request.
      *
      * @var string
      */
     protected $extension = null;
 
     /**
-     * The requested format of the request.
+     * The requested format of the Request.
      *
      * @var string
      */
     protected $format = null;
 
     /**
-     * The requested mime type of the request.
+     * The requested mime type of the Request.
      *
      * @var string
      */
@@ -122,6 +129,7 @@ class Request implements RequestInterface
         }
 
         $this->setPayload($payload);
+        $this->getHeaders();
     }
 
     /**
@@ -135,6 +143,7 @@ class Request implements RequestInterface
     {
         $urlParts = parse_url($url);
         $this->serverInfo['HTTP_HOST'] = $urlParts['host'];
+        $this->setHeader('host', $urlParts['host']);
         $this->serverInfo['QUERY_STRING'] = empty($urlParts['query']) ? ''
             : $urlParts['query'];
         $urlParts['path'] = empty($urlParts['path']) ? ''
@@ -189,8 +198,8 @@ class Request implements RequestInterface
         case is_array($payload) && array_key_exists('_method', $payload):
             $method = $payload['_method'];
             break;
-        case $this->getServerInfo('METHOD_OVERRIDE') !== null:
-            $method = $this->getServerInfo('METHOD_OVERRIDE');
+        case $this->getHeader('METHOD_OVERRIDE') !== null:
+            $method = $this->getHeader('METHOD_OVERRIDE');
             break;
         //First CL parameter is the method
         case $this->fromCli()
@@ -225,6 +234,72 @@ class Request implements RequestInterface
         $this->method = $method;
         $this->serverInfo['REQUEST_METHOD'] = $method;
 
+        return $this;
+    }
+
+    /**
+     * Return the Request headers.
+     *
+     * @return array
+     */
+    public function getHeaders()
+    {
+        if ($this->headers === null) {
+            if (function_exists('apache_request_headers')) {
+                $this->headers = apache_request_headers();
+                $this->headers = array_change_key_case($this->headers);
+            } else {
+                $this->headers = array();
+                foreach($this->serverInfo as $name => $value) {
+                    if (substr($name, 0, 5) !== 'HTTP_') {
+                        continue;
+                    }
+                    $name = strtolower(substr($name, 5));
+                    $this->headers[$name] = $value;
+                }
+            }
+        }
+        return $this->headers;
+    }
+
+    /**
+     * Set the Request headers.
+     *
+     * @param array $headers An array of headers for the Request.
+     *
+     * @return \Backend\Interfaces\RequestInterface
+     */
+    public function setHeaders(array $headers)
+    {
+        $this->headers = $headers;
+        return $this;
+    }
+
+    /**
+     * Return the specified Request header.
+     *
+     * @param string $name The name of the header to return.
+     *
+     * @return string
+     */
+    public function getHeader($name)
+    {
+        $name = strtolower($name);
+        return array_key_exists($name, $this->getHeaders()) ? $this->headers[$name] : null;
+    }
+
+    /**
+     * Set the specified Request headers.
+     *
+     * @param string $name  The name of the header to set.
+     * @param string $value The value of the header.
+     *
+     * @return array
+     */
+    public function setHeader($name, $value)
+    {
+        $name = strtolower($name);
+        $this->headers[$name] = $value;
         return $this;
     }
 
@@ -287,6 +362,19 @@ class Request implements RequestInterface
     }
 
     /**
+     * Set the Request's URL.
+     *
+     * @param string $url The url.
+     *
+     * @return \Backend\Interfaces\RequestInterface
+     */
+    public function setUrl($url)
+    {
+        $this->url = $url;
+        return $this;
+    }
+
+    /**
      * Prepare the URL.
      *
      * Build the URL from the current Server Info.
@@ -302,7 +390,7 @@ class Request implements RequestInterface
         ) {
             $this->url .= 's';
         }
-        $this->url .= '://' . $this->getServerInfo('HOST');
+        $this->url .= '://' . $this->getHeader('host');
         if ('index.php' == basename($this->getServerInfo('SCRIPT_NAME'))) {
             $this->url .= $this->serverInfo['SCRIPT_NAME'];
         } else {
@@ -330,8 +418,8 @@ class Request implements RequestInterface
             return $this->mimeType;
         }
         switch (true) {
-        case $this->getServerInfo('http_accept') !== null:
-            $mimeType = $this->getServerInfo('http_accept');
+        case $this->getHeader('accept') !== null:
+            $mimeType = $this->getHeader('accept');
             if ($mimeType !== null) {
                 //Try to get the first type
                 $types = explode(',', $mimeType);
@@ -350,6 +438,19 @@ class Request implements RequestInterface
         }
 
         return $this->mimeType;
+    }
+
+    /**
+     * Set the Request MIME Type.
+     *
+     * @param mixed $mimeType The Request's MIME Type.
+     *
+     * @return \Backend\Interfaces\RequestInterface
+     */
+    public function setMimeType($mimeType)
+    {
+        $this->mimeType = $mimeType;
+        return $this;
     }
 
     /**
@@ -426,6 +527,19 @@ class Request implements RequestInterface
     }
 
     /**
+     * Set the Request Specified Format.
+     *
+     * @param mixed $format The Request's specified format.
+     *
+     * @return \Backend\Interfaces\RequestInterface
+     */
+    public function setSpecifiedFormat($format)
+    {
+        $this->format = $format;
+        return $this;
+    }
+
+    /**
      * Get the Request Extension
      *
      * @return string The extension of the request
@@ -444,6 +558,19 @@ class Request implements RequestInterface
         }
 
         return $this->extension;
+    }
+
+    /**
+     * Set the Request Extension.
+     *
+     * @param mixed $extension The Request's extension.
+     *
+     * @return \Backend\Interfaces\RequestInterface
+     */
+    public function setExtension($extension)
+    {
+        $this->extension = $extension;
+        return $this;
     }
 
     /**
@@ -468,15 +595,9 @@ class Request implements RequestInterface
         case array_key_exists($name, $this->serverInfo):
             return $this->serverInfo[$name];
             break;
-        case array_key_exists('HTTP_' . $name, $this->serverInfo):
-            return $this->serverInfo['HTTP_' . $name ];
-            break;
         //Check for deprecated X- values http://tools.ietf.org/html/rfc6648
         case array_key_exists('X_' . $name, $this->serverInfo):
             return $this->serverInfo['X_' . $name ];
-            break;
-        case array_key_exists('X_HTTP_' . $name, $this->serverInfo):
-            return $this->serverInfo['X_HTTP_' . $name ];
             break;
         default:
             break;
