@@ -104,13 +104,12 @@ class DependencyInjectionContainer extends ContainerBuilder
             $definition->addMethodCall($name, $arguments);
         }
         foreach ($config['arguments'] as $value) {
-            if (substr($value, 0, 1) === '@') {
+            if (is_string($value) && substr($value, 0, 1) === '@') {
                 $definition->addArgument(new Reference(substr($value, 1)));
             } else {
                 $definition->addArgument($value);
             }
         }
-
     }
 
     /**

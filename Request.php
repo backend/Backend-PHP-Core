@@ -720,6 +720,8 @@ class Request implements RequestInterface
             $data = $content;
         }
         $payload = null;
+        $type = explode(';', $type);
+        $type = trim($type[0]);
         switch ($type) {
         case 'application/json':
         case 'text/json':
@@ -728,6 +730,7 @@ class Request implements RequestInterface
             $payload = is_object($payload) ? (array) $payload : $payload;
             break;
         case 'application/x-www-form-urlencoded':
+        case 'multipart/form-data':
         case 'text/plain':
             parse_str($data, $payload);
             break;
