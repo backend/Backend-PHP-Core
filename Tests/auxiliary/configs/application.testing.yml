@@ -1,5 +1,6 @@
 # Reference all tools likely to be used in the application here
 parameters:
+    response.class: \Backend\Core\Response
 
 services:
     router.config:

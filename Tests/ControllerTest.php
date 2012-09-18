@@ -65,12 +65,24 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     public function testRelativeRedirect()
     {
         $controller = new Controller();
+
         $request = $this->getMock('\Backend\Interfaces\RequestInterface');
         $request
             ->expects($this->once())
             ->method('getUrl')
             ->will($this->returnValue('http://backend-php.net'));
         $controller->setRequest($request);
+
+        $container = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\DependencyInjectionContainerInterface'
+        );
+        $container
+            ->expects($this->once())
+            ->method('getParameter')
+            ->with('response.class')
+            ->will($this->returnValue('\Backend\Core\Response'));
+        $controller->setContainer($container);
+
         $response = $controller->redirect('/');
         $headers  = $response->getHeaders();
         $this->assertContains('Location: http://backend-php.net/', $headers);
@@ -84,6 +96,15 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     public function testAbsoluteRedirect()
     {
         $controller = new Controller();
+        $container = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\DependencyInjectionContainerInterface'
+        );
+        $container
+            ->expects($this->once())
+            ->method('getParameter')
+            ->with('response.class')
+            ->will($this->returnValue('\Backend\Core\Response'));
+        $controller->setContainer($container);
         $response = $controller->redirect('http://www.google.com');
         $headers  = $response->getHeaders();
         $this->assertContains('Location: http://www.google.com', $headers);
@@ -97,6 +118,16 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     public function testPermanentRedirect()
     {
         $controller = new Controller();
+        $container = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\DependencyInjectionContainerInterface'
+        );
+        $container
+            ->expects($this->once())
+            ->method('getParameter')
+            ->with('response.class')
+            ->will($this->returnValue('\Backend\Core\Response'));
+        $controller->setContainer($container);
+
         $response = $controller->redirect('http://www.google.com', 302);
         $headers  = $response->getHeaders();
         $this->assertContains('Location: http://www.google.com', $headers);

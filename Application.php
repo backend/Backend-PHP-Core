@@ -412,7 +412,8 @@ class Application implements ApplicationInterface
         if ($code < 100 || $code > 599) {
             $code = 500;
         }
-        $response = new Response(
+        $responseClass = $this->container->getParameter('response.class');
+        $response = new $responseClass(
             $exception->getMessage(),
             $code
         );

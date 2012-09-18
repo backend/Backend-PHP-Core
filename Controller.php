@@ -119,7 +119,8 @@ class Controller implements ControllerInterface
             // Relative Redirect
             $location = $this->getRequest()->getUrl() . $location;
         }
-        $response = new Response('Redirecting to ' . $location, $responseCode);
+        $responseClass = $this->container->getParameter('response.class');
+        $response = new $responseClass('Redirecting to ' . $location, $responseCode);
         $response->addHeader($location, 'Location');
 
         return $response;
