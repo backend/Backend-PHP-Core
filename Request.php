@@ -50,11 +50,11 @@ class Request implements RequestInterface
     protected $headers = null;
 
     /**
-     * The payload of the Request.
+     * The body of the Request.
      *
      * @var array
      */
-    protected $payload = null;
+    protected $body = null;
 
     /**
      * The method of the Request. Can be one of GET, POST, PUT, DELETE, HEAD or OPTIONS.
@@ -111,10 +111,10 @@ class Request implements RequestInterface
      * @param mixed  $url    The URL of the request
      * @param string $method The request method. Can be one of GET, POST, PUT,
      * DELETE or HEAD
-     * @param mixed $payload The request data. Defaults to the HTTP request data
+     * @param mixed $body    The request data. Defaults to the HTTP request data
      * if not supplied
      */
-    public function __construct($url = null, $method = null, $payload = null)
+    public function __construct($url = null, $method = null, $body = null)
     {
         if ($url === null) {
             $this->serverInfo = $_SERVER;
@@ -128,7 +128,7 @@ class Request implements RequestInterface
             $this->setMethod($method);
         }
 
-        $this->setPayload($payload);
+        $this->setBody($body);
         $this->getHeaders();
     }
 
@@ -193,10 +193,10 @@ class Request implements RequestInterface
         $method = 'GET';
         //Copied the way to determine the method from CakePHP
         //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
-        $payload = $this->payload === null ? $this->getPayload() : $this->payload;
+        $body = $this->body === null ? $this->getBody() : $this->body;
         switch (true) {
-        case is_array($payload) && array_key_exists('_method', $payload):
-            $method = $payload['_method'];
+        case is_array($body) && array_key_exists('_method', $body):
+            $method = $body['_method'];
             break;
         case $this->getHeader('METHOD_OVERRIDE') !== null:
             $method = $this->getHeader('METHOD_OVERRIDE');
@@ -238,20 +238,20 @@ class Request implements RequestInterface
     }
 
     /**
-     * Return the Request headers.
+     * Build the headers if necessary.
      *
-     * @return array
+     * @return Request The current object.
      */
-    public function getHeaders()
+    public function buildHeaders($force = false)
     {
-        if ($this->headers === null) {
+        if ($force || $this->headers === null) {
             if (function_exists('apache_request_headers')) {
                 $this->headers = apache_request_headers();
                 $this->headers = array_change_key_case($this->headers);
             } else {
                 $this->headers = array();
                 foreach($this->serverInfo as $name => $value) {
-                    if (substr($name, 0, 5) !== 'HTTP_') {
+                    if (strtolower(substr($name, 0, 5)) !== 'http_') {
                         continue;
                     }
                     $name = strtolower(substr($name, 5));
@@ -259,7 +259,27 @@ class Request implements RequestInterface
                 }
             }
         }
-        return $this->headers;
+        return $this;
+    }
+
+    /**
+     * Return the Request headers.
+     *
+     * @return array
+     */
+    public function getHeaders()
+    {
+        $this->buildHeaders();
+
+        // Return the compiled headers
+        $headers = array();
+        foreach ($this->headers as $name => $content) {
+            if (is_numeric($name) === false) {
+                $content = ucwords($name) . ': ' . $content;
+            }
+            $headers[] = $content;
+        }
+        return $headers;
     }
 
     /**
@@ -284,22 +304,32 @@ class Request implements RequestInterface
      */
     public function getHeader($name)
     {
+        $this->buildHeaders();
+
         $name = strtolower($name);
-        return array_key_exists($name, $this->getHeaders()) ? $this->headers[$name] : null;
+        return array_key_exists($name, $this->headers) ? $this->headers[$name] : null;
     }
 
     /**
      * Set the specified Request headers.
      *
+     * If the name is null, the header won't have a name, and will contain only
+     * the value of the header.
+     *
      * @param string $name  The name of the header to set.
      * @param string $value The value of the header.
      *
-     * @return array
+     * @return \Backend\Interfaces\RequestInterface
      */
     public function setHeader($name, $value)
     {
-        $name = strtolower($name);
-        $this->headers[$name] = $value;
+        if ($name === null) {
+            $this->headers[] = $value;
+        } else {
+            $name = strtolower($name);
+            $this->headers[$name] = $value;
+        }
+
         return $this;
     }
 
@@ -516,8 +546,8 @@ class Request implements RequestInterface
             return $this->format;
         }
         //Check the format parameter
-        if (is_array($this->payload) && array_key_exists('format', $this->payload)) {
-            $this->format = $this->payload['format'];
+        if (is_array($this->body) && array_key_exists('format', $this->body)) {
+            $this->format = $this->body['format'];
         } elseif ($this->fromCli() && count($this->serverInfo['argv']) >= 4) {
             // Third CL parameter is the required format
             $this->format = $this->serverInfo['argv'][3];
@@ -620,6 +650,7 @@ class Request implements RequestInterface
             $name = strtoupper($name);
         }
         $this->serverInfo[$name] = $value;
+        return $this;
     }
 
     /**
@@ -700,7 +731,7 @@ class Request implements RequestInterface
      * @param string $type    The type of the content
      * @param string $content The content to parse
      *
-     * @todo Expand this to include XML and other content types
+     * @todo Expand this to include other content types
      * @todo Refactor so that we can use thirdparty / external parsers -
      * https://github.com/backend/Backend-PHP-Core/issues/2
      * @return array
@@ -719,25 +750,24 @@ class Request implements RequestInterface
         } else {
             $data = $content;
         }
-        $payload = null;
+        $body = null;
         $type = explode(';', $type);
         $type = trim($type[0]);
         switch ($type) {
         case 'application/json':
         case 'text/json':
         case 'text/javascript':
-            $payload = json_decode($data);
-            $payload = is_object($payload) ? (array) $payload : $payload;
+            $body = json_decode($data);
+            $body = is_object($body) ? (array) $body : $body;
             break;
         case 'application/x-www-form-urlencoded':
         case 'multipart/form-data':
         case 'text/plain':
-            parse_str($data, $payload);
+            parse_str($data, $body);
             break;
         case 'application/xml':
-            //TODO
-            $payload = simplexml_load_string($data);
-            $payload = is_object($payload) ? (array) $payload : $payload;
+            $body = simplexml_load_string($data);
+            $body = is_object($body) ? (array) $body : $body;
             break;
         default:
             throw new CoreException(
@@ -747,70 +777,70 @@ class Request implements RequestInterface
             break;
         }
 
-        return $payload;
+        return $body;
     }
 
     /**
-     * Return the request's payload.
+     * Return the request's body.
      *
-     * @return array The Request Payload
+     * @return array The Request body
      */
-    public function getPayload()
+    public function getBody()
     {
-        if ($this->payload !== null) {
-            return $this->payload;
+        if ($this->body !== null) {
+            return $this->body;
         }
         if ($this->fromCli()) {
             if (count($this->serverInfo['argv']) >= 5) {
                 //Fourth CL parameter is a query string
-                parse_str($this->serverInfo['argv'][4], $payload);
-                $this->payload = $payload;
+                parse_str($this->serverInfo['argv'][4], $body);
+                $this->body = $body;
 
-                return $this->payload;
+                return $this->body;
             }
         }
-        $payload = $this->parseContent($this->getServerInfo('content_type'));
-        if ($payload) {
-            $this->setPayload($payload);
+        $body = $this->parseContent($this->getServerInfo('content_type'));
+        if ($body) {
+            $this->setBody($body);
 
-            return $this->payload;
+            return $this->body;
         }
-        $payload = null;
+        $body = null;
         switch (true) {
         case count($_GET) > 0:
-            $payload = isset($_GET) ? $_GET : array();
+            $body = isset($_GET) ? $_GET : array();
             break;
         case count($_POST) > 0:
-            $payload = isset($_POST) ? $_POST : array();
+            $body = isset($_POST) ? $_POST : array();
             break;
         default:
             break;
         }
-        if ($payload === null) {
-            $payload = isset($_REQUEST) ? $_REQUEST : array();
+        if ($body === null) {
+            $body = isset($_REQUEST) ? $_REQUEST : array();
         }
-        $this->setPayload($payload);
+        $this->setBody($body);
 
-        return $this->payload;
+        return $this->body;
     }
 
     /**
-     * Set the request's payload.
+     * Set the request's body.
      *
      * Strings will be parsed for variables and objects will be casted to arrays.
      *
-     * @param mixed $payload The Request's Payload
+     * @param mixed $body The Request's body
      *
      * @return Request The current object.
      */
-    public function setPayload($payload)
+    public function setBody($body)
     {
-        if (is_string($payload)) {
-            parse_str($payload, $payload);
-        } elseif (is_object($payload)) {
-            $payload = (array) $payload;
+        if (is_string($body)) {
+            parse_str($body, $body);
+        } elseif (is_object($body)) {
+            $body = (array) $body;
         }
-        $this->payload = $payload;
+        $this->body = $body;
 
         return $this;
     }

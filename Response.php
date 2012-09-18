@@ -193,24 +193,36 @@ class Response implements ResponseInterface
     }
 
     /**
-     * Add a header to the Response.
+     * Return the specified Request header.
      *
-     * If a name is supplied, the header will be formatted as
-     * $name: $content
-     * Otherwise the header will just be formatted as
-     * $content
+     * @param string $name The name of the header to return.
      *
-     * @param string $content The content of the header
-     * @param string $name    The optional name of the header
-     *
-     * @return Response The current object
+     * @return string
      */
-    public function addHeader($content, $name = null)
+    public function getHeader($name)
+    {
+        $name = strtolower($name);
+        return array_key_exists($name, $this->headers) ? $this->headers[$name] : null;
+    }
+
+    /**
+     * Set the specified Request headers.
+     *
+     * If the name is null, the header won't have a name, and will contain only
+     * the value of the header.
+     *
+     * @param string $name  The name of the header to set.
+     * @param string $value The value of the header.
+     *
+     * @return array
+     */
+    public function setHeader($name, $value)
     {
         if ($name === null) {
-            $this->headers[] = $content;
+            $this->headers[] = $value;
         } else {
-            $this->headers[$name] = $content;
+            $name = strtolower($name);
+            $this->headers[$name] = $value;
         }
 
         return $this;

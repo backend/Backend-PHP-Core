@@ -50,10 +50,10 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-        $request = new Request();
+        $request = new Request;
         $this->assertEquals('/', $request->getPath());
         $this->assertEquals('GET', $request->getMethod());
-        $this->assertInternalType('array', $request->getPayload());
+        $this->assertInternalType('array', $request->getBody());
     }
 
     /**
@@ -136,22 +136,22 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testGetSetMethod()
     {
         //Default to GET for non CLI and non Request
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('argv', array());
         $request->setServerInfo('REQUEST_METHOD', null);
         $this->assertEquals('GET', $request->getMethod());
 
         //Default to REQUEST_METHOD for Requests
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('REQUEST_METHOD', 'GET');
         $this->assertEquals('GET', $request->getMethod());
 
         //Default to GET for CLI
-        $request = new Request();
+        $request = new Request;
         $this->assertEquals('GET', $request->getMethod());
 
         //Set in CLI
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('argv', array('script', 'POST'));
         $this->assertEquals('POST', $request->getMethod());
 
@@ -162,20 +162,20 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request->setMethod('options');
         $this->assertEquals('OPTIONS', $request->getMethod());
 
-        //Check setting the method in the payload
-        $request = new Request();
+        //Check setting the method in the body
+        $request = new Request;
         $request->setServerInfo('REQUEST_METHOD', 'GET');
-        $request->setPayload(array('_method' => 'put'));
+        $request->setBody(array('_method' => 'put'));
         $this->assertEquals('PUT', $request->getMethod());
 
         //Check setting the method in the headers
-        $request = new Request();
+        $request = new Request;
         $request->setHeader('REQUEST_METHOD', 'GET');
         $request->setHeader('METHOD_OVERRIDE', 'delete');
         $this->assertEquals('DELETE', $request->getMethod());
 
         //Check the default set in REQUEST_METHOD
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('REQUEST_METHOD', 'GET');
         $this->assertEquals('GET', $request->getMethod());
     }
@@ -216,12 +216,12 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('/somewhere/index.html', $request->getPath());
 
         // Clean up the path
-        $request = new Request();
+        $request = new Request;
         $request->setPath('/somewhere/');
         $this->assertEquals('/somewhere', $request->getPath());
 
         // Empty path equals root path
-        $request = new Request();
+        $request = new Request;
         $request->setPath('');
         $this->assertEquals('/', $request->getPath());
     }
@@ -262,18 +262,30 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the URL Accessors.
+     *
+     * @return void
+     */
+    public function testUrlAccessors()
+    {
+        $request = new Request;
+        $this->assertSame($request, $request->setUrl('http://backend-php.net'));
+        $this->assertEquals('http://backend-php.net', $request->getUrl());
+    }
+
+    /**
      * Test the getMimeType method for the CLI or empty mime types.
      *
      * @return void
      */
     public function testCliOrEmptyGetMimeType()
     {
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('argc', 1);
         $request->setServerInfo('argv', array('/usr/bin/phpunit'));
         $this->assertEquals('cli', $request->getMimeType());
 
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('request_method', 'get');
         $request->setServerInfo('argc', 0);
         $request->setServerInfo('argv', array());
@@ -309,7 +321,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetMimeType($acceptHeader, $expected)
     {
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('request_method', 'get');
         $request->setHeader('accept', $acceptHeader);
         $this->assertEquals($expected, $request->getMimeType());
@@ -319,13 +331,25 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the getSpecifiedFormat methos.
+     * Test the Mime Type Accessors.
+     *
+     * @return void
+     */
+    public function testMimeTypeAccessors()
+    {
+        $request = new Request;
+        $this->assertSame($request, $request->setMimeType('text/html'));
+        $this->assertEquals('text/html', $request->getMimeType());
+    }
+
+    /**
+     * Test the getSpecifiedFormat method.
      *
      * @return void
      */
     public function testGetSpecifiedFormat()
     {
-        $request = new Request();
+        $request = new Request;
         $request->setServerInfo('argv', array('index.php', 'GET', 'home', 'xml'));
         $this->assertEquals('xml', $request->getSpecifiedFormat());
 
@@ -335,8 +359,20 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         //And check it again
         $this->assertEquals('json', $request->getSpecifiedFormat());
 
-        $request = new Request();
+        $request = new Request;
         $this->assertNull($request->getSpecifiedFormat());
+    }
+
+    /**
+     * Test the Specified Format Accessors.
+     *
+     * @return void
+     */
+    public function testSpecifiedFormatAccessors()
+    {
+        $request = new Request;
+        $this->assertSame($request, $request->setSpecifiedFormat('html'));
+        $this->assertEquals('html', $request->getSpecifiedFormat());
     }
 
     /**
@@ -364,27 +400,82 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the Extension Accessors.
+     *
+     * @return void
+     */
+    public function testExtensionAccessors()
+    {
+        $request = new Request;
+        $this->assertSame($request, $request->setExtension('html'));
+        $this->assertEquals('html', $request->getExtension());
+    }
+
+    /**
      * Test setting a server info value.
      *
      * @return void
      */
-    public function testGetSetServerInfo()
+    public function testServerInfoAccessors()
     {
-        $request = new Request();
-        $request->setServerInfo('Some', 'Value');
+        $request = new Request;
+        $this->assertSame($request, $request->setServerInfo('Some', 'Value'));
         $this->assertEquals('Value', $request->getServerInfo('some'));
 
         //argv is a special case
-        $request->setServerInfo('argv', array('one' => 'two'));
+        $this->assertSame($request, $request->setServerInfo('argv', array('one' => 'two')));
         $this->assertEquals(array('one' => 'two'), $request->getServerInfo('argv'));
 
         //Check deprecated X_ values
-        $request->setServerInfo('X_VALUE', 'XValue');
+        $this->assertSame($request, $request->setServerInfo('X_VALUE', 'XValue'));
         $this->assertEquals('XValue', $request->getServerInfo('VALUE'));
         $this->assertEquals('XValue', $request->getServerInfo('X_VALUE'));
 
         //Return null on failure
         $this->assertNull($request->getServerInfo('random_value'));
+    }
+
+    /**
+     * Test building headers.
+     *
+     * @return void
+     */
+    public function testBuildHeaders()
+    {
+        $request = new Request;
+        $request->setServerInfo('HTTP_HOST', 'backend-php.net');
+        $this->assertSame($request, $request->buildHeaders(true));
+        $this->assertEquals(array('Host: backend-php.net'), $request->getHeaders());
+    }
+
+    /**
+     * Test setting and getting a specific header.
+     *
+     * @return void
+     */
+    public function testHeaderAccessors()
+    {
+        $request = new Request;
+        $this->assertSame($request, $request->setHeader('Some', 'Header'));
+        $this->assertEquals('Header', $request->getHeader('Some'));
+
+        $this->assertSame($request, $request->setHeader(null, 'Unnamed'));
+        $this->assertEquals('Unnamed', $request->getHeader(0));
+    }
+
+    /**
+     * Test setting and getting the headers.
+     *
+     * @return void
+     */
+    public function testHeadersAccessors()
+    {
+        $headers = array(
+            'Some' => 'Header',
+        );
+        $request = new Request;
+        $this->assertSame($request, $request->setHeaders($headers));
+        $this->assertEquals(array('Some: Header'), $request->getHeaders());
     }
 
     /**
@@ -416,7 +507,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function dataParseContent()
     {
         $result = array();
-        // Test json payload
+        // Test json body
         $result[] = array(
             'application/json', dirname(__FILE__) . '/auxiliary/payload.json',
         );
@@ -426,7 +517,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $result[] = array(
             'text/javascript', dirname(__FILE__) . '/auxiliary/payload.json',
         );
-        // Test www form payload
+        // Test www form body
         $result[] = array(
             'application/x-www-form-urlencoded',
             dirname(__FILE__) . '/auxiliary/payload.txt',
@@ -434,7 +525,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $result[] = array(
             'text/plain', dirname(__FILE__) . '/auxiliary/payload.txt',
         );
-        // Test xml payload
+        // Test xml body
         $result[] = array(
             'application/xml', dirname(__FILE__) . '/auxiliary/payload.xml',
         );
@@ -453,7 +544,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseContent($contentType, $filename)
     {
-        $request = new Request();
+        $request = new Request;
         $content = file_get_contents($filename);
         $result = $request->parseContent($contentType, $content);
         $this->assertEquals(array('var' => 'value'), $result);
@@ -467,7 +558,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseFileContent()
     {
-        $request = new Request();
+        $request = new Request;
         $request->setInputStream(dirname(__FILE__) . '/auxiliary/payload.json');
         $result = $request->parseContent('application/json');
         $this->assertEquals(array('var' => 'value'), $result);
@@ -483,21 +574,21 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testUnknownContent()
     {
-        $request = new Request();
+        $request = new Request;
         $request->parseContent('unknown/content');
     }
 
     /**
-     * Data provider for testPayload.
+     * Data provider for testBody.
      *
      * @return array
      */
-    public function dataPayload()
+    public function dataBody()
     {
         $result = array();
-        $payload = new \StdClass();
-        $payload->var = 'value';
-        $result[] = array($payload);
+        $body = new \StdClass();
+        $body->var = 'value';
+        $result[] = array($body);
         $result[] = array('var=value');
         $result[] = array(array('var' => 'value'));
 
@@ -505,44 +596,44 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test setting the payload.
+     * Test setting the body.
      *
-     * @param mixed $payload The payload to test.
+     * @param mixed $body The body to test.
      *
-     * @dataProvider dataPayload
+     * @dataProvider dataBody
      * @return void
      */
-    public function testPayload($payload)
+    public function testBody($body)
     {
-        $request = new Request(null, null, $payload);
-        $this->assertEquals(array('var' => 'value'), $request->getPayload());
+        $request = new Request(null, null, $body);
+        $this->assertEquals(array('var' => 'value'), $request->getBody());
     }
 
     /**
-     * Test getting the payload.
+     * Test getting the body.
      *
      * @return void
      */
-    public function testGetPayload()
+    public function testGetBody()
     {
-        // Test empty payload
+        // Test empty body
         $request = new Request(null, 'delete');
-        $this->assertEquals(array(), $request->getPayload());
+        $this->assertEquals(array(), $request->getBody());
 
         // Test GET and POST/PUT
         $request = new Request(null, 'get');
         $old = $_GET;
         $_GET['one'] = 'two';
-        $this->assertEquals($_GET, $request->getPayload());
+        $this->assertEquals($_GET, $request->getBody());
         $_GET = $old;
 
         $request = new Request(null, 'post');
         $old = $_POST;
         $_POST['one'] = 'two';
-        $this->assertEquals($_POST, $request->getPayload());
+        $this->assertEquals($_POST, $request->getBody());
 
         $request = new Request(null, 'put');
-        $this->assertEquals($_POST, $request->getPayload());
+        $this->assertEquals($_POST, $request->getBody());
         $_POST = $old;
 
         // Test content from parseContent
@@ -555,28 +646,28 @@ class RequestTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('parseContent')
             ->will($this->returnValue(array('var' => 'value')));
-        $this->assertEquals(array('var' => 'value'), $request->getPayload());
+        $this->assertEquals(array('var' => 'value'), $request->getBody());
     }
 
     /**
-     * Test getting the payload from the CLI
+     * Test getting the body from the CLI
      *
      * @return void
      */
-    public function testGetPayloadFromCli()
+    public function testGetBodyFromCli()
     {
-        $request = new Request();
+        $request = new Request;
         $argv = $request->getServerInfo('argv');
         $argv = array_pad($argv, 5, null);
         $argv[4] = 'var=value';
         $request->setServerInfo('argv', $argv);
-        $this->assertEquals(array('var' => 'value'), $request->getPayload());
+        $this->assertEquals(array('var' => 'value'), $request->getBody());
 
-        $request = new Request();
+        $request = new Request;
         $argv = $request->getServerInfo('argv');
         $argv = array_pad($argv, 5, null);
         $argv[4] = 'jannie verjaar';
-        $this->assertEquals(array(), $request->getPayload());
+        $this->assertEquals(array(), $request->getBody());
     }
 
     /**

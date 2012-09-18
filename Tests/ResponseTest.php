@@ -69,40 +69,34 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test adding a header
-     *
-     * @return void
-     */
-    public function testAddHeader()
-    {
-        $response = new Response();
-        $response->setHeaders(array());
-        $response->addHeader('Header', 'Add');
-        $this->assertEquals(array('Add: Header'), $response->getHeaders());
-
-        $response->setHeaders(array());
-        $response->addHeader('Add');
-        $response->addHeader('Header');
-        $this->assertEquals(array('Add', 'Header'), $response->getHeaders());
-    }
-
-    /**
-     * Test setting and getting the headers
+     * Test setting and getting a header.
      *
      * @return void
      */
     public function testHeaderAccessors()
     {
+        $response = new Response();
+        $this->assertSame($response, $response->setHeader('name', 'value'));
+        $this->assertEquals('value', $response->getHeader('name'));
+    }
+
+    /**
+     * Test setting and getting the headers.
+     *
+     * @return void
+     */
+    public function testHeadersAccessors()
+    {
         $headers = array(
             'Some' => 'Header',
         );
         $response = new Response();
-        $response->setHeaders($headers);
+        $this->assertSame($response, $response->setHeaders($headers));
         $this->assertEquals(array('Some: Header'), $response->getHeaders());
     }
 
     /**
-     * Test the object constructor
+     * Test the object constructor.
      *
      * @return void
      */
@@ -159,13 +153,13 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $response
             ->expects($this->at(1))
             ->method('writeHeader')
-            ->with('Name: with');
+            ->with('Name: given');
         $response
             ->expects($this->at(2))
             ->method('writeHeader')
             ->with('Without: Name');
-        $response->addHeader('with', 'Name');
-        $response->addHeader('Without: Name');
+        $response->setHeader('Name', 'given');
+        $response->setHeader(null, 'Without: Name');
         $response->sendHeaders();
     }
 

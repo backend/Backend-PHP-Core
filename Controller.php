@@ -121,7 +121,7 @@ class Controller implements ControllerInterface
         }
         $responseClass = $this->container->getParameter('response.class');
         $response = new $responseClass('Redirecting to ' . $location, $responseCode);
-        $response->addHeader($location, 'Location');
+        $response->setHeader('Location', $location);
 
         return $response;
     }
