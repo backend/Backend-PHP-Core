@@ -49,22 +49,15 @@ class Router
     /**
      * The class constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface|array $config The routes
-     * config as a Config object or an array
-     * @param Backend\Interfaces\CallbackFactoryInterface|array $factory A callback
+     * @param Backend\Interfaces\ConfigInterface          $config  The routes
+     * config as a Config object
+     * @param Backend\Interfaces\CallbackFactoryInterface $factory A callback
      * factory used to create callbacks from strings.
      */
     public function __construct(
-        $config, CallbackFactoryInterface $factory
+        ConfigInterface $config, CallbackFactoryInterface $factory
     ) {
-        if ($config instanceof ConfigInterface) {
-            $config = $config->get();
-        } elseif (is_object($config)) {
-            $config = (array) $config;
-        } elseif (is_array($config) === false) {
-            throw new ConfigException('Invalid Router Configuration');
-        }
-        $this->config = $config;
+        $this->config  = $config;
         $this->factory = $factory;
     }
 
@@ -77,16 +70,16 @@ class Router
      */
     public function inspect(RequestInterface $request)
     {
-        if (array_key_exists('routes', $this->config)) {
-            foreach ($this->config['routes'] as $key => $route) {
+        if ($this->config->has('routes')) {
+            foreach ($this->config->get('routes') as $key => $route) {
                 $callback = $this->check($request, $route);
                 if ($callback) {
                     return $callback;
                 }
             }
         }
-        if (array_key_exists('controllers', $this->config)) {
-            $callback = $this->checkControllers($request, $this->config['controllers']);
+        if ($this->config->has('controllers')) {
+            $callback = $this->checkControllers($request, $this->config->get('controllers'));
             if ($callback) {
                 return $callback;
             }
@@ -215,9 +208,46 @@ class Router
      *
      * @return \Backend\Interfaces\RequestInterface
      */
-    public function resolve($callback)
+    public function resolve($callback, $arguments = array())
     {
-        throw new CoreException('Unimplemented');
+        // Get the callback
+        if (is_string($callback)) {
+            $factory  = $this->getCallbackFactory();
+            $callback = $factory->fromString($callback, $arguments);
+        }
+        if (($callback instanceof \Backend\Interfaces\CallbackInterface) === false) {
+            throw new \RuntimeException('Invalid Callback Type');
+        }
+        if ($callback->getMethod() !== null && substr($callback->getMethod(), -6) === 'Action') {
+            $callback->setMethod(substr($callback->getMethod(), 0, strlen($callback->getMethod()) - 6));
+        }
+
+        // Get the routes that match the callback
+        if ($this->config->has('routes')) {
+            foreach ($this->config->get('routes') as $key => $route) {
+                if ((string)$callback === $route['callback']) {
+                    return $route;
+                }
+            }
+        }
+        if ($this->config->has('controllers')) {
+            foreach($this->config->get('controllers') as $key => $controller) {
+                if ($controller !== $callback->getClass()) {
+                    continue;
+                }
+                switch ($callback->getMethod()) {
+                case 'create':
+                case 'list':
+                    return $key;
+                case 'read':
+                case 'update':
+                case 'delete':
+                    return $key . '/' . reset($arguments);
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -209,7 +209,9 @@ class Application implements ApplicationInterface
         $controller->setRequest($this->getRequest());
         $callback->setObject($controller);
         //Set the method name as actionAction
-        $callback->setMethod($callback->getMethod() . 'Action');
+        if (substr($callback->getMethod(), -6) !== 'Action') {
+            $callback->setMethod($callback->getMethod() . 'Action');
+        }
         return $callback;
     }
 
