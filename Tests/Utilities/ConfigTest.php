@@ -199,6 +199,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         $config->something = 'value';
         $this->assertEquals('value', $config->something);
     }
+
     /**
      * Test the iterator methods.
      *

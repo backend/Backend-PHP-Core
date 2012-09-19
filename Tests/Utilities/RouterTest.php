@@ -12,8 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
-use \Backend\Core\Utilities\Router;
-use \Backend\Interfaces\CallbackFactoryInterface;
+use Backend\Core\Utilities\Router;
+use Backend\Interfaces\CallbackFactoryInterface;
+use Backend\Core\Utilities\Config;
 /**
  * Class to test the \Backend\Core\Utilities\Router class
  *
@@ -25,6 +26,13 @@ use \Backend\Interfaces\CallbackFactoryInterface;
  */
 class RouterTest extends \PHPUnit_Framework_TestCase
 {
+    protected $config;
+
+    public function setUp()
+    {
+        $parser = $this->getMockForAbstractClass('\Backend\Interfaces\ParserInterface');
+        $this->config = new Config($parser);
+    }
     /**
      * Test the constructor
      *
@@ -32,35 +40,12 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-        $configArr = array('one' => 'two');
         $config = $this->getMock('\Backend\Interfaces\ConfigInterface');
-        $config
-            ->expects($this->once())
-            ->method('get')
-            ->will($this->returnValue($configArr));
         $factory = $this->getMock('Backend\Interfaces\CallbackFactoryInterface');
+
         $router = new Router($config, $factory);
-        $this->assertEquals($configArr, $router->getConfig());
+        $this->assertSame($config, $router->getConfig());
         $this->assertSame($factory, $router->getCallbackFactory());
-
-        $router = new Router($configArr, $factory);
-        $this->assertEquals($configArr, $router->getConfig());
-
-        $router = new Router((object) $configArr, $factory);
-        $this->assertEquals($configArr, $router->getConfig());
-    }
-
-    /**
-     * Test an invalid Router config.
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exceptions\ConfigException
-     * @expectedExceptionMessage Invalid Router Configuration
-     */
-    public function testInvalidConfig()
-    {
-        $factory = $this->getMock('Backend\Interfaces\CallbackFactoryInterface');
-        $router = new Router(false, $factory);
     }
 
     /**
@@ -77,11 +62,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->method('getMethod')
             ->will($this->returnValue('POST'));
         $route  = array('verb' => 'get');
-        $config = array('routes' => array('/' => $route));
+
+        $configArr = array('routes' => array('/' => $route));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertFalse($router->inspect($request));
     }
 
@@ -99,7 +86,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->method('getPath')
             ->will($this->returnValue('/'));
         $route  = array('route' => '/', 'callback' => 'Some::callback');
-        $config = array('routes' => array('/' => $route));
+
+        $configArr = array('routes' => array('/' => $route));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -108,7 +97,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with($route['callback'])
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertTrue($router->inspect($request));
     }
 
@@ -126,11 +115,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->method('getPath')
             ->will($this->returnValue('/somewhere/nothere'));
         $route  = array('route' => '/<here>');
-        $config = array('routes' => array('/' => $route));
+
+        $configArr = array('routes' => array('/' => $route));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertFalse($router->inspect($request));
     }
 
@@ -148,7 +139,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->method('getPath')
             ->will($this->returnValue('/somewhere'));
         $route  = array('route' => '/<something>', 'callback' => 'Some::callback');
-        $config = array('routes' => array('/' => $route));
+
+        $configArr = array('routes' => array('/' => $route));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -156,7 +149,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->method('fromString')
             ->with($route['callback'], array('something' => 'somewhere'))
             ->will($this->returnValue(true));
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertEquals(true, $router->inspect($request));
     }
 
@@ -177,7 +170,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             'route' => '/<something>/<another>', 'callback' => 'Some::callback',
             'defaults' => array('another' => 'default')
         );
-        $config = array('routes' => array('/' => $route));
+
+        $configArr = array('routes' => array('/' => $route));
+        $this->config->setAll($configArr);
 
         $arguments = array('something' => 'somewhere', 'another' => 'nothere');
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
@@ -186,7 +181,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->method('fromString')
             ->with($route['callback'], $this->identicalTo($arguments))
             ->will($this->returnValue(true));
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertEquals(true, $router->inspect($request));
     }
 
@@ -203,11 +198,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getPath')
             ->will($this->returnValue('/'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertFalse($router->inspect($request));
 
         //Test no match on the controller
@@ -216,11 +213,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getPath')
             ->will($this->returnValue('/nothere'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $this->assertFalse($router->inspect($request));
     }
 
@@ -231,6 +230,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function dataCheckForControllersMatches()
     {
+        $this->setUp();
         $return = array();
 
         //Test a match on the controller: GET (list)
@@ -243,7 +243,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getMethod')
             ->will($this->returnValue('get'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -252,7 +254,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with('/Some/Controller::list')
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $return[] = array($router, $request);
 
         //Test a match on the controller: GET (list - default)
@@ -261,7 +263,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getPath')
             ->will($this->returnValue('/somewhere'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -270,7 +274,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with('/Some/Controller::list')
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $return[] = array($router, $request);
 
         //Test a match on the controller: GET (read)
@@ -283,7 +287,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getMethod')
             ->will($this->returnValue('get'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -292,7 +298,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with('/Some/Controller::read')
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $return[] = array($router, $request);
 
         //Test a match on the controller: POST
@@ -305,7 +311,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getMethod')
             ->will($this->returnValue('post'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -314,7 +322,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with('/Some/Controller::create')
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $return[] = array($router, $request);
 
         //Test a match on the controller: PUT
@@ -327,7 +335,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getMethod')
             ->will($this->returnValue('put'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -336,7 +346,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with('/Some/Controller::update')
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $return[] = array($router, $request);
 
         //Test a match on the controller: DELETE
@@ -349,7 +359,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getMethod')
             ->will($this->returnValue('delete'));
-        $config = array('controllers' => array('somewhere' => '/Some/Controller'));
+
+        $configArr = array('controllers' => array('somewhere' => '/Some/Controller'));
+        $this->config->setAll($configArr);
 
         $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
         $factory
@@ -358,7 +370,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
             ->with('/Some/Controller::delete')
             ->will($this->returnValue(true));
 
-        $router = new Router($config, $factory);
+        $router = new Router($this->config, $factory);
         $return[] = array($router, $request);
 
         return $return;
