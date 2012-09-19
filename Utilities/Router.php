@@ -47,6 +47,13 @@ class Router
     protected $factory;
 
     /**
+     * Generator to create URLs.
+     *
+     * @var object
+     */
+    protected $generator;
+
+    /**
      * The class constructor.
      *
      * @param Backend\Interfaces\ConfigInterface          $config  The routes
@@ -55,10 +62,12 @@ class Router
      * factory used to create callbacks from strings.
      */
     public function __construct(
-        ConfigInterface $config, CallbackFactoryInterface $factory
+        ConfigInterface $config, CallbackFactoryInterface $factory,
+        $generator
     ) {
-        $this->config  = $config;
-        $this->factory = $factory;
+        $this->config    = $config;
+        $this->factory   = $factory;
+        $this->generator = $generator;
     }
 
     /**
@@ -206,7 +215,7 @@ class Router
      * @param mixed $callback Either a callback or a string representation of
      * a callback.
      *
-     * @return \Backend\Interfaces\RequestInterface
+     * @return string The name of the route the callback resolves to.
      */
     public function resolve($callback, $arguments = array())
     {
@@ -218,36 +227,36 @@ class Router
         if (($callback instanceof \Backend\Interfaces\CallbackInterface) === false) {
             throw new \RuntimeException('Invalid Callback Type');
         }
+
+        // Check the method name
         if ($callback->getMethod() !== null && substr($callback->getMethod(), -6) === 'Action') {
             $callback->setMethod(substr($callback->getMethod(), 0, strlen($callback->getMethod()) - 6));
         }
 
-        // Get the routes that match the callback
+        // Check if a defined route matches the callback
         if ($this->config->has('routes')) {
             foreach ($this->config->get('routes') as $key => $route) {
                 if ((string)$callback === $route['callback']) {
-                    return $route;
+                    return $key;
                 }
             }
         }
+
+        // Check controllers for the callback controller
         if ($this->config->has('controllers')) {
             foreach($this->config->get('controllers') as $key => $controller) {
                 if ($controller !== $callback->getClass()) {
                     continue;
                 }
-                switch ($callback->getMethod()) {
-                case 'create':
-                case 'list':
-                    return $key;
-                case 'read':
-                case 'update':
-                case 'delete':
-                    return $key . '/' . reset($arguments);
-                }
+                return $key;
             }
         }
-
         return false;
+    }
+
+    public function generate($routeName, $arguments = array())
+    {
+        return $this->generator->generate($routeName);
     }
 
     /**

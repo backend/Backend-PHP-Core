@@ -105,6 +105,9 @@ class Callback implements CallbackInterface
                 . gettype($class)
             );
         }
+        if ($class[0] !== '\\') {
+            $class = '\\' . $class;
+        }
         if (!class_exists($class, true)) {
             throw new CoreException(
                 'Trying to set non-existant class in Callback: ' . $class
