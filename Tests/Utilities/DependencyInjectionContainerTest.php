@@ -116,11 +116,25 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function testAccessors()
+    public function testServiceAccessors()
     {
         $container = new DependencyInjectionContainer;
         $container->set('test', $this);
         $this->assertSame($this, $container->get('test'));
+    }
+
+    /**
+     * Test getting and setting parameters.
+     *
+     * @return void
+     */
+    public function testParameterAccessors()
+    {
+        $container = new DependencyInjectionContainer;
+        $this->assertFalse($container->hasParameter('test'));
+        $container->setParameter('test', 'value');
+        $this->assertEquals('value', $container->getParameter('test'));
+        $this->assertTrue($container->hasParameter('test'));
     }
 
     /**

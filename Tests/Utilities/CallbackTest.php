@@ -32,7 +32,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
     public function testConstructor()
     {
         $callback = new Callback(__CLASS__, __METHOD__);
-        $this->assertEquals(__CLASS__, $callback->getClass());
+        $this->assertEquals('\\' . __CLASS__, $callback->getClass());
         $this->assertEquals(__METHOD__, $callback->getMethod());
 
         $callback = new Callback($this, __METHOD__);
@@ -51,7 +51,7 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
      */
     public function testClassAccessors()
     {
-        $class = __CLASS__;
+        $class = '\\' . __CLASS__;
         $callback = new Callback();
         $callback->setClass($class);
         $this->assertEquals($class, $callback->getClass());
@@ -383,15 +383,15 @@ class CallbackTest extends \PHPUnit_Framework_TestCase
         $result[] = array(new Callback('DateTime'), 'DateTime');
         $result[] = array(
             new Callback('DateTime', 'createFromFormat'),
-            'DateTime::createFromFormat'
+            '\DateTime::createFromFormat'
         );
         $result[] = array(
             new Callback('DateTime', 'unknownMethod'),
-            'DateTime::unknownMethod'
+            '\DateTime::unknownMethod'
         );
         $result[] = array(
             new Callback(new \DateTime(), 'unknownMethod'),
-            'DateTime::unknownMethod'
+            '\DateTime::unknownMethod'
         );
         $callback = new Callback;
         $callback->setMethod('someMethod');

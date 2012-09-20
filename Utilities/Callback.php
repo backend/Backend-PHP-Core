@@ -339,9 +339,7 @@ class Callback implements CallbackInterface
         if (is_callable($callable, false, $callableName)) {
             return $callableName;
         }
-        if (is_callable($callable, true, $callableName)) {
-            throw new CoreException('Unexecutable Callback: ' . $callableName);
-        }
+        throw new CoreException('Unexecutable Callback: ' . $callableName);
     }
 
     /**
@@ -364,7 +362,11 @@ class Callback implements CallbackInterface
             if ($this->class) {
                 return $this->class . '::' . $this->method;
             } elseif ($this->object) {
-                return get_class($this->object) . '::' . $this->method;
+                $result = get_class($this->object) . '::' . $this->method;
+                if ($result[0] !== '\\') {
+                    $result = '\\' . $result;
+                }
+                return $result;
             } else {
                 return '(null)::' . $this->method;
             }

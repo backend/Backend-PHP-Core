@@ -37,7 +37,7 @@ class CallbackFactoryTest extends \PHPUnit_Framework_TestCase
 
         $factory  = new CallbackFactory;
         $callback = $factory->fromString('DateInterval::createFromDateString');
-        $this->assertEquals('DateInterval::createFromDateString', (string) $callback);
+        $this->assertEquals('\DateInterval::createFromDateString', (string) $callback);
     }
 
     /**

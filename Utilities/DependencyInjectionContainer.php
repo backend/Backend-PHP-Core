@@ -194,16 +194,4 @@ class DependencyInjectionContainer extends ContainerBuilder
     {
         return parent::hasParameter($name);
     }
-
-    /**
-     * Remove the Implementation of the specified Component.
-     *
-     * @param string $id The identifier of the Component to remove.
-     *
-     * @return void
-     */
-    public function removeDefinition($id)
-    {
-        return parent::removeDefinition($id);
-    }
 }
