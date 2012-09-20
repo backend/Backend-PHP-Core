@@ -15,6 +15,7 @@ namespace Backend\Core\Tests\Utilities;
 use Backend\Core\Utilities\Router;
 use Backend\Interfaces\CallbackFactoryInterface;
 use Backend\Core\Utilities\Config;
+use Backend\Core\Utilities\Callback;
 /**
  * Class to test the \Backend\Core\Utilities\Router class
  *
@@ -397,7 +398,55 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testResolve()
     {
-        $this->markTestIncomplete();
+        $callback = new Callback(get_class($this), 'methodAction');
+        $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
+        $factory
+            ->expects($this->any())
+            ->method('fromString')
+            ->with('\Backend\Core\Tests\Utilities\RouterTest::method')
+            ->will($this->returnValue($callback));
+
+        // Callback not defined by route
+        $configArr = array('routes' => array(), 'controllers' => array());
+        $this->config->setAll($configArr);
+        $router = new Router($this->config, $factory);
+        $this->assertFalse($router->resolve('\Backend\Core\Tests\Utilities\RouterTest::method'));
+
+        // Defined Route
+        $configArr = array(
+            'routes' => array(
+                'defined_route' => array(
+                    'route' => '/', 'callback' => '\Backend\Core\Tests\Utilities\RouterTest::method'
+                )
+            )
+        );
+        $this->config->setAll($configArr);
+        $router = new Router($this->config, $factory);
+        $this->assertEquals('defined_route', $router->resolve('\Backend\Core\Tests\Utilities\RouterTest::method'));
+
+        // Defined Controller
+        $configArr = array('routes' => array(), 'controllers' => array(
+            'undefined_controller' => '\AnotherController',
+            'defined_controller' => '\Backend\Core\Tests\Utilities\RouterTest',
+        ));
+        $this->config->setAll($configArr);
+        $router = new Router($this->config, $factory);
+        $this->assertEquals('defined_controller', $router->resolve('\Backend\Core\Tests\Utilities\RouterTest::method'));
+
+    }
+
+    /**
+     * Test trying to resolve an invalid callback.
+     *
+     * @return void
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Invalid Callback Type
+     */
+    public function testResolveInvalidCallback()
+    {
+        $factory = $this->getMock('\Backend\Interfaces\CallbackFactoryInterface');
+        $router = new Router($this->config, $factory);
+        $router->resolve(false);
     }
 
     /**
