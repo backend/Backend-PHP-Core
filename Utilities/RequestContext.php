@@ -1,22 +1,68 @@
 <?php
-namespace Backend\Core;
+/**
+ * File defining Backend\Core\Utilities\RequestContext.
+ *
+ * PHP Version 5.3
+ *
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright  2011 - 2012 Jade IT (cc)
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
+ */
+namespace Backend\Core\Utilities;
 use Backend\Interfaces\RequestInterface;
-class RequestContext
+use Backend\Interfaces\RequestContextInterface;
+/**
+ * Class to define the context of a Request.
+ *
+ * @category   Backend
+ * @package    Core
+ * @subpackage Utilities
+ * @author     J Jurgens du Toit <jrgns@backend-php.net>
+ * @license    http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link       http://backend-php.net
+ */
+class RequestContext implements RequestContextInterface
 {
-    protected $siteState;
-
+    /**
+     * The scheme of the request.
+     *
+     * @var string
+     */
     protected $scheme;
 
+    /**
+     * The host of the request.
+     *
+     * @var string
+     */
     protected $host;
 
+    /**
+     * The path of the request.
+     *
+     * @var string
+     */
     protected $path;
 
+    /**
+     * The site link of the request.
+     *
+     * @var string
+     */
     protected $link;
 
-    public function __construct(RequestInterface $request, $siteState = 'dev')
+    /**
+     * The class constructor.
+     *
+     * @param \Backend\Interfaces\RequestInterface $request The request from which
+     * the context is derived.
+     */
+    public function __construct(RequestInterface $request)
     {
-        $this->siteState = $siteState;
-
         $defaults = array(
             'scheme' => 'http',
             'host'   => gethostname(),
@@ -42,12 +88,55 @@ class RequestContext
             substr($this->link, 0, strlen($this->link) -1) : $this->link;
     }
 
-    public function __get($parameter)
+    /**
+     * Get the Request scheme.
+     *
+     * If the Request URL was, http://backend-php.net/test, this will return
+     * http
+     *
+     * @return string
+     */
+    public function getScheme()
     {
-        if (property_exists($this, $parameter)) {
-            return $this->$parameter;
-        } else {
-            throw new \ErrorException('Undefined property: ' . get_class($this) . '::$' . $name);
-        }
+        return $this->scheme;
+    }
+
+    /**
+     * Get the hostname of the Request.
+     *
+     * If the Request URL was, http://backend-php.net/test, this will return
+     * backend-php.net
+     *
+     * @return string
+     */
+    public function getHost()
+    {
+        return $this->host;
+    }
+
+    /**
+     * Get the path of the Request.
+     *
+     * If the Request URL was, http://backend-php.net/test, this will return
+     * /test
+     *
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+    /**
+     * Get a link to the base site of the Request.
+     *
+     * If the Request URL was, http://backend-php.net/test, this will return
+     * http://backend-php.net/
+     *
+     * @return string
+     */
+    public function getLink()
+    {
+        return $this->link;
     }
 }
