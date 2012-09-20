@@ -20,3 +20,5 @@ Core uses [Backend-PHP Interfaces](https://github.com/backend/Backend-PHP-Interf
 Build Status
 ============
 [![Build Status on Travis-CI](https://secure.travis-ci.org/backend/Backend-PHP-Core.png?branch=master)](http://travis-ci.org/backend/Backend-PHP-Core)
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/6b18b1e2123729cb8d514727af29f260 "githalytics.com")](http://githalytics.com/backend/Backend-PHP-Core)
