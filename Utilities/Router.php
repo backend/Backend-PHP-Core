@@ -47,13 +47,6 @@ class Router
     protected $factory;
 
     /**
-     * Generator to create URLs.
-     *
-     * @var object
-     */
-    protected $generator;
-
-    /**
      * The class constructor.
      *
      * @param Backend\Interfaces\ConfigInterface          $config  The routes
@@ -62,12 +55,10 @@ class Router
      * factory used to create callbacks from strings.
      */
     public function __construct(
-        ConfigInterface $config, CallbackFactoryInterface $factory,
-        $generator
+        ConfigInterface $config, CallbackFactoryInterface $factory
     ) {
         $this->config    = $config;
         $this->factory   = $factory;
-        $this->generator = $generator;
     }
 
     /**
@@ -210,7 +201,7 @@ class Router
     }
 
     /**
-     * Determine what request will result in the specified callback.
+     * Determine what route will result in the specified callback.
      *
      * @param mixed $callback Either a callback or a string representation of
      * a callback.
@@ -252,11 +243,6 @@ class Router
             }
         }
         return false;
-    }
-
-    public function generate($routeName, $arguments = array())
-    {
-        return $this->generator->generate($routeName);
     }
 
     /**
