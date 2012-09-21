@@ -76,7 +76,7 @@ class RequestContext implements RequestContextInterface
         $urlParts = $urlParts + $defaults;
         $this->scheme = $urlParts['scheme'];
         $this->host   = $urlParts['host'];
-        $this->path   = $urlParts['path'];
+        $this->path   = empty($urlParts['path']) ? '/' : $urlParts['path'];
 
         //Check if the last part is a file
         if (substr($this->path, -1) !== '/' && strpos(basename($this->path), '.') !== false) {

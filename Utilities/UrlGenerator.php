@@ -13,9 +13,9 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
-use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\UrlGeneratorInterface;
 use Backend\Interfaces\RequestContextInterface;
+use Backend\Interfaces\ConfigInterface;
 /**
  * Class to generate URL's using routing information.
  *
@@ -81,5 +81,51 @@ class UrlGenerator implements UrlGeneratorInterface
         }
         $link .= $path;
         return $link;
+    }
+
+    /**
+     * Set the context.
+     *
+     * @param \Backend\Interfaces\RequestContextInterface $context The context object to set.
+     *
+     * @return  \Backend\Interfaces\URlGeneratorInterface The current object
+     */
+    public function setContext(RequestContextInterface $context)
+    {
+        $this->context = $context;
+        return $this;
+    }
+
+    /**
+     * Get the context.
+     *
+     * @return \Backend\Interfaces\RequestContextInterface The context object.
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * Set the Config.
+     *
+     * @param \Backend\Interfaces\ConfigInterface $config The config object to set.
+     *
+     * @return  \Backend\Interfaces\URlGeneratorInterface The current object
+     */
+    public function setConfig(ConfigInterface $config)
+    {
+        $this->config = $config;
+        return $this;
+    }
+
+    /**
+     * Get the Config.
+     *
+     * @return \Backend\Interfaces\ConfigInterface $config The config object.
+     */
+    public function getConfig()
+    {
+        return $this->config;
     }
 }
