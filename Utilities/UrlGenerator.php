@@ -63,7 +63,7 @@ class UrlGenerator implements UrlGeneratorInterface
      *
      * @return string
      */
-    public function generate($routeName)
+    public function generate($routeName, array $parameters = array())
     {
         $routes = $this->config->get('routes');
         $controllers = $this->config->get('controllers');
@@ -80,6 +80,9 @@ class UrlGenerator implements UrlGeneratorInterface
             $path = '/' . $path;
         }
         $link .= $path;
+        foreach($parameters as $name => $value) {
+            $link = str_replace('<' . $name . '>', urlencode($value), $link);
+        }
         return $link;
     }
 
