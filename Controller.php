@@ -117,7 +117,7 @@ class Controller implements ControllerInterface
         }
         if ($location[0] === '/' && (empty($location[1]) || $location[1] !== '/')) {
             // Relative Redirect
-            $location = $this->getRequest()->getUrl() . $location;
+            $location = $this->container->get('request_context')->getLink() . $location;
         }
         $responseClass = $this->container->getParameter('response.class');
         $response = new $responseClass('Redirecting to ' . $location, $responseCode);
