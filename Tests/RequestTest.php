@@ -681,13 +681,15 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test getting and setting the input stream
+     * Test the Input Strean setter and getter.
      *
      * @return void
      */
     public function testInputStreamAccessors()
     {
-        $this->markTestIncomplete();
-    }
+        $request = new Request;
 
+        $this->assertSame($request, $request->setInputStream('somestream://'));
+        $this->assertEquals('somestream://', $request->getInputStream());
+    }
 }

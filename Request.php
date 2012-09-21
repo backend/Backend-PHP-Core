@@ -865,6 +865,7 @@ class Request implements RequestInterface
     public function setInputStream($stream)
     {
         $this->inputStream = $stream;
+        return $this;
     }
 
     /**
