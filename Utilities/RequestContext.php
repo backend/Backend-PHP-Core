@@ -42,11 +42,11 @@ class RequestContext implements RequestContextInterface
     protected $host;
 
     /**
-     * The path of the request.
+     * The folder of the request.
      *
      * @var string
      */
-    protected $path;
+    protected $folder;
 
     /**
      * The site link of the request.
@@ -80,19 +80,17 @@ class RequestContext implements RequestContextInterface
         $this->scheme = $urlParts['scheme'];
         $this->host   = $urlParts['host'];
 
-        $this->path   = preg_replace('|' . $request->getPath() . '$|', '', $urlParts['path']);
+        $this->folder = preg_replace('|' . $request->getPath() . '$|', '', $urlParts['path']);
 
         //Check if the last part is a file
-        if (substr($this->path, -1) !== '/' && strpos(basename($this->path), '.') !== false) {
-            $this->path = dirname($this->path);
+        if (substr($this->folder, -1) !== '/' && strpos(basename($this->folder), '.') !== false) {
+            $this->folder = dirname($this->folder);
         }
-        if (substr($this->path, -1) !== '/') {
-            $this->path .= '/';
+        if (substr($this->folder, -1) === '/') {
+            $this->folder = substr($this->folder, 0, strlen($this->folder) -1);
         }
 
-        $this->link = $this->scheme . '://' . $this->host . $this->path;
-        $this->link = substr($this->link, -1) === '/' ?
-            substr($this->link, 0, strlen($this->link) -1) : $this->link;
+        $this->link = $this->scheme . '://' . $this->host . $this->folder;
     }
 
     /**
@@ -129,9 +127,9 @@ class RequestContext implements RequestContextInterface
      *
      * @return string
      */
-    public function getPath()
+    public function getFolder()
     {
-        return $this->path;
+        return $this->folder;
     }
 
     /**

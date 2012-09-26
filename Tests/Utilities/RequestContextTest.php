@@ -40,7 +40,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('http', $context->getScheme());
         $this->assertEquals(gethostname(), $context->getHost());
-        $this->assertEquals('/', $context->getPath());
+        $this->assertEquals('', $context->getFolder());
         $this->assertEquals('http://' . gethostname(), $context->getLink());
     }
 
@@ -60,7 +60,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('https', $context->getScheme());
         $this->assertEquals('backend-php.net', $context->getHost());
-        $this->assertEquals('/subfolder', $context->getPath());
+        $this->assertEquals('/subfolder', $context->getFolder());
         $this->assertEquals('https://backend-php.net/subfolder', $context->getLink());
     }
 
