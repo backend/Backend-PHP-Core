@@ -137,7 +137,7 @@ class Response implements ResponseInterface
      *
      * @param int $code The new status code
      *
-     * @return Response The current object
+     * @return Response          The current object
      * @throws \RuntimeException If the response code is smaller than 100 or larger than 600.
      */
     public function setStatusCode($code)
@@ -202,6 +202,7 @@ class Response implements ResponseInterface
     public function getHeader($name)
     {
         $name = strtolower($name);
+
         return array_key_exists($name, $this->headers) ? $this->headers[$name] : null;
     }
 
@@ -242,6 +243,7 @@ class Response implements ResponseInterface
             }
             $headers[] = $content;
         }
+
         return $headers;
     }
 

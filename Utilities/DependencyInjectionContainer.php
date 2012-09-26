@@ -96,7 +96,7 @@ class DependencyInjectionContainer extends ContainerBuilder
             $definition->setFactoryMethod($config['factory_method']);
         }
         foreach ($config['calls'] as $name => $arguments) {
-            foreach($arguments as &$argument) {
+            foreach ($arguments as &$argument) {
                 if (substr($argument, 0, 1) === '@') {
                     $argument = new Reference(substr($argument, 1));
                 }
@@ -121,9 +121,8 @@ class DependencyInjectionContainer extends ContainerBuilder
      * @return object
      * @throws \Backend\Core\Exception
      */
-    public function get($id,
-        $invalidBehaviour = ContainerInterface::IGNORE_ON_INVALID_REFERENCE
-    ) {
+    public function get($id, $invalidBehaviour = ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
+    {
         if (parent::has($id)) {
             return parent::get($id, $invalidBehaviour);
         } else {

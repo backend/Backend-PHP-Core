@@ -47,7 +47,7 @@ class UrlGenerator implements UrlGeneratorInterface
      *
      * @param \Backend\Interfaces\RequestContextInterface $context The context of
      * the current request.
-     * @param \Backend\Interfaces\ConfigInterface         $config  A config object
+     * @param \Backend\Interfaces\ConfigInterface $config A config object
      * containing route definitions.
      */
     public function __construct(RequestContextInterface $context, ConfigInterface $config)
@@ -69,7 +69,7 @@ class UrlGenerator implements UrlGeneratorInterface
         $controllers = $this->config->get('controllers');
         if ($routes && array_key_exists($routeName, $routes)) {
             $path = $routes[$routeName]['route'];
-        } else if ($controllers && array_key_exists($routeName, $controllers)) {
+        } elseif ($controllers && array_key_exists($routeName, $controllers)) {
             $path = $routeName;
         } else {
             throw new \RuntimeException('Undefined Route: ' . $routeName);
@@ -80,9 +80,10 @@ class UrlGenerator implements UrlGeneratorInterface
             $path = '/' . $path;
         }
         $link .= $path;
-        foreach($parameters as $name => $value) {
+        foreach ($parameters as $name => $value) {
             $link = str_replace('<' . $name . '>', urlencode($value), $link);
         }
+
         return $link;
     }
 
@@ -91,11 +92,12 @@ class UrlGenerator implements UrlGeneratorInterface
      *
      * @param \Backend\Interfaces\RequestContextInterface $context The context object to set.
      *
-     * @return  \Backend\Interfaces\URlGeneratorInterface The current object
+     * @return \Backend\Interfaces\URlGeneratorInterface The current object
      */
     public function setContext(RequestContextInterface $context)
     {
         $this->context = $context;
+
         return $this;
     }
 
@@ -114,11 +116,12 @@ class UrlGenerator implements UrlGeneratorInterface
      *
      * @param \Backend\Interfaces\ConfigInterface $config The config object to set.
      *
-     * @return  \Backend\Interfaces\URlGeneratorInterface The current object
+     * @return \Backend\Interfaces\URlGeneratorInterface The current object
      */
     public function setConfig(ConfigInterface $config)
     {
         $this->config = $config;
+
         return $this;
     }
 

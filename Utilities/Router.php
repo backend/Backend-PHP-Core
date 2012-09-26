@@ -17,8 +17,6 @@ use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\CallbackFactoryInterface;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\CallbackFactory;
-use Backend\Core\Exceptions\ConfigException;
-use Backend\Core\Exception as CoreException;
 use Backend\Interfaces\RequestInterface;
 /**
  * Class to inspect the Request to determine what callback should be executed.
@@ -49,14 +47,13 @@ class Router
     /**
      * The class constructor.
      *
-     * @param Backend\Interfaces\ConfigInterface          $config  The routes
+     * @param Backend\Interfaces\ConfigInterface $config The routes
      * config as a Config object
      * @param Backend\Interfaces\CallbackFactoryInterface $factory A callback
      * factory used to create callbacks from strings.
      */
-    public function __construct(
-        ConfigInterface $config, CallbackFactoryInterface $factory
-    ) {
+    public function __construct(ConfigInterface $config, CallbackFactoryInterface $factory)
+    {
         $this->config    = $config;
         $this->factory   = $factory;
     }
@@ -141,6 +138,7 @@ class Router
                     }
                     $index = $index + 2;
                 }
+
                 return $factory->fromString($route['callback'], $arguments);
             }
         }
@@ -175,23 +173,23 @@ class Router
 
         $action = strtolower($request->getMethod());
         switch ($action) {
-        case 'post':
-            $action = 'create';
-            break;
-        case 'put':
-            $action = 'update';
-            break;
-        case 'delete':
-            $action = 'delete';
-            break;
-        case 'get':
-        default:
-            if (count($queryArr) == 1) {
-                $action = 'list';
-            } else {
-                $action = 'read';
-            }
-            break;
+            case 'post':
+                $action = 'create';
+                break;
+            case 'put':
+                $action = 'update';
+                break;
+            case 'delete':
+                $action = 'delete';
+                break;
+            case 'get':
+            default:
+                if (count($queryArr) == 1) {
+                    $action = 'list';
+                } else {
+                    $action = 'read';
+                }
+                break;
         }
         $callback = $controller . '::' . $action;
 
@@ -227,7 +225,7 @@ class Router
         // Check if a defined route matches the callback
         if ($this->config->has('routes')) {
             foreach ($this->config->get('routes') as $key => $route) {
-                if ((string)$callback === $route['callback']) {
+                if ((string) $callback === $route['callback']) {
                     return $key;
                 }
             }
@@ -235,13 +233,15 @@ class Router
 
         // Check controllers for the callback controller
         if ($this->config->has('controllers')) {
-            foreach($this->config->get('controllers') as $key => $controller) {
+            foreach ($this->config->get('controllers') as $key => $controller) {
                 if ($controller !== $callback->getClass()) {
                     continue;
                 }
+
                 return $key;
             }
         }
+
         return false;
     }
 

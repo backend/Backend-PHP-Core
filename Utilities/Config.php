@@ -140,18 +140,18 @@ class Config implements ConfigInterface
     public function setAll($config)
     {
         switch (true) {
-        case is_string($config) && file_exists($config):
-            $this->values = $this->fromFile($config);
-            break;
-        case is_array($config):
-            $this->values = $config;
-            break;
-        case is_object($config):
-            $this->values = (array) $config;
-            break;
-        default:
-            throw new ConfigException('Invalid configuration values: ' . $config);
-            break;
+            case is_string($config) && file_exists($config):
+                $this->values = $this->fromFile($config);
+                break;
+            case is_array($config):
+                $this->values = $config;
+                break;
+            case is_object($config):
+                $this->values = (array) $config;
+                break;
+            default:
+                throw new ConfigException('Invalid configuration values: ' . $config);
+                break;
         }
         $this->rewind();
 

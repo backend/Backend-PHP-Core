@@ -74,6 +74,7 @@ class Formatter implements FormatterInterface
         if ($result instanceof ResponseInterface) {
             return $result;
         }
+
         return new Response($result);
     }
 
@@ -85,9 +86,8 @@ class Formatter implements FormatterInterface
      *
      * @return \Backend\Interfaces\FormatterInterface
      */
-    public static function factory(
-        DependencyInjectionContainerInterface $container
-    ) {
+    public static function factory(DependencyInjectionContainerInterface $container)
+    {
         $request = $container->get('request');
         $requested = self::getRequestFormats($request);
         $formats   = self::getFormats();
@@ -126,7 +126,7 @@ class Formatter implements FormatterInterface
             $regex = implode(DIRECTORY_SEPARATOR, array('', '.*', '.*', 'Formats', '.+'));
             $regex = '|.*(' . $regex . ')\.php$|i';
             $regex  = new \RegexIterator($iter, $regex, \RecursiveRegexIterator::GET_MATCH);
-            foreach($regex as $file) {
+            foreach ($regex as $file) {
                 $formatName = str_replace(
                     array('/', '\\', DIRECTORY_SEPARATOR), '\\',
                     $file[1]

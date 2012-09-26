@@ -111,7 +111,7 @@ class Request implements RequestInterface
      * @param mixed  $url    The URL of the request
      * @param string $method The request method. Can be one of GET, POST, PUT,
      * DELETE or HEAD
-     * @param mixed $body    The request data. Defaults to the HTTP request data
+     * @param mixed $body The request data. Defaults to the HTTP request data
      * if not supplied
      */
     public function __construct($url = null, $method = null, $body = null)
@@ -195,24 +195,24 @@ class Request implements RequestInterface
         //http://book.cakephp.org/2.0/en/development/rest.html#the-simple-setup
         $body = $this->body === null ? $this->getBody() : $this->body;
         switch (true) {
-        case is_array($body) && array_key_exists('_method', $body):
-            $method = $body['_method'];
-            unset($this->body['_method']);
-            break;
-        case $this->getHeader('METHOD_OVERRIDE') !== null:
-            $method = $this->getHeader('METHOD_OVERRIDE');
-            break;
-        //First CL parameter is the method
-        case $this->fromCli()
-            && count($this->serverInfo['argv']) >= 2
-            && in_array(strtoupper($this->serverInfo['argv'][1]), self::$allowedMethods):
-            $method = $this->serverInfo['argv'][1];
-            break;
-        case $this->getServerInfo('request_method') !== null:
-            $method = $this->getServerInfo('request_method');
-            break;
-        default:
-            break;
+            case is_array($body) && array_key_exists('_method', $body):
+                $method = $body['_method'];
+                unset($this->body['_method']);
+                break;
+            case $this->getHeader('METHOD_OVERRIDE') !== null:
+                $method = $this->getHeader('METHOD_OVERRIDE');
+                break;
+            //First CL parameter is the method
+            case $this->fromCli()
+                && count($this->serverInfo['argv']) >= 2
+                && in_array(strtoupper($this->serverInfo['argv'][1]), self::$allowedMethods):
+                $method = $this->serverInfo['argv'][1];
+                break;
+            case $this->getServerInfo('request_method') !== null:
+                $method = $this->getServerInfo('request_method');
+                break;
+            default:
+                break;
         }
         $this->setMethod($method);
 
@@ -251,7 +251,7 @@ class Request implements RequestInterface
                 $this->headers = array_change_key_case($this->headers);
             } else {
                 $this->headers = array();
-                foreach($this->serverInfo as $name => $value) {
+                foreach ($this->serverInfo as $name => $value) {
                     if (strtolower(substr($name, 0, 5)) !== 'http_') {
                         continue;
                     }
@@ -260,6 +260,7 @@ class Request implements RequestInterface
                 }
             }
         }
+
         return $this;
     }
 
@@ -280,6 +281,7 @@ class Request implements RequestInterface
             }
             $headers[] = $content;
         }
+
         return $headers;
     }
 
@@ -293,6 +295,7 @@ class Request implements RequestInterface
     public function setHeaders(array $headers)
     {
         $this->headers = $headers;
+
         return $this;
     }
 
@@ -308,6 +311,7 @@ class Request implements RequestInterface
         $this->buildHeaders();
 
         $name = strtolower($name);
+
         return array_key_exists($name, $this->headers) ? $this->headers[$name] : null;
     }
 
@@ -402,6 +406,7 @@ class Request implements RequestInterface
     public function setUrl($url)
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -448,23 +453,23 @@ class Request implements RequestInterface
             return $this->mimeType;
         }
         switch (true) {
-        case $this->getHeader('accept') !== null:
-            $mimeType = $this->getHeader('accept');
-            if ($mimeType !== null) {
-                //Try to get the first type
-                $types = explode(',', $mimeType);
-                $types = array_map('trim', $types);
-                usort($types, array($this, 'compareMimeTypes'));
-                //Remove the preference variable
-                $mimeType = explode(';', end($types));
-                $this->mimeType = trim(reset($mimeType));
-            }
-            break;
-        case $this->fromCli():
-            $this->mimeType = 'cli';
-            break;
-        default:
-            break;
+            case $this->getHeader('accept') !== null:
+                $mimeType = $this->getHeader('accept');
+                if ($mimeType !== null) {
+                    //Try to get the first type
+                    $types = explode(',', $mimeType);
+                    $types = array_map('trim', $types);
+                    usort($types, array($this, 'compareMimeTypes'));
+                    //Remove the preference variable
+                    $mimeType = explode(';', end($types));
+                    $this->mimeType = trim(reset($mimeType));
+                }
+                break;
+            case $this->fromCli():
+                $this->mimeType = 'cli';
+                break;
+            default:
+                break;
         }
 
         return $this->mimeType;
@@ -480,6 +485,7 @@ class Request implements RequestInterface
     public function setMimeType($mimeType)
     {
         $this->mimeType = $mimeType;
+
         return $this;
     }
 
@@ -566,6 +572,7 @@ class Request implements RequestInterface
     public function setSpecifiedFormat($format)
     {
         $this->format = $format;
+
         return $this;
     }
 
@@ -600,6 +607,7 @@ class Request implements RequestInterface
     public function setExtension($extension)
     {
         $this->extension = $extension;
+
         return $this;
     }
 
@@ -622,15 +630,15 @@ class Request implements RequestInterface
             $name = substr($name, 2);
         }
         switch (true) {
-        case array_key_exists($name, $this->serverInfo):
-            return $this->serverInfo[$name];
-            break;
-        //Check for deprecated X- values http://tools.ietf.org/html/rfc6648
-        case array_key_exists('X_' . $name, $this->serverInfo):
-            return $this->serverInfo['X_' . $name ];
-            break;
-        default:
-            break;
+            case array_key_exists($name, $this->serverInfo):
+                return $this->serverInfo[$name];
+                break;
+            //Check for deprecated X- values http://tools.ietf.org/html/rfc6648
+            case array_key_exists('X_' . $name, $this->serverInfo):
+                return $this->serverInfo['X_' . $name ];
+                break;
+            default:
+                break;
         }
 
         return null;
@@ -650,6 +658,7 @@ class Request implements RequestInterface
             $name = strtoupper($name);
         }
         $this->serverInfo[$name] = $value;
+
         return $this;
     }
 
@@ -754,27 +763,27 @@ class Request implements RequestInterface
         $type = explode(';', $type);
         $type = trim($type[0]);
         switch ($type) {
-        case 'application/json':
-        case 'text/json':
-        case 'text/javascript':
-            $body = json_decode($data);
-            $body = is_object($body) ? (array) $body : $body;
-            break;
-        case 'application/x-www-form-urlencoded':
-        case 'multipart/form-data':
-        case 'text/plain':
-            parse_str($data, $body);
-            break;
-        case 'application/xml':
-            $body = simplexml_load_string($data);
-            $body = is_object($body) ? (array) $body : $body;
-            break;
-        default:
-            throw new CoreException(
-                'Unknown Content Type: ' . $type,
-                400
-            );
-            break;
+            case 'application/json':
+            case 'text/json':
+            case 'text/javascript':
+                $body = json_decode($data);
+                $body = is_object($body) ? (array) $body : $body;
+                break;
+            case 'application/x-www-form-urlencoded':
+            case 'multipart/form-data':
+            case 'text/plain':
+                parse_str($data, $body);
+                break;
+            case 'application/xml':
+                $body = simplexml_load_string($data);
+                $body = is_object($body) ? (array) $body : $body;
+                break;
+            default:
+                throw new CoreException(
+                    'Unknown Content Type: ' . $type,
+                    400
+                );
+                break;
         }
 
         return $body;
@@ -807,14 +816,14 @@ class Request implements RequestInterface
         }
         $body = null;
         switch (true) {
-        case count($_GET) > 0:
-            $body = isset($_GET) ? $_GET : array();
-            break;
-        case count($_POST) > 0:
-            $body = isset($_POST) ? $_POST : array();
-            break;
-        default:
-            break;
+            case count($_GET) > 0:
+                $body = isset($_GET) ? $_GET : array();
+                break;
+            case count($_POST) > 0:
+                $body = isset($_POST) ? $_POST : array();
+                break;
+            default:
+                break;
         }
         if ($body === null) {
             $body = isset($_REQUEST) ? $_REQUEST : array();
@@ -865,6 +874,7 @@ class Request implements RequestInterface
     public function setInputStream($stream)
     {
         $this->inputStream = $stream;
+
         return $this;
     }
 

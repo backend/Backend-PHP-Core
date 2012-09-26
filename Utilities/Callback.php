@@ -272,21 +272,21 @@ class Callback implements CallbackInterface
             $callable = array();
             if ($this->object) {
                 switch (count($arguments)) {
-                case 0:
-                    return $this->object->{$this->method}();
-                case 1:
-                    return $this->object->{$this->method}($arguments[0]);
-                case 2:
-                    return $this->object->{$this->method}(
-                        $arguments[0], $arguments[1]
-                    );
-                case 3:
-                    return $this->object->{$this->method}(
-                        $arguments[0], $arguments[1], $arguments[2]
-                    );
-                default:
-                    $callable[] = $this->object;
-                    break;
+                    case 0:
+                        return $this->object->{$this->method}();
+                    case 1:
+                        return $this->object->{$this->method}($arguments[0]);
+                    case 2:
+                        return $this->object->{$this->method}(
+                            $arguments[0], $arguments[1]
+                        );
+                    case 3:
+                        return $this->object->{$this->method}(
+                            $arguments[0], $arguments[1], $arguments[2]
+                        );
+                    default:
+                        $callable[] = $this->object;
+                        break;
                 }
             } elseif ($this->class) {
                 $callable[] = $this->class;
@@ -295,17 +295,17 @@ class Callback implements CallbackInterface
         } elseif ($this->function) {
             $function = $this->function;
             switch (count($arguments)) {
-            case 0:
-                return $function();
-            case 1:
-                return $function($arguments[0]);
-            case 2:
-                return $function($arguments[0], $arguments[1]);
-            case 3:
-                return $function($arguments[0], $arguments[1], $arguments[2]);
-            default:
-                $callable = $this->function;
-                break;
+                case 0:
+                    return $function();
+                case 1:
+                    return $function($arguments[0]);
+                case 2:
+                    return $function($arguments[0], $arguments[1]);
+                case 3:
+                    return $function($arguments[0], $arguments[1], $arguments[2]);
+                default:
+                    $callable = $this->function;
+                    break;
             }
         }
 
@@ -366,6 +366,7 @@ class Callback implements CallbackInterface
                 if ($result[0] !== '\\') {
                     $result = '\\' . $result;
                 }
+
                 return $result;
             } else {
                 return '(null)::' . $this->method;

@@ -78,9 +78,8 @@ class Application implements ApplicationInterface
      * DI Container for the Application.
      * Application.
      */
-    public function __construct(ConfigInterface $config,
-        DependencyInjectionContainerInterface $container
-    ) {
+    public function __construct(ConfigInterface $config, DependencyInjectionContainerInterface $container)
+    {
         $this->config = $config;
         $this->container = $container;
         $this->container->set('application.config', $this->config);
@@ -119,6 +118,7 @@ class Application implements ApplicationInterface
         }
 
         $ran = true;
+
         return true;
     }
 
@@ -212,22 +212,22 @@ class Application implements ApplicationInterface
         if (substr($callback->getMethod(), -6) !== 'Action') {
             $callback->setMethod($callback->getMethod() . 'Action');
         }
+
         return $callback;
     }
 
     /**
      * Transform the callback in relation with the format.
      *
-     * @param Backend\Interfaces\CallbackInterface  $callback  The callback on which
+     * @param Backend\Interfaces\CallbackInterface $callback The callback on which
      * the call will be based.
      * @param Backend\Interfaces\FormatterInterface $formatter The formatter on which
      * the call will be based.
      *
      * @return Backend\Interfaces\CallbackInterface The transformed format callback.
      */
-    protected function transformFormatCallback(CallbackInterface $callback,
-        FormatterInterface $formatter
-    ) {
+    protected function transformFormatCallback(CallbackInterface $callback, FormatterInterface $formatter)
+    {
         $method = $callback->getMethod();
         if ($method) {
             $class = get_class($formatter);
@@ -235,6 +235,7 @@ class Application implements ApplicationInterface
             $method = str_replace('Action', end($class), $method);
             $callback->setMethod($method);
         }
+
         return $callback;
     }
 
@@ -248,6 +249,7 @@ class Application implements ApplicationInterface
         if ($this->request === null && $this->container->has('request')) {
             $this->request = $this->container->get('request');
         }
+
         return $this->request;
     }
 
@@ -261,6 +263,7 @@ class Application implements ApplicationInterface
     public function setRequest($request)
     {
         $this->request = $request;
+
         return $this;
     }
 
