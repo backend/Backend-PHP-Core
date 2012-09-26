@@ -197,6 +197,7 @@ class Request implements RequestInterface
         switch (true) {
         case is_array($body) && array_key_exists('_method', $body):
             $method = $body['_method'];
+            unset($this->body['_method']);
             break;
         case $this->getHeader('METHOD_OVERRIDE') !== null:
             $method = $this->getHeader('METHOD_OVERRIDE');
@@ -415,23 +416,22 @@ class Request implements RequestInterface
     {
         //Construct the current URL
         $this->url = 'http';
-        if ($this->getServerInfo('SERVER_PORT') == 443
-            || $this->getServerInfo('HTTPS') == 'on'
+        if ($this->getServerInfo('server_port') == 443
+            || $this->getServerInfo('https') == 'on'
         ) {
             $this->url .= 's';
         }
         $this->url .= '://' . $this->getHeader('host');
-        if ('index.php' == basename($this->getServerInfo('SCRIPT_NAME'))) {
-            $this->url .= $this->serverInfo['SCRIPT_NAME'];
+
+        $script = $this->getServerInfo('script_name');
+        $this->url .= $script;
+
+        // Check for URL Rewriting
+        $uri = $this->getServerInfo('request_uri');
+        if (substr($uri, 0, strlen($script)) !== $script) {
+            $this->url = preg_replace('|/' . basename($script) . '$|', $this->path, $this->url);
         } else {
-            $pattern = str_replace('/', '\\/', $this->getServerInfo('PATH_INFO'));
-            $pattern = '/' . $pattern . '$/';
-            $subject = explode('?', $this->getServerInfo('REQUEST_URI'));
-            $subject = reset($subject);
-            $this->url .= preg_replace($pattern, '', $subject);
-        }
-        if (substr($this->url, -1) == '/') {
-            $this->url = substr($this->url, 0, -1);
+            $this->url .= $this->path;
         }
     }
 

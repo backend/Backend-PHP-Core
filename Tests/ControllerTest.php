@@ -66,12 +66,11 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
     {
         $controller = new Controller();
 
-        $request = $this->getMock('\Backend\Interfaces\RequestInterface');
-        $request
+        $requestContext = $this->getMock('\Backend\Interfaces\RequestContextInterface');
+        $requestContext
             ->expects($this->once())
-            ->method('getUrl')
+            ->method('getLink')
             ->will($this->returnValue('http://backend-php.net'));
-        $controller->setRequest($request);
 
         $container = $this->getMockForAbstractClass(
             '\Backend\Interfaces\DependencyInjectionContainerInterface'
@@ -81,6 +80,11 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
             ->method('getParameter')
             ->with('response.class')
             ->will($this->returnValue('\Backend\Core\Response'));
+        $container
+            ->expects($this->once())
+            ->method('get')
+            ->with('request_context')
+            ->will($this->returnValue($requestContext));
         $controller->setContainer($container);
 
         $response = $controller->redirect('/');

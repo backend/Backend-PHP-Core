@@ -19,6 +19,10 @@ services:
         class: \Symfony\Component\Yaml\Parser
     request:
         class: \Backend\Core\Request
+    request_context:
+        class: %request.context.class%
+        arguments:
+            - @request
     callback_factory:
         class: \Backend\Core\Utilities\CallbackFactory
     formatter:

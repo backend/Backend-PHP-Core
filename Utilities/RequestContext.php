@@ -73,14 +73,21 @@ class RequestContext implements RequestContextInterface
         if (empty($urlParts)) {
             throw new \RuntimeException('Unparsable URL Requested');
         }
+
         $urlParts = $urlParts + $defaults;
+        $urlParts['path'] = empty($urlParts['path']) ? '/' : $urlParts['path'];
+
         $this->scheme = $urlParts['scheme'];
         $this->host   = $urlParts['host'];
-        $this->path   = empty($urlParts['path']) ? '/' : $urlParts['path'];
+
+        $this->path   = preg_replace('|' . $request->getPath() . '$|', '', $urlParts['path']);
 
         //Check if the last part is a file
         if (substr($this->path, -1) !== '/' && strpos(basename($this->path), '.') !== false) {
             $this->path = dirname($this->path);
+        }
+        if (substr($this->path, -1) !== '/') {
+            $this->path .= '/';
         }
 
         $this->link = $this->scheme . '://' . $this->host . $this->path;
