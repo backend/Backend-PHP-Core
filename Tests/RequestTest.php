@@ -64,16 +64,21 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testNoIndex()
     {
         //Without Trailing Slash
-        $request = new Request('http://backend-php.net', 'GET');
-        $this->assertEquals('/', $request->getPath());
+        /*$request = new Request('http://backend-php.net', 'GET');
         $this->assertEquals(
             'http://backend-php.net', $request->getUrl()
         );
+
         //With Trailing Slash
         $request = new Request('http://backend-php.net/', 'GET');
-        $this->assertEquals('/', $request->getPath());
         $this->assertEquals(
             'http://backend-php.net', $request->getUrl()
+        );*/
+
+        //With Filename
+        $request = new Request('http://backend-php.net/index.php', 'GET');
+        $this->assertEquals(
+            'http://backend-php.net/index.php', $request->getUrl()
         );
     }
 
@@ -97,6 +102,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
         $request = new Request('http://backend-php.net/index.php/something', 'GET');
         $this->assertEquals('/index.php/something', $request->getPath());
+
         //With Trailing Slash
         $request = new Request(
             'http://backend-php.net/base/index.php/something/', 'GET'
@@ -129,11 +135,11 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test getMethod.
+     * Test Method getter and setter.
      *
      * @return void
      */
-    public function testGetSetMethod()
+    public function testMethodAccessors()
     {
         //Default to GET for non CLI and non Request
         $request = new Request;
@@ -193,28 +199,42 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test getPath
+     * Data provider for testPaths.
+     *
+     * @return array
+     */
+    public function dataPaths()
+    {
+        return array(
+            array('http://backend-php.net', '/'),
+            array('http://backend-php.net/', '/'),
+            array('http://backend-php.net/index.php', '/index.php'),
+            array('http://backend-php.net/path.json', '/path.json'),
+            array('http://backend-php.net/index.html', '/index.html'),
+            array('http://backend-php.net/index.php/path', '/index.php/path'),
+            array('http://backend-php.net/index.php/path.json', '/index.php/path.json'),
+        );
+    }
+
+    /**
+     * Test the parsing of the path.
+     *
+     * @return void
+     * @dataProvider dataPaths
+     */
+    public function testPaths($url, $expected)
+    {
+        $request = new Request($url, 'GET');
+        $this->assertEquals($expected, $request->getPath());
+    }
+
+    /**
+     * Test Path getter and setter
      *
      * @return void
      */
-    public function testSetGetPath()
+    public function testPathAccessors()
     {
-        // Root path given
-        $request = new Request('https://backend-php.net/index.php/');
-        $this->assertEquals('/index.php', $request->getPath());
-
-        // Root path given
-        $request = new Request('https://backend-php.net/');
-        $this->assertEquals('/', $request->getPath());
-
-        // Path given
-        $request = new Request('https://backend-php.net/index.php/something/else');
-        $this->assertEquals('/index.php/something/else', $request->getPath());
-
-        // Other file given
-        $request = new Request('https://backend-php.net/somewhere/index.html');
-        $this->assertEquals('/somewhere/index.html', $request->getPath());
-
         // Clean up the path
         $request = new Request;
         $request->setPath('/somewhere/');
@@ -233,32 +253,30 @@ class RequestTest extends \PHPUnit_Framework_TestCase
      */
     public function testUrl()
     {
-        // With index.php
-        $request = new Request('https://backend-php.net/index.php/something/else');
+        // With php file
+        $request = new Request('https://backend-php.net/index.php');
         $this->assertEquals(
             'https://backend-php.net/index.php', $request->getUrl()
         );
 
-        // Root index
+        // With Path
         $request = new Request('https://backend-php.net/something/else');
-        $request->setServerInfo('SCRIPT_NAME', '/index.php');
         $this->assertEquals(
-            'https://backend-php.net/index.php', $request->getUrl()
+            'https://backend-php.net/something/else', $request->getUrl()
         );
 
-        // Base index
-        $request = new Request('https://backend-php.net/base/here');
-        $request->setServerInfo('SCRIPT_NAME', '/base/index.php');
+        // With php file and Path
+        $request = new Request('https://backend-php.net/something/index.php/else');
         $this->assertEquals(
-            'https://backend-php.net/base/index.php', $request->getUrl()
+            'https://backend-php.net/something/index.php/else', $request->getUrl()
         );
 
-        // Set Request URI
-        $request = new Request('https://backend-php.net/base/here/');
-        $request->setServerInfo('REQUEST_URI', '/base/index.php/here/');
+        // With php file, Path and query
+        $request = new Request('https://backend-php.net/something/index.php/else?test=this');
         $this->assertEquals(
-            'https://backend-php.net/base/index.php/here', $request->getUrl()
+            'https://backend-php.net/something/index.php/else', $request->getUrl()
         );
+        $this->assertEquals(array('test' => 'this'), $request->getQuery());
     }
 
     /**
@@ -271,6 +289,24 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         $request = new Request;
         $this->assertSame($request, $request->setUrl('http://backend-php.net'));
         $this->assertEquals('http://backend-php.net', $request->getUrl());
+    }
+
+    /**
+     * Test the Query Accessors.
+     *
+     * @return void
+     */
+    public function testQueryAccessors()
+    {
+        $request = new Request;
+        $this->assertSame($request, $request->setQuery('some=value'));
+        $this->assertEquals(array('some' => 'value'), $request->getQuery());
+
+        $request = new Request;
+        $query = new \stdClass;
+        $query->some = 'value';
+        $this->assertSame($request, $request->setQuery($query));
+        $this->assertEquals(array('some' => 'value'), $request->getQuery());
     }
 
     /**

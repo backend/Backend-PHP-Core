@@ -36,7 +36,7 @@ class Request implements RequestInterface
     protected $path = null;
 
     /**
-     * The site end point. Used for calls to the site.
+     * The URL for the Request.
      *
      * @var string
      */
@@ -55,6 +55,13 @@ class Request implements RequestInterface
      * @var array
      */
     protected $body = null;
+
+    /**
+     * The query of the Request.
+     *
+     * @var array
+     */
+    protected $query = null;
 
     /**
      * The method of the Request. Can be one of GET, POST, PUT, DELETE, HEAD or OPTIONS.
@@ -141,6 +148,7 @@ class Request implements RequestInterface
      */
     protected function parseUrl($url)
     {
+        // Build up the different url parts
         $urlParts = parse_url($url);
         $this->serverInfo['HTTP_HOST'] = $urlParts['host'];
         $this->setHeader('host', $urlParts['host']);
@@ -148,21 +156,21 @@ class Request implements RequestInterface
             : $urlParts['query'];
         $urlParts['path'] = empty($urlParts['path']) ? ''
             : $urlParts['path'];
-        //RFC3875 4.1.5 defines path_info as "derived from the portion of the URI
-        //path hierarchy following the part that identifies the script itself."
-        //index.php will always be "the script", so use that.
+
+        // RFC3875 4.1.5 defines path_info as "derived from the portion of the URI
+        // path hierarchy following the part that identifies the script itself."
+        // Scripts will end with .php, so work with that.
+        $regex = '/^(\/.*\.php)?(\/.*)?$/';
+        preg_match($regex, $urlParts['path'], $matches);
+        $script = empty($matches[1]) ? '' : $matches[1];
+        $path   = empty($matches[2]) ? '/' : $matches[2];
+
+        $urlParts['path'] = $script . $path;
         $this->setPath($urlParts['path']);
-        if (strpos($urlParts['path'], 'index.php') === false
-            && strlen($urlParts['path']) > 1
-        ) {
-            if (substr($urlParts['path'], -1) != '/') {
-                $urlParts['path'] .= '/';
-            }
-            $urlParts['path'] .= 'index.php';
-        }
-        $this->serverInfo['REQUEST_URI']  = $urlParts['path'];
-        $pathInfo = explode('index.php', $urlParts['path'], 2);
-        $this->serverInfo['PATH_INFO'] = end($pathInfo);
+
+        $this->serverInfo['SCRIPT_NAME']  = empty($script) ? '/index.php' : $script;
+        $this->serverInfo['PATH_INFO']    = $path;
+        $this->serverInfo['REQUEST_URI']  = $this->getPath();
         $this->serverInfo['REQUEST_TIME'] = time();
         if ($urlParts['scheme'] == 'https') {
             $this->serverInfo['HTTPS']       = 'on';
@@ -349,7 +357,7 @@ class Request implements RequestInterface
     public function getPath()
     {
         if ($this->path === null) {
-            $path = $this->getServerInfo('PATH_INFO');
+            $path = $this->getServerInfo('path_info');
             $path = $path ?: '/';
             $this->setPath($path);
         }
@@ -370,7 +378,7 @@ class Request implements RequestInterface
     {
         //Clean up the path
         //No trailing slash
-        if (substr($path, -1) == '/') {
+        if (substr($path, -1) === '/') {
             $path = substr($path, 0, -1);
         }
         if (substr($path, 0, 1) != '/') {
@@ -433,10 +441,12 @@ class Request implements RequestInterface
 
         // Check for URL Rewriting
         $uri = $this->getServerInfo('request_uri');
+        $pathInfo = $this->getServerInfo('path_info');
+        $pathInfo = $pathInfo === '/' ? '' : $pathInfo;
         if (substr($uri, 0, strlen($script)) !== $script) {
-            $this->url = preg_replace('|/' . basename($script) . '$|', $this->path, $this->url);
+            $this->url = preg_replace('|/' . basename($script) . '$|', $pathInfo, $this->url);
         } else {
-            $this->url .= $this->path;
+            $this->url .= $pathInfo;
         }
     }
 
@@ -588,11 +598,7 @@ class Request implements RequestInterface
         }
         $pattern = '/[^\/]+\.(.*)\??.*$/';
         preg_match('/\.(\w+)$/', $this->getPath(), $matches);
-        if (!empty($matches[1])) {
-            $this->extension = $matches[1];
-        } else {
-            $this->extension = null;
-        }
+        $this->extension = empty($matches[1]) ? null : $matches[1];
 
         return $this->extension;
     }
@@ -851,6 +857,40 @@ class Request implements RequestInterface
         }
         $this->body = $body;
 
+        return $this;
+    }
+
+    /**
+     * Return the request's query data.
+     *
+     * @return array The Request query data
+     */
+    public function getQuery()
+    {
+        if ($this->query !== null) {
+            return $this->query;
+        }
+        $this->setQuery($this->getServerInfo('query_string'));
+        return $this->query;
+    }
+
+    /**
+     * Set the request's query data.
+     *
+     * Strings will be parsed for variables and objects will be casted to arrays.
+     *
+     * @param mixed $body The Request's body
+     *
+     * @return Request The current object.
+     */
+    public function setQuery($query)
+    {
+        if (is_string($query)) {
+            parse_str($query, $query);
+        } elseif (is_object($query)) {
+            $query = (array) $query;
+        }
+        $this->query = $query;
         return $this;
     }
 
