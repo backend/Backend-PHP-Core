@@ -897,9 +897,12 @@ class Request implements RequestInterface
     /**
      * Check if this requests originates from a CLI.
      *
+     * This is hidden from the outside world because for application code a Request
+     * will be a Request, regardless of where it came from.
+     *
      * @return boolean If this is a CLI request
      */
-    public function fromCli()
+    protected function fromCli()
     {
         return !empty($this->serverInfo['argc']);
     }

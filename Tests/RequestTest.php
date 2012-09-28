@@ -707,16 +707,6 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test fromCli
-     *
-     * @return void
-     */
-    public function testFromCli()
-    {
-        $this->markTestIncomplete();
-    }
-
-    /**
      * Test the Input Strean setter and getter.
      *
      * @return void

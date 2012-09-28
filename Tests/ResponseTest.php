@@ -214,6 +214,18 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test throwing an exception in Response
+     *
+     * @return void
+     */
+    public function testToStringException()
+    {
+        $body = new \stdClass;
+        $response = new Response($body);
+        $this->assertStringStartsWith('Exception: ', (string) $response);
+    }
+
+    /**
      * Data provider for testStatusCodeCheck.
      *
      * @return array The method arguments

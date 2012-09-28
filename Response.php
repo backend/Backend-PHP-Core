@@ -328,9 +328,13 @@ class Response implements ResponseInterface
      */
     public function __toString()
     {
-        ob_start();
-        $this->sendBody();
+        try {
+            ob_start();
+            $this->sendBody();
 
-        return ob_get_clean();
+            return ob_get_clean();
+        } catch (\Exception $e) {
+            return 'Exception: ' . $e->getMessage();
+        }
     }
 }
