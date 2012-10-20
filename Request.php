@@ -164,6 +164,9 @@ class Request implements RequestInterface
         preg_match($regex, $urlParts['path'], $matches);
         $script = empty($matches[1]) ? '' : $matches[1];
         $path   = empty($matches[2]) ? '/' : $matches[2];
+        if (strlen($path) > 0 && substr($path, -1) === '/') {
+            $path = substr($path, 0, strlen($path) - 1);
+        }
 
         $urlParts['path'] = $script . $path;
         $this->setPath($urlParts['path']);
@@ -441,12 +444,15 @@ class Request implements RequestInterface
 
         // Check for URL Rewriting
         $uri = $this->getServerInfo('request_uri');
-        $pathInfo = $this->getServerInfo('path_info');
-        $pathInfo = $pathInfo === '/' ? '' : $pathInfo;
+        $path = $this->getServerInfo('path_info');
+        $path = $path === '/' ? '' : $path;
+        if (strlen($path) > 0 && substr($path, -1) === '/') {
+            $path = substr($path, 0, strlen($path) - 1);
+        }
         if (substr($uri, 0, strlen($script)) !== $script) {
-            $this->url = preg_replace('|/' . basename($script) . '$|', $pathInfo, $this->url);
+            $this->url = preg_replace('|/' . basename($script) . '$|', $path, $this->url);
         } else {
-            $this->url .= $pathInfo;
+            $this->url .= $path;
         }
     }
 

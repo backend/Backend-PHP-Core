@@ -212,6 +212,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
             array('http://backend-php.net/path.json', '/path.json'),
             array('http://backend-php.net/index.html', '/index.html'),
             array('http://backend-php.net/index.php/path', '/index.php/path'),
+            array('http://backend-php.net/index.php/path/', '/index.php/path'),
             array('http://backend-php.net/index.php/path.json', '/index.php/path.json'),
         );
     }
