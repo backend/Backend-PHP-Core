@@ -88,6 +88,7 @@ class DependencyInjectionContainer extends ContainerBuilder
             throw new ConfigException('Invalid Service Definition for ' . $id);
         }
 
+        // Factory
         $definition = $this->register($id, $config['class']);
         if (empty($config['factory_class']) === false
             && empty($config['factory_method']) === false
@@ -95,20 +96,48 @@ class DependencyInjectionContainer extends ContainerBuilder
             $definition->setFactoryClass($config['factory_class']);
             $definition->setFactoryMethod($config['factory_method']);
         }
+
+        // Calls
         foreach ($config['calls'] as $name => $arguments) {
-            foreach ($arguments as &$argument) {
-                if (substr($argument, 0, 1) === '@') {
-                    $argument = new Reference(substr($argument, 1));
-                }
-            }
+            $arguments = $this->resolve($arguments);
             $definition->addMethodCall($name, $arguments);
         }
+
+        // Arguments
         foreach ($config['arguments'] as $value) {
-            if (is_string($value) && substr($value, 0, 1) === '@') {
-                $definition->addArgument(new Reference(substr($value, 1)));
-            } else {
-                $definition->addArgument($value);
+            $definition->addArgument($this->resolve($value));
+        }
+    }
+
+    /**
+     * Resolve the config value, retrieving the required services, parameters and
+     * constants.
+     *
+     * @param  mixed $configValue The config value to resolve.
+     *
+     * @return mixed
+     */
+    protected function resolve($configValue) {
+        if (is_array($configValue)) {
+            foreach($configValue as $key => &$value) {
+                $value = $this->resolve($value);
             }
+            return $configValue;
+        } else if (is_string($configValue)) {
+            if (substr($configValue, -1) === '%' && $configValue[0] === '%') {
+            // Parameter
+                $configValue = substr($configValue, 1, strlen($configValue) - 2);
+                return $this->getParameter($configValue);
+            } else if ($configValue[0] === '@') {
+            // Service
+                return new Reference(substr($configValue, 1));
+            } else if (defined($configValue)) {
+                return constant($configValue);
+            } else {
+                return $configValue;
+            }
+        } else {
+            return $configValue;
         }
     }
 
