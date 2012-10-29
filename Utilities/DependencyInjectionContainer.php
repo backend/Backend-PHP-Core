@@ -80,7 +80,7 @@ class DependencyInjectionContainer extends ContainerBuilder
             $config = array('class' => $config);
         }
         $defaults = array(
-            'arguments' => array(), 'calls' => array()
+            'arguments' => array(), 'calls' => array(), 'tags' => array()
         );
         $config += $defaults;
 
@@ -104,8 +104,19 @@ class DependencyInjectionContainer extends ContainerBuilder
         }
 
         // Arguments
-        foreach ($config['arguments'] as $value) {
-            $definition->addArgument($this->resolve($value));
+        foreach ($config['arguments'] as $argument) {
+            $definition->addArgument($this->resolve($argument));
+        }
+
+        // Tags
+        foreach ($config['tags'] as $tag) {
+            if (empty($tag['name'])) {
+                throw new ConfigException('No Tag name defined in ' . $id);
+            }
+            $tag = $this->resolve($tag);
+            $name = $tag['name'];
+            unset($tag['name']);
+            $definition->addTag($name, $tag);
         }
     }
 
