@@ -124,16 +124,14 @@ class DependencyInjectionContainer extends ContainerBuilder
             }
             return $configValue;
         } else if (is_string($configValue)) {
-            if (substr($configValue, -1) === '%' && $configValue[0] === '%') {
-            // Parameter
-                $configValue = substr($configValue, 1, strlen($configValue) - 2);
-                return $this->getParameter($configValue);
-            } else if ($configValue[0] === '@') {
-            // Service
+            if ($configValue[0] === '@') {
+                // Service
                 return new Reference(substr($configValue, 1));
             } else if (defined($configValue)) {
+                // Constant
                 return constant($configValue);
             } else {
+                // Parameter or scalar value
                 return $configValue;
             }
         } else {
