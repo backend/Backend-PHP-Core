@@ -98,6 +98,8 @@ class Application implements ApplicationInterface
             return false;
         }
 
+        $this->raiseEvent('core.init');
+
         // PHP Helpers
         register_shutdown_function(array($this, 'shutdown'));
 
@@ -123,7 +125,9 @@ class Application implements ApplicationInterface
     }
 
     /**
-     * Main function for the application
+     * Main function for the application.
+     *
+     * Inspect the request and subsequent results, chain if necessary.
      *
      * @param Backend\Interfaces\RequestInterface $request The request the
      * application should handle
@@ -134,51 +138,52 @@ class Application implements ApplicationInterface
      */
     public function main(RequestInterface $request = null)
     {
-        //Inspect the request and subsequent results, chain if necessary
-        $toInspect = $request ?: $this->container->get('request');
-        $this->request = $toInspect;
+        // Get the initial Request / result
+        $result = $request ?: $this->container->get('request');
+
         do {
-            $callback = $toInspect instanceof RequestInterface
-                ? $this->getRouter()->inspect($toInspect)
-                : $toInspect;
-            if ($callback instanceof RequestInterface) {
-                $this->request = $callback;
-                $callback = null;
-                continue;
-            } elseif ($callback instanceof CallbackInterface) {
-                $callback  = $this->transformCallback($callback);
-                $toInspect = $callback->execute();
-            } else {
-                $message = 'Unknown route requested:' . $toInspect->getMethod()
-                    . ' ' . $toInspect->getPath();
+            // Raise the event with the request
+            if ($result instanceof RequestInterface) {
+                $this->setRequest($result);
+                $callback = $this->getRouter()->inspect($this->getRequest());
+            } else if ($result instanceof CallbackInterface) {
+                $callback = $result;
+            }
+
+            if (empty($callback) || ($callback instanceof CallbackInterface) === false) {
+                // 404 - Not Found
+                $message = 'Unknown route requested:' . $result->getMethod()
+                    . ' ' . $result->getPath();
                 throw new CoreException($message, 404);
             }
-        } while ($toInspect instanceof RequestInterface
-            || $toInspect instanceof CallbackInterface);
-        $this->container->set('request', $this->request);
+
+            // Transform the request by executing the Callback
+            $callback = $this->transformCallback($callback);
+            $result   = $callback->execute();
+
+        } while ($result instanceof RequestInterface
+            || $result instanceof CallbackInterface);
 
         // Get the Formatter
         try {
             $formatter = $this->getFormatter();
         } catch (\Backend\Core\Exception $e) {
             // Don't fall over if we already have a response
-            if ($e->getCode() === 415 && $toInspect instanceof ResponseInterface) {
-                return $toInspect;
+            if ($e->getCode() === 415 && $result instanceof ResponseInterface) {
+                return $result;
             }
             throw $e;
         }
 
         // Transform the Result
-        if ($callback) {
-            try {
-                $callback  = $this->transformFormatCallback($callback, $formatter);
-                $toInspect = $callback->execute(array($toInspect));
-            } catch (CoreException $e) {
-                // If the callback is invalid, it won't be called, toInspect won't change
-            }
+        try {
+            $callback = $this->transformFormatCallback($callback, $formatter);
+            $result   = $callback->execute(array($result));
+        } catch (CoreException $e) {
+            // If the callback is invalid, it won't be called, result won't change
         }
 
-        return $formatter->transform($toInspect);
+        return $formatter->transform($result);
     }
 
     /**
@@ -192,27 +197,26 @@ class Application implements ApplicationInterface
     {
         //Transform the callback a bit if it's a controller
         $class = $callback->getClass();
-        if (empty($class)) {
-            return $callback;
+        if ($class) {
+            // Check for a ControllerInterface, and adjust accordingly
+            $interfaces = class_implements($class);
+            $implements = array_key_exists(
+                'Backend\Interfaces\ControllerInterface', $interfaces
+            );
+            if ($implements === true) {
+                $controller = new $class(
+                    $this->getContainer(),
+                    $this->getRequest()
+                );
+                $controller->setRequest($this->getRequest());
+                $callback->setObject($controller);
+                //Set the method name as actionAction
+                if (substr($callback->getMethod(), -6) !== 'Action') {
+                    $callback->setMethod($callback->getMethod() . 'Action');
+                }
+            }
         }
-        $interfaces = class_implements($class);
-        $implements = array_key_exists(
-            'Backend\Interfaces\ControllerInterface', $interfaces
-        );
-        if ($implements === false) {
-            return $callback;
-        }
-        $controller = new $class(
-            $this->getContainer(),
-            $this->getRequest()
-        );
-        $controller->setRequest($this->getRequest());
-        $callback->setObject($controller);
-        //Set the method name as actionAction
-        if (substr($callback->getMethod(), -6) !== 'Action') {
-            $callback->setMethod($callback->getMethod() . 'Action');
-        }
-
+        $this->raiseEvent('core.callback', $callback);
         return $callback;
     }
 
@@ -236,6 +240,7 @@ class Application implements ApplicationInterface
             $callback->setMethod($method);
         }
 
+        $this->raiseEvent('core.format_callback', $callback);
         return $callback;
     }
 
@@ -262,6 +267,8 @@ class Application implements ApplicationInterface
      */
     public function setRequest($request)
     {
+        $this->raiseEvent('core.main', $this->getRequest());
+        $this->container->set('request', $this->request);
         $this->request = $request;
 
         return $this;
@@ -369,12 +376,26 @@ class Application implements ApplicationInterface
     }
 
     /**
+     * Raise an event.
+     *
+     * @return \Backend\Core\Application The current object
+     */
+    public function raiseEvent($name)
+    {
+        if ($this->container->has('event_dispatcher')) {
+            $this->container->get('event_dispatcher')->dispatch($name);
+        }
+        return $this;
+    }
+
+    /**
      * Shutdown function called when ever the script ends
      *
      * @return null
      */
     public function shutdown()
     {
+        $this->raiseEvent('core.shutdown');
     }
 
     /**
@@ -395,6 +416,7 @@ class Application implements ApplicationInterface
     public function error($errno, $errstr, $errfile, $errline, $errcontext, $return = false)
     {
         $exception = new \ErrorException($errstr, 500, $errno, $errfile, $errline);
+        // Don't raise an event here, it's raised in the exception method.
         if ($return) {
             return $exception;
         }
@@ -413,6 +435,8 @@ class Application implements ApplicationInterface
      */
     public function exception(\Exception $exception, $return = false)
     {
+        $this->raiseEvent('core.exception', $exception);
+
         $code = $exception->getCode();
         if ($code < 100 || $code > 599) {
             $code = 500;

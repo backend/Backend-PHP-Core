@@ -82,15 +82,17 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function testMain()
+    public function testPlainMain()
     {
-        //Setup
-        $request = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\RequestInterface'
+        // Setup the callback and the response
+        $response  = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ResponseInterface'
         );
+
         $callback = $this->getMockForAbstractClass(
             '\Backend\Interfaces\CallbackInterface'
         );
+
         $callback
             ->expects($this->once())
             ->method('getClass')
@@ -99,35 +101,196 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('setObject')
             ->with($this->isInstanceOf('\Backend\Core\Controller'));
+
         $callback
-            ->expects($this->exactly(2))
-            ->method('setMethod');
-        $callback
-            ->expects($this->any())
+            ->expects($this->at(2))
             ->method('getMethod')
-            ->will($this->returnValue('action'));
+            ->will($this->returnValue('read'));
+
+        $callback
+            ->expects($this->at(3))
+            ->method('getMethod')
+            ->will($this->returnValue('read'));
+
+        $callback
+            ->expects($this->at(4))
+            ->method('setMethod')
+            ->with('readAction');
+
+        $callback
+            ->expects($this->once())
+            ->method('execute')
+            ->will($this->returnValue($response));
+
+        // Setup the Request and Router
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $router
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(1))
             ->method('inspect')
             ->with($request)
-            ->will($this->onConsecutiveCalls($request, $callback));
+            ->will($this->onConsecutiveCalls($callback));
         $this->container->set('router', $router);
-        $response  = $this->getMockForAbstractClass(
+
+        $result = $this->application->main($request);
+
+        //Asserts
+        $this->assertSame($response, $result);
+        $this->assertSame($request, $this->application->getRequest());
+    }
+
+    /**
+     * Test the main function with Callback Transforms & Formatting
+     *
+     * @return void
+     */
+    public function testCallbackTransformsAndFormattingMain()
+    {
+        $result   = new \stdClass;
+
+        // Setup the Formatter and Response
+        $response = $this->getMockForAbstractClass(
             '\Backend\Interfaces\ResponseInterface'
         );
         $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
         $formatter
             ->expects($this->once())
             ->method('transform')
-            ->with(null)
+            ->with($result)
             ->will($this->returnValue($response));
         $this->application->setFormatter($formatter);
+
+        // Setup the callback
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
+
+        $callback
+            ->expects($this->once())
+            ->method('getClass');
+
+        $callback
+            ->expects($this->at(1))
+            ->method('execute')
+            ->with()
+            ->will($this->returnValue($result));
+
+        $callback
+            ->expects($this->at(2))
+            ->method('getMethod')
+            ->will($this->returnValue('readAction'));
+
+        $callback
+            ->expects($this->once())
+            ->method('setMethod')
+            ->with('read' . get_class($formatter));
+
+        $callback
+            ->expects($this->at(4))
+            ->method('execute')
+            ->with(array($result))
+            ->will($this->returnValue($result));
+
+        // Setup the Request and Router
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->exactly(1))
+            ->method('inspect')
+            ->with($request)
+            ->will($this->returnValue($callback));
+        $this->container->set('router', $router);
+
+        $eventDispatcher = $this->getMock('\Backend\Interfaces\EventDispatcherInterface');
+        $eventDispatcher
+            ->expects($this->at(0))
+            ->method('dispatch')
+            ->with('core.main');
+        $eventDispatcher
+            ->expects($this->at(1))
+            ->method('dispatch')
+            ->with('core.callback');
+        $eventDispatcher
+            ->expects($this->at(2))
+            ->method('dispatch')
+            ->with('core.format_callback');
+
+        $this->container->set('event_dispatcher', $eventDispatcher);
+
+
         $result = $this->application->main($request);
 
         //Asserts
-        $this->assertSame($response, $result);
         $this->assertSame($request, $this->application->getRequest());
+        $this->assertSame($response, $result);
+    }
+
+    /**
+     * Test the main function with Callback Chaining
+     *
+     * @return void
+     */
+    public function testCallbackChainingMain()
+    {
+        $response = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ResponseInterface'
+        );
+
+        // Setup the callback
+        $callback = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\CallbackInterface'
+        );
+
+        $callback
+            ->expects($this->exactly(2))
+            ->method('getClass');
+
+        $callback
+            ->expects($this->at(1))
+            ->method('execute')
+            ->with()
+            ->will($this->returnSelf());
+
+        $callback
+            ->expects($this->at(3))
+            ->method('execute')
+            ->with()
+            ->will($this->returnValue($response));
+
+        // Setup the Request and Router
+        $request = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\RequestInterface'
+        );
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+        $router
+            ->expects($this->exactly(1))
+            ->method('inspect')
+            ->with($request)
+            ->will($this->returnValue($callback));
+        $this->container->set('router', $router);
+
+        $eventDispatcher = $this->getMock('\Backend\Interfaces\EventDispatcherInterface');
+        $eventDispatcher
+            ->expects($this->at(0))
+            ->method('dispatch')
+            ->with('core.main');
+        $eventDispatcher
+            ->expects($this->at(1))
+            ->method('dispatch')
+            ->with('core.callback');
+
+        $this->container->set('event_dispatcher', $eventDispatcher);
+
+
+        $result = $this->application->main($request);
+
+        //Asserts
+        $this->assertSame($request, $this->application->getRequest());
+        $this->assertSame($response, $result);
     }
 
     /**

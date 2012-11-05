@@ -90,7 +90,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
         $controllers = array(
             'value' => 'ValueCallback',
         );
-        $config  = $this->getMockForAbstractClass('\Backend\Interfaces\ConfigInterface');
+        $config = $this->getMockForAbstractClass('\Backend\Interfaces\ConfigInterface');
         $config
             ->expects($this->at(0))
             ->method('get')
