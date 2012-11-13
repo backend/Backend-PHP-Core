@@ -30,15 +30,20 @@ class TestContainer
 
     public $container;
 
-    public static function factory($container, $param)
+    public static function factory($container)
     {
-        return new static($container, $param);
+        $result = new static($container);
+        if (func_num_args() > 2) {
+            for($i = 1; $i < func_num_args(); $i++) {
+                $result->addParam(func_get_arg($i));
+            }
+        }
+        return $result;
     }
 
-    public function __construct($container, $param)
+    public function __construct($container)
     {
         $this->container = $container;
-        $this->param = array($param);
     }
 
     public function addParam($param)

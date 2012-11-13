@@ -54,7 +54,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
 
         $routes = array(
             'home' => array(
-                'route' => '/home'
+                'route' => '/home/<id>'
             )
         );
         $config  = $this->getMockForAbstractClass('\Backend\Interfaces\ConfigInterface');
@@ -71,7 +71,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
 
         $generator = new UrlGenerator($context, $config);
 
-        $this->assertEquals('http://backend-php.net/home', $generator->generate('home'));
+        $this->assertEquals('http://backend-php.net/home/1', $generator->generate('home', array('id' => 1)));
     }
 
     /**

@@ -32,13 +32,32 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $folders = array();
-        $folders[] = __DIR__ . '/../auxiliary/';
-        Config::setBaseFolders($folders);
+        static $first = true;
+        if ($first === false) {
+            $folders = array();
+            $folders[] = __DIR__ . '/../auxiliary/';
+            Config::setBaseFolders($folders);
+        }
+        $first = false;
+    }
+
+    /**
+     * Test the default Base Folders
+     *
+     * @return void
+     * @covers \Backend\Core\Utilities\Config::getBaseFolders
+     */
+    public function testInitialBaseFolders()
+    {
+        $this->assertEquals(array(PROJECT_FOLDER), Config::getBaseFolders());
     }
 
     /**
      * Test the base folders getter and settor
+     *
+     * @return void
+     * @covers \Backend\Core\Utilities\Config::getBaseFolders
+     * @covers \Backend\Core\Utilities\Config::setBaseFolders
      */
     public function testBaseFoldersAccessors()
     {
@@ -53,6 +72,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * @return void
      * @expectedException \Backend\Core\Exceptions\DuckTypeException
      * @expectedExceptionMessage Expected an object with a parse method
+     * @covers \Backend\Core\Utilities\Config::__construct
      */
     public function testInvalidParser()
     {
@@ -65,6 +85,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * @return void
      * @expectedException \Backend\Core\Exceptions\ConfigException
      * @expectedExceptionMessage Invalid configuration values
+     * @covers \Backend\Core\Utilities\Config::setAll
      */
     public function testInvalidConfigValue()
     {
@@ -78,6 +99,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test setting the config.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\Config::setAll
      */
     public function testSet()
     {
@@ -96,6 +118,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * @return void
      * @expectedException \Backend\Core\Exceptions\DuckTypeException
      * @expectedExceptionMessage Expected an object with a parse method
+     * @covers \Backend\Core\Utilities\Config::setParser
      */
     public function testInvalidParserSetter()
     {
@@ -106,6 +129,8 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the parser getters and setters.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\Config::setParser
+     * @covers \Backend\Core\Utilities\Config::getParser
      */
     public function testParserAccessors()
     {
@@ -121,6 +146,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * @return void
      * @expectedException \Backend\Core\Exceptions\ConfigException
      * @expectedExceptionMessage Invalid Configuration File
+     * @covers \Backend\Core\Utilities\Config::fromFile
      */
     public function testInvalidFile()
     {
@@ -133,6 +159,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the fromFile method.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\Config::fromFile
      */
     public function testFromFile()
     {
@@ -152,6 +179,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the getNamed method.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\Config::getNamed
      */
     public function testGetNamed()
     {
@@ -169,6 +197,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * @return void
      * @expectedException \Backend\Core\Exceptions\ConfigException
      * @expectedExceptionMessage Could not find No_such_file Configuration file.
+     * @covers \Backend\Core\Utilities\Config::getNamed
      */
     public function testConfigNotFound()
     {
@@ -180,6 +209,10 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the value getters and setters method.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\Config::__get
+     * @covers \Backend\Core\Utilities\Config::get
+     * @covers \Backend\Core\Utilities\Config::__set
+     * @covers \Backend\Core\Utilities\Config::set
      */
     public function testValueAccessors()
     {
@@ -204,6 +237,11 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      * Test the iterator methods.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\Config::key
+     * @covers \Backend\Core\Utilities\Config::current
+     * @covers \Backend\Core\Utilities\Config::valid
+     * @covers \Backend\Core\Utilities\Config::next
+     * @covers \Backend\Core\Utilities\Config::rewind
      */
     public function testIteratorMethods()
     {

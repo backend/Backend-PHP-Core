@@ -29,6 +29,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
      * Test the constructor
      *
      * @return void
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::__construct
      */
     public function testConstructor()
     {
@@ -49,6 +50,8 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
      * Test the adding of components through a definition.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::addComponent
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::resolve
      */
     public function testDefinitions()
     {
@@ -60,11 +63,16 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
                     'factory_class' => 'TestContainer',
                     'factory_method' => 'factory',
                     'calls' => array(
-                        'addParam' => array('two', '@service_container'),
+                        'addParam' => array('call'),
                     ),
                     'arguments' => array(
                         '@service_container',
-                        '%name%'
+                        '%name%',
+                        'BACKEND_SITE_STATE',
+                        false,
+                    ),
+                    'tags' => array(
+                        array('name' => 'tag')
                     ),
                 ),
             ),
@@ -79,7 +87,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
         //Test factory and arguments
         $this->assertSame($container, $test->container);
         //Test calls
-        $this->assertEquals(array('one', 'two'), $test->param);
+        $this->assertEquals(array('one', BACKEND_SITE_STATE, false, 'call'), $test->param);
     }
 
     /**
@@ -112,9 +120,33 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test an invalid DependencyInjectionContainer Tag config.
+     *
+     * @return void
+     * @expectedException \Backend\Core\Exceptions\ConfigException
+     * @expectedExceptionMessage No Tag name defined
+     */
+    public function testInvalidTag()
+    {
+        $config = array(
+            'services' => array(
+                'test' => array(
+                    'class' => '\TestContainer',
+                    'tags' => array(
+                        array()
+                    ),
+                )
+            )
+        );
+        $container = new DependencyInjectionContainer($config);
+    }
+
+    /**
      * Test getting and setting services.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::get
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::set
      */
     public function testServiceAccessors()
     {
@@ -127,6 +159,9 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
      * Test getting and setting parameters.
      *
      * @return void
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::getParameter
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::setParameter
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::hasParameter
      */
     public function testParameterAccessors()
     {
@@ -143,6 +178,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
      * @return void
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Undefined Implementation
+     * @covers \Backend\Core\Utilities\DependencyInjectionContainer::get
      */
     public function testInvalidService()
     {
