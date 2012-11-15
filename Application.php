@@ -229,6 +229,7 @@ class Application implements ApplicationInterface
      * the call will be based.
      *
      * @return Backend\Interfaces\CallbackInterface The transformed format callback.
+     * @todo Rather listen for the event and then transform the callback
      */
     protected function transformFormatCallback(CallbackInterface $callback, FormatterInterface $formatter)
     {

@@ -205,7 +205,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($callback));
         $this->container->set('router', $router);
 
-        $eventDispatcher = $this->getMock('\Backend\Interfaces\EventDispatcherInterface');
+        $eventDispatcher = $this->getMockForAbstractClass('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
         $eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
@@ -273,7 +273,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($callback));
         $this->container->set('router', $router);
 
-        $eventDispatcher = $this->getMock('\Backend\Interfaces\EventDispatcherInterface');
+        $eventDispatcher = $this->getMockForAbstractClass('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
         $eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
