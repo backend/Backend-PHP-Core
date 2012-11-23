@@ -63,6 +63,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Test the application constructor.
      *
      * @return void
+     * @covers \Backend\Core\Application::__construct
+     * @covers \Backend\Core\Application::init
      */
     public function testConstructor()
     {
@@ -78,9 +80,28 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the application init.
+     *
+     * @return void
+     * @covers \Backend\Core\Application::init
+     */
+    public function testInitRanOnlyOnce()
+    {
+        $config = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\ConfigInterface'
+        );
+        $container = $this->getMockForAbstractClass(
+            '\Backend\Interfaces\DependencyInjectionContainerInterface'
+        );
+        $application = new Application($config, $container);
+        $this->assertFalse($application->init());
+    }
+
+    /**
      * Test the main function
      *
      * @return void
+     * @covers Backend\Core\Application::main
      */
     public function testPlainMain()
     {
@@ -92,30 +113,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $callback = $this->getMockForAbstractClass(
             '\Backend\Interfaces\CallbackInterface'
         );
-
-        $callback
-            ->expects($this->once())
-            ->method('getClass')
-            ->will($this->returnValue('\Backend\Core\Controller'));
-        $callback
-            ->expects($this->once())
-            ->method('setObject')
-            ->with($this->isInstanceOf('\Backend\Core\Controller'));
-
-        $callback
-            ->expects($this->at(2))
-            ->method('getMethod')
-            ->will($this->returnValue('read'));
-
-        $callback
-            ->expects($this->at(3))
-            ->method('getMethod')
-            ->will($this->returnValue('read'));
-
-        $callback
-            ->expects($this->at(4))
-            ->method('setMethod')
-            ->with('readAction');
 
         $callback
             ->expects($this->once())
@@ -142,25 +139,17 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the main function with Callback Transforms & Formatting
+     * Test the main function with all the events
      *
      * @return void
+     * @covers Backend\Core\Application::main
      */
-    public function testCallbackTransformsAndFormattingMain()
+    public function testMainWithEvents()
     {
-        $result   = new \stdClass;
-
         // Setup the Formatter and Response
         $response = $this->getMockForAbstractClass(
             '\Backend\Interfaces\ResponseInterface'
         );
-        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
-        $formatter
-            ->expects($this->once())
-            ->method('transform')
-            ->with($result)
-            ->will($this->returnValue($response));
-        $this->application->setFormatter($formatter);
 
         // Setup the callback
         $callback = $this->getMockForAbstractClass(
@@ -168,30 +157,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         );
 
         $callback
-            ->expects($this->once())
-            ->method('getClass');
-
-        $callback
-            ->expects($this->at(1))
+            ->expects($this->at(0))
             ->method('execute')
             ->with()
-            ->will($this->returnValue($result));
-
-        $callback
-            ->expects($this->at(2))
-            ->method('getMethod')
-            ->will($this->returnValue('readAction'));
-
-        $callback
-            ->expects($this->once())
-            ->method('setMethod')
-            ->with('read' . get_class($formatter));
-
-        $callback
-            ->expects($this->at(4))
-            ->method('execute')
-            ->with(array($result))
-            ->will($this->returnValue($result));
+            ->will($this->returnValue($response));
 
         // Setup the Request and Router
         $request = $this->getMockForAbstractClass(
@@ -209,15 +178,19 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
-            ->with('core.main');
+            ->with('core.request', $this->isInstanceOf('\Backend\Core\Event\RequestEvent'));
         $eventDispatcher
             ->expects($this->at(1))
             ->method('dispatch')
-            ->with('core.callback');
+            ->with('core.callback', $this->isInstanceOf('\Backend\Core\Event\CallbackEvent'));
         $eventDispatcher
             ->expects($this->at(2))
             ->method('dispatch')
-            ->with('core.format_callback');
+            ->with('core.result', $this->isInstanceOf('\Backend\Core\Event\ResultEvent'));
+        $eventDispatcher
+            ->expects($this->at(3))
+            ->method('dispatch')
+            ->with('core.response', $this->isInstanceOf('\Backend\Core\Event\ResponseEvent'));
 
         $this->container->set('event_dispatcher', $eventDispatcher);
 
@@ -233,6 +206,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Test the main function with Callback Chaining
      *
      * @return void
+     * @covers Backend\Core\Application::main
      */
     public function testCallbackChainingMain()
     {
@@ -246,17 +220,13 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         );
 
         $callback
-            ->expects($this->exactly(2))
-            ->method('getClass');
-
-        $callback
-            ->expects($this->at(1))
+            ->expects($this->at(0))
             ->method('execute')
             ->with()
             ->will($this->returnSelf());
 
         $callback
-            ->expects($this->at(3))
+            ->expects($this->at(1))
             ->method('execute')
             ->with()
             ->will($this->returnValue($response));
@@ -277,7 +247,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
-            ->with('core.main');
+            ->with('core.request');
         $eventDispatcher
             ->expects($this->at(1))
             ->method('dispatch')
@@ -294,77 +264,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test that the app won't fall over if the callback returns a response, but
-     * there's no formatter.
-     *
-     * @return void
-     */
-    public function testReturnResponseWithNoFormatter()
-    {
-        //Setup
-        $request  = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\RequestInterface'
-        );
-        $response = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\ResponseInterface'
-        );
-        $callback = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\CallbackInterface'
-        );
-        $callback
-            ->expects($this->once())
-            ->method('execute')
-            ->will($this->returnValue($response));
-
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
-
-        $result = $this->application->main($request);
-
-        //Asserts
-        $this->assertSame($response, $result);
-    }
-
-    /**
-     * Test that the app will fall over if the callback doesn't return a response
-     * when there's no formatter.
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Unsupported format requested
-     */
-    public function testDontReturnResponseWithNoFormatter()
-    {
-        //Setup
-        $request  = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\RequestInterface'
-        );
-        $callback = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\CallbackInterface'
-        );
-        $callback
-            ->expects($this->once())
-            ->method('execute')
-            ->will($this->returnValue(true));
-
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
-
-        $result = $this->application->main($request);
-    }
-
-    /**
      * Test the main function with no route for the request
      *
      * @return void
+     * @covers Backend\Core\Application::main
      * @expectedException \Backend\Core\Exception
      * @expectedExceptionMessage Unknown route requested
      */
@@ -388,6 +291,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Test the Request getter and setter.
      *
      * @return void
+     * @covers \Backend\Core\Application::getRequest
+     * @covers \Backend\Core\Application::setRequest
      */
     public function testRequestAccessors()
     {
@@ -401,55 +306,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test the Formatter getter and setter.
-     *
-     * @return void
-     */
-    public function testFormatterAccessors()
-    {
-        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
-        $this->container->set('formatter', $formatter);
-        $this->assertSame($formatter, $this->application->getFormatter());
-
-        $formatter = $this->getMock('\Backend\Interfaces\FormatterInterface');
-        $this->application->setFormatter($formatter);
-        $this->assertSame($formatter, $this->application->getFormatter());
-    }
-
-    /**
-     * Test requesting an unknown formatter.
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Unsupported format requested
-     */
-    public function testUnknownFormat()
-    {
-        $this->application->getFormatter();
-    }
-
-    /**
-     * Test requesting an undefined formatter.
-     *
-     * @return void
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Unsupported format requested
-     */
-    public function testUndefinedFormat()
-    {
-        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
-        $container
-            ->expects($this->once())
-            ->method('get')
-            ->will($this->throwException(new \Exception()));
-        $this->application->setContainer($container);
-        $this->application->getFormatter();
-    }
-
-    /**
      * Test the Container getter and setter.
      *
      * @return void
+     * @covers \Backend\Core\Application::getContainer
+     * @covers \Backend\Core\Application::setContainer
      */
     public function testContainerAccessors()
     {
@@ -459,21 +320,67 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test the Config getter and setter.
+     *
+     * @return void
+     * @covers \Backend\Core\Application::getConfig
+     * @covers \Backend\Core\Application::setConfig
+     */
+    public function testConfigAccessors()
+    {
+        $config = $this->getMock('\Backend\Interfaces\ConfigInterface');
+        $this->application->setConfig($config);
+        $this->assertSame($config, $this->application->getConfig());
+    }
+
+    /**
      * Test the Router getter and setter.
      *
      * @return void
+     * @covers \Backend\Core\Application::getRouter
+     * @covers \Backend\Core\Application::setRouter
      */
     public function testRouterAccessors()
     {
+        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
+
+        $container = $this->getMock('\Backend\Interfaces\DependencyInjectionContainerInterface');
+        $container
+            ->expects($this->once())
+            ->method('get')
+            ->with('router')
+            ->will($this->returnValue($router));
+        $this->application->setContainer($container);
+        $this->assertSame($router, $this->application->getRouter());
+
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
         $this->application->setRouter($router);
         $this->assertSame($router, $this->application->getRouter());
     }
 
     /**
+     * @return void
+     * @covers \Backend\Core\Application::raiseEvent
+     */
+    public function testRaiseEvent()
+    {
+        $event = $this->getMock('Symfony\Component\EventDispatcher\Event');
+        $dispatcher = $this->getMockForAbstractClass('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $dispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with('name', $event);
+
+        $this->container->set('event_dispatcher', $dispatcher);
+
+        $this->assertSame($this->application, $this->application->raiseEvent('name', $event));
+    }
+
+    /**
      * Run the error code.
      *
      * @return void
+     * @covers \Backend\Core\Application::error
      */
     public function testError()
     {
@@ -488,6 +395,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Run the Exception Code.
      *
      * @return void
+     * @covers \Backend\Core\Application::exception
      */
     public function testException()
     {
@@ -500,6 +408,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Check that the exception code is a valid HTTP status code.
      *
      * @return void
+     * @covers \Backend\Core\Application::exception
      */
     public function testExceptionCode()
     {
@@ -513,6 +422,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      * Run the shutdown code.
      *
      * @return void
+     * @covers \Backend\Core\Application::shutdown
      */
     public function testShutdown()
     {

@@ -12,9 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+
 use Backend\Interfaces\ApplicationInterface;
 use Backend\Interfaces\RouterInterface;
-use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\ResponseInterface;
 use Backend\Interfaces\CallbackInterface;
@@ -23,6 +23,7 @@ use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Core\Utilities\Router;
 use Backend\Core\Utilities\Callback;
 use Backend\Core\Exception as CoreException;
+
 /**
  * The main application class.
  *
@@ -40,13 +41,6 @@ class Application implements ApplicationInterface
      * @var Backend\Interfaces\RouterInterface
      */
     protected $router = null;
-
-    /**
-     * Formatter to convert results into responses.
-     *
-     * @var Backend\Interfaces\FormatterInterface
-     */
-    protected $formatter = null;
 
     /**
      * The request currently being executed.
@@ -80,9 +74,8 @@ class Application implements ApplicationInterface
      */
     public function __construct(ConfigInterface $config, DependencyInjectionContainerInterface $container)
     {
-        $this->config = $config;
         $this->container = $container;
-        $this->container->set('application.config', $this->config);
+        $this->setConfig($config);
         $this->init();
     }
 
@@ -105,19 +98,6 @@ class Application implements ApplicationInterface
 
         set_exception_handler(array($this, 'exception'));
         set_error_handler(array($this, 'error'));
-
-        // Error Reporting
-        switch (BACKEND_SITE_STATE) {
-            case 'testing':
-            case 'development':
-                error_reporting(-1);
-                ini_set('display_errors', 1);
-                break;
-            default:
-                error_reporting(E_ALL & ~E_DEPRECATED);
-                ini_set('display_errors', 0);
-                break;
-        }
 
         $ran = true;
 
@@ -144,7 +124,10 @@ class Application implements ApplicationInterface
         do {
             // Raise the event with the request
             if ($result instanceof RequestInterface) {
-                $this->setRequest($result);
+                $event = new Event\RequestEvent($result);
+                $this->raiseEvent('core.request', $event);
+                $this->setRequest($event->getRequest());
+
                 $callback = $this->getRouter()->inspect($this->getRequest());
             } else if ($result instanceof CallbackInterface) {
                 $callback = $result;
@@ -157,92 +140,27 @@ class Application implements ApplicationInterface
                 throw new CoreException($message, 404);
             }
 
+            // Callback Event
+            $event = new Event\CallbackEvent($callback);
+            $this->raiseEvent('core.callback', $event);
+            $callback = $event->getCallback();
+
             // Transform the request by executing the Callback
-            $callback = $this->transformCallback($callback);
             $result   = $callback->execute();
 
         } while ($result instanceof RequestInterface
             || $result instanceof CallbackInterface);
 
-        // Get the Formatter
-        try {
-            $formatter = $this->getFormatter();
-        } catch (\Backend\Core\Exception $e) {
-            // Don't fall over if we already have a response
-            if ($e->getCode() === 415 && $result instanceof ResponseInterface) {
-                return $result;
-            }
-            throw $e;
-        }
 
-        // Transform the Result
-        try {
-            $callback = $this->transformFormatCallback($callback, $formatter);
-            $result   = $callback->execute(array($result));
-        } catch (CoreException $e) {
-            // If the callback is invalid, it won't be called, result won't change
-        }
+        // Transform the Result into a Response
+        $event = new Event\ResultEvent($result);
+        $this->raiseEvent('core.result', $event);
+        $response = $event->getResponse();
 
-        return $formatter->transform($result);
-    }
-
-    /**
-     * Transform the callback.
-     *
-     * @param Backend\Interfaces\CallbackInterface $callback The callback to transform.
-     *
-     * @return Backend\Interfaces\CallbackInterface The transformed callback.
-     */
-    protected function transformCallback(CallbackInterface $callback)
-    {
-        //Transform the callback a bit if it's a controller
-        $class = $callback->getClass();
-        if ($class) {
-            // Check for a ControllerInterface, and adjust accordingly
-            $interfaces = class_implements($class);
-            $implements = array_key_exists(
-                'Backend\Interfaces\ControllerInterface', $interfaces
-            );
-            if ($implements === true) {
-                $controller = new $class(
-                    $this->getContainer(),
-                    $this->getRequest()
-                );
-                $controller->setRequest($this->getRequest());
-                $callback->setObject($controller);
-                //Set the method name as actionAction
-                if (substr($callback->getMethod(), -6) !== 'Action') {
-                    $callback->setMethod($callback->getMethod() . 'Action');
-                }
-            }
-        }
-        $this->raiseEvent('core.callback', $callback);
-        return $callback;
-    }
-
-    /**
-     * Transform the callback in relation with the format.
-     *
-     * @param Backend\Interfaces\CallbackInterface $callback The callback on which
-     * the call will be based.
-     * @param Backend\Interfaces\FormatterInterface $formatter The formatter on which
-     * the call will be based.
-     *
-     * @return Backend\Interfaces\CallbackInterface The transformed format callback.
-     * @todo Rather listen for the event and then transform the callback
-     */
-    protected function transformFormatCallback(CallbackInterface $callback, FormatterInterface $formatter)
-    {
-        $method = $callback->getMethod();
-        if ($method) {
-            $class = get_class($formatter);
-            $class = explode('\\', $class);
-            $method = str_replace('Action', end($class), $method);
-            $callback->setMethod($method);
-        }
-
-        $this->raiseEvent('core.format_callback', $callback);
-        return $callback;
+        // Transform the Response
+        $event = new Event\ResponseEvent($response);
+        $this->raiseEvent('core.response', $event);
+        return $event->getResponse();
     }
 
     /**
@@ -268,10 +186,8 @@ class Application implements ApplicationInterface
      */
     public function setRequest($request)
     {
-        $this->raiseEvent('core.main', $this->getRequest());
-        $this->container->set('request', $this->request);
         $this->request = $request;
-
+        $this->container->set('request', $this->request);
         return $this;
     }
 
@@ -283,6 +199,20 @@ class Application implements ApplicationInterface
     public function getConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Set the request that's will be executed.
+     *
+     * @param \Backend\Interfaces\RequestInterface $request The request to set.
+     *
+     * @return \Backend\Core\Application
+     */
+    public function setConfig($config)
+    {
+        $this->config = $config;
+        $this->container->set('application.config', $this->config);
+        return $this;
     }
 
     /**
@@ -309,43 +239,6 @@ class Application implements ApplicationInterface
     public function setRouter(RouterInterface $router)
     {
         $this->router = $router;
-
-        return $this;
-    }
-
-    /**
-     * Get the Formatter for the Application.
-     *
-     * @return \Backend\Interfaces\FormatterInterface
-     * @todo Do this with the DIC at some point
-     */
-    public function getFormatter()
-    {
-        if (empty($this->formatter)) {
-            try {
-                $this->formatter = $this->container->get('formatter');
-            } catch (\Exception $e) {
-                throw new CoreException('Unsupported format requested', 415, $e);
-            }
-        }
-        if (empty($this->formatter)) {
-            throw new CoreException('Unsupported format requested', 415);
-        }
-
-        return $this->formatter;
-    }
-
-    /**
-     * Set the Formatter for the Application.
-     *
-     * @param Backend\Interfaces\FormatterInterface $formatter The Formatter for the
-     * Application.
-     *
-     * @return Backend\Core\Application
-     */
-    public function setFormatter(FormatterInterface $formatter)
-    {
-        $this->formatter = $formatter;
 
         return $this;
     }
@@ -381,10 +274,10 @@ class Application implements ApplicationInterface
      *
      * @return \Backend\Core\Application The current object
      */
-    public function raiseEvent($name)
+    public function raiseEvent($name, $event = null)
     {
         if ($this->container->has('event_dispatcher')) {
-            $this->container->get('event_dispatcher')->dispatch($name);
+            $this->container->get('event_dispatcher')->dispatch($name, $event);
         }
         return $this;
     }
@@ -436,8 +329,11 @@ class Application implements ApplicationInterface
      */
     public function exception(\Exception $exception, $return = false)
     {
-        $this->raiseEvent('core.exception', $exception);
+        $event = new Event\ExceptionEvent($exception);
+        $this->raiseEvent('core.exception', $event);
+        $exception = $event->getException();
 
+        // TODO Move this vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv to an event listener
         $code = $exception->getCode();
         if ($code < 100 || $code > 599) {
             $code = 500;
