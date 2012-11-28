@@ -270,6 +270,7 @@ class Response implements ResponseInterface
     {
         $this->sendHeaders()
             ->sendBody();
+        return $this;
     }
 
     /**

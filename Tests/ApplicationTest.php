@@ -14,6 +14,7 @@
 namespace Backend\Core\Tests;
 use Backend\Core\Application;
 use Backend\Core\Request;
+use Backend\Core\Exception as CoreException;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\DependencyInjectionContainer;
 /**
@@ -396,26 +397,14 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      *
      * @return void
      * @covers \Backend\Core\Application::exception
+     * @expectedException \Backend\Core\Exception
+     * @expectedExceptionMessage Message
      */
     public function testException()
     {
         $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $result = $this->application->exception(new \Exception('Message', 500), true);
+        $result = $this->application->exception(new CoreException('Message', 500), true);
         $this->assertInstanceOf('\Backend\Interfaces\ResponseInterface', $result);
-    }
-
-    /**
-     * Check that the exception code is a valid HTTP status code.
-     *
-     * @return void
-     * @covers \Backend\Core\Application::exception
-     */
-    public function testExceptionCode()
-    {
-        $response = $this->application->exception(new \Exception('Message', 10), true);
-        $this->assertEquals(500, $response->getStatusCode());
-        $response = $this->application->exception(new \Exception('Message', 610), true);
-        $this->assertEquals(500, $response->getStatusCode());
     }
 
     /**
@@ -426,6 +415,14 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testShutdown()
     {
+        $dispatcher = $this->getMockForAbstractClass('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $dispatcher
+            ->expects($this->once())
+            ->method('dispatch')
+            ->with('core.shutdown', null);
+
+        $this->container->set('event_dispatcher', $dispatcher);
+
         $this->application->shutdown();
     }
 }

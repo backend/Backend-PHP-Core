@@ -347,4 +347,64 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
         $listener = new CoreListener($this->container);
         $listener->coreCallbackEvent($event);
    }
+
+    /**
+     * @return void
+     * @covers Backend\Core\Listener\CoreListener::coreExceptionEvent
+     */
+    public function testCorrectResponseCodeInExceptionEvent()
+    {
+        $listener = new CoreListener($this->container);
+
+        // Too High
+        $exception = new \Exception('Message', 600);
+        $event = $this->getMock(
+            'Backend\Core\Event\ExceptionEvent',
+            null,
+            array($exception)
+        );
+        $event
+            ->expects($this->never())
+            ->method('stopPropagation');
+
+        $listener->coreExceptionEvent($event);
+
+        $response = $event->getResponse();
+        $this->assertInstanceOf('\Backend\Core\Response', $response);
+        $this->assertEquals(500, $response->getStatusCode());
+
+        // Too Low
+        $exception = new \Exception('Message', 99);
+        $event = $this->getMock(
+            'Backend\Core\Event\ExceptionEvent',
+            null,
+            array($exception)
+        );
+        $event
+            ->expects($this->never())
+            ->method('stopPropagation');
+
+        $listener->coreExceptionEvent($event);
+
+        $response = $event->getResponse();
+        $this->assertInstanceOf('\Backend\Core\Response', $response);
+        $this->assertEquals(500, $response->getStatusCode());
+
+        // Correct
+        $exception = new \Exception('Message', 400);
+        $event = $this->getMock(
+            'Backend\Core\Event\ExceptionEvent',
+            null,
+            array($exception)
+        );
+        $event
+            ->expects($this->never())
+            ->method('stopPropagation');
+
+        $listener->coreExceptionEvent($event);
+
+        $response = $event->getResponse();
+        $this->assertInstanceOf('\Backend\Core\Response', $response);
+        $this->assertEquals(400, $response->getStatusCode());
+   }
 }

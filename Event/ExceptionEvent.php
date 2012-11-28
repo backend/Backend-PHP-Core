@@ -15,6 +15,7 @@
 namespace Backend\Core\Event;
 
 use Symfony\Component\EventDispatcher\Event;
+use Backend\Interfaces\ResponseInterface;
 
 /**
  * The Exception Event.
@@ -36,6 +37,13 @@ class ExceptionEvent extends Event
      * @var \Exception
      */
     private $exception;
+
+    /**
+     * The Response associated with the event.
+     *
+     * @var Backend\Interfaces\ResponseInterface
+     */
+    private $response;
 
     /**
      * The object constructor.
@@ -66,6 +74,28 @@ class ExceptionEvent extends Event
     public function setException(\Exception $exception)
     {
         $this->exception = $exception;
+        return $this;
+    }
+
+    /**
+     * Get the current Response.
+     *
+     * @return Backend\Interfaces\ResponseInterface
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
+     * Set the Response for the Event.
+     *
+     * @param Backend\Interfaces\ResponseInterface $response
+     * @return Backend\Core\Event\ExceptionEvent The current object.
+     */
+    public function setResponse(ResponseInterface $response)
+    {
+        $this->response = $response;
         return $this;
     }
 }

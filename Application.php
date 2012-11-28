@@ -328,29 +328,18 @@ class Application implements ApplicationInterface
      *
      * @return \Backend\Interfaces\ResponseInterface
      */
-    public function exception(\Exception $exception, $return = false)
+    public function exception(\Exception $exception)
     {
         $event = new Event\ExceptionEvent($exception);
         $this->raiseEvent('core.exception', $event);
-        $exception = $event->getException();
 
-        // TODO Move this vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv to an event listener
-        $code = $exception->getCode();
-        if ($code < 100 || $code > 599) {
-            $code = 500;
-        }
-        $responseClass = $this->container->getParameter('response.class');
-        $response = new $responseClass(
-            $exception->getMessage(),
-            $code
-        );
-        if ($return) {
-            return $response;
-        }
-        if (BACKEND_SITE_STATE === 'testing') {
-            throw $exception;
-        }
-        $response->output();
-        die;
+        $exception = $event->getException();
+        $response  = $event->getResponse();
+
+        // Not 100% sure this is good design
+        $response instanceof ResponseInterface && $response->output() && die;
+
+        // If output returns false, it won't exit, which will throw the exception
+        throw $exception;
     }
 }

@@ -133,6 +133,32 @@ class CoreListener
     }
 
     /**
+     * Method to handle core.exception Events.
+     *
+     * It will try to format the exception as a response.
+     *
+     * @param  \Backend\Core\Event\CallbackEvent $event The event to handle
+     * @return void
+     */
+    public function coreExceptionEvent(\Backend\Core\Event\ExceptionEvent $event)
+    {
+        $response  = $event->getResponse();
+        if (empty($response)) {
+            $exception = $event->getException();
+            $code = $exception->getCode();
+            if ($code < 100 || $code > 599) {
+                $code = 500;
+            }
+            $responseClass = $this->container->getParameter('response.class');
+            $response = new $responseClass(
+                $exception->getMessage(),
+                $code
+            );
+        }
+        $event->setResponse($response);
+    }
+
+    /**
      * Transform the Callback.
      *
      * Transform any ControllerInterface classes into objects. Add Action to
