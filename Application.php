@@ -139,6 +139,7 @@ class Application implements ApplicationInterface
                     . ' ' . $result->getPath();
                 throw new CoreException($message, 404);
             }
+            $this->container->set('callback', $callback);
 
             // Callback Event
             $event = new Event\CallbackEvent($callback);

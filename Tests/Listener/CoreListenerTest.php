@@ -29,8 +29,8 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructor()
     {
-        $transformer = new CoreListener($this->container);
-        $this->assertSame($this->container, $transformer->getContainer());
+        $listener = new CoreListener($this->container);
+        $this->assertSame($this->container, $listener->getContainer());
     }
 
     /**
@@ -43,55 +43,37 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
         $event
             ->expects($this->never())
             ->method('stopPropagation');
-        $transformer = new CoreListener($this->container);
-        $transformer->coreInitEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreInitEvent($event);
     }
 
     /**
      * @covers Backend\Core\Listener\CoreListener::coreResultEvent
      * @return void
      */
-    public function testResultEventWithoutFormatting()
+    public function testResultEventWithEmptyMethod()
     {
+        $formatter = $this->getMockForAbstractClass('\Backend\Interfaces\FormatterInterface');
+
+        $this->container->set('formatter', $formatter);
+
         $event = $this->getMock(
             'Backend\Core\Event\ResultEvent',
             null,
             array(true)
         );
-        $event
-            ->expects($this->never())
-            ->method('stopPropagation');
-
-        $request = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\RequestInterface'
-        );
-        $this->container->set('request', $request);
-
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue(false));
-        $this->container->set('router', $router);
-
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
 
         $callback = $this->getMockForAbstractClass(
             '\Backend\Interfaces\CallbackInterface'
         );
+        $this->container->set('callback', $callback);
 
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
+        $event
+            ->expects($this->never())
+            ->method('stopPropagation');
 
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
     }
 
     /**
@@ -116,24 +98,8 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
         );
         $this->container->set('request', $request);
 
-        $callback = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\CallbackInterface'
-        );
-        $callback
-            ->expects($this->once())
-            ->method('getMethod')
-            ->will($this->returnValue('actionFormat'));
-
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
-
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
     }
 
     /**
@@ -158,24 +124,8 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
         );
         $this->container->set('request', $request);
 
-        $callback = $this->getMockForAbstractClass(
-            '\Backend\Interfaces\CallbackInterface'
-        );
-        $callback
-            ->expects($this->once())
-            ->method('getMethod')
-            ->will($this->returnValue('actionFormat'));
-
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
-
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
 
         $this->assertSame($result, $event->getResponse());
     }
@@ -215,13 +165,7 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
             ->with(array($result))
             ->will($this->returnValue($result));
 
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
+        $this->container->set('callback', $callback);
 
         $response = $this->getMockForAbstractClass('\Backend\Interfaces\ResponseInterface');
 
@@ -234,8 +178,8 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
 
         $this->container->set('formatter', $formatter);
 
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
 
         $this->assertSame($response, $event->getResponse());
     }
@@ -275,13 +219,7 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
             ->with(array($result))
             ->will($this->returnValue($result));
 
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
+        $this->container->set('callback', $callback);
 
         $response = $this->getMockForAbstractClass('\Backend\Interfaces\ResponseInterface');
 
@@ -306,8 +244,8 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
 
         ob_start();
         echo 'buffer';
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
     }
 
     /**
@@ -345,13 +283,7 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
             ->with(array($result))
             ->will($this->returnValue($result));
 
-        $router = $this->getMock('\Backend\Interfaces\RouterInterface');
-        $router
-            ->expects($this->once())
-            ->method('inspect')
-            ->with($request)
-            ->will($this->returnValue($callback));
-        $this->container->set('router', $router);
+        $this->container->set('callback', $callback);
 
         $response = $this->getMockForAbstractClass('\Backend\Interfaces\ResponseInterface');
 
@@ -374,8 +306,8 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
         $this->container->set('formatter', $formatter);
 
         ob_start('ob_gzhandler');
-        $transformer = new CoreListener($this->container);
-        $transformer->coreResultEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
     }
 
     /**
@@ -412,7 +344,7 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
             array($callback)
         );
 
-        $transformer = new CoreListener($this->container);
-        $transformer->coreCallbackEvent($event);
+        $listener = new CoreListener($this->container);
+        $listener->coreCallbackEvent($event);
    }
 }

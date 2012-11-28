@@ -73,7 +73,9 @@ class CoreListener
     public function coreCallbackEvent(\Backend\Core\Event\CallbackEvent $event)
     {
         $callback = $event->getCallback();
-        $event->setCallback($this->transformCallback($callback));
+        $callback = $this->transformCallback($callback);
+        $this->container->set('callback', $callback);
+        $event->setCallback($callback);
     }
 
     /**
@@ -86,25 +88,8 @@ class CoreListener
      */
     public function coreResultEvent(\Backend\Core\Event\ResultEvent $event)
     {
-        // Get and Check the initial callback
-        $request  = $this->container->get('request');
-        $callback = $this->container->get('router')->inspect($request);
-        if (empty($callback)
-            || ($callback instanceof CallbackInterface) === false
-        ) {
-            return;
-        }
-        // Transform the Controller
-        $callback = $this->transformCallback($callback);
-
-        // Check the Method
-        $method = $callback->getMethod();
-        if (empty($method)) {
-            return;
-        }
-
+        // Check the Result & Formatter
         $result = $event->getResult();
-
         $formatter = $this->container->get('formatter');
         if (empty($formatter)) {
             if ($result instanceof ResponseInterface) {
@@ -114,9 +99,17 @@ class CoreListener
             throw new CoreException('Unsupported format requested', 415);
         }
 
+        // Get and Check the initial callback
+        $callback = $this->container->get('callback');
+
+        // Check the Method
+        $method = $callback->getMethod();
+        if (empty($method)) {
+            return;
+        }
+
         // Setup the formatting callback
-        $class = get_class($formatter);
-        $class = explode('\\', $class);
+        $class = explode('\\', get_class($formatter));
         $method = str_replace('Action', end($class), $method);
         $callback->setMethod($method);
 
@@ -127,7 +120,7 @@ class CoreListener
             // If the callback is invalid, it won't be called, result won't change
         }
 
-        // TODO This isn't optimal
+        // TODO This isn't optimal. We don't close any unclosed sessions
         if (ob_get_level() > 1 && in_array('ob_gzhandler', ob_list_handlers()) === false) {
             $buffered = ob_get_clean();
             if (is_callable(array($formatter, 'setValue'))) {
