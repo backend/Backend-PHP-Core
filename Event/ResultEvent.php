@@ -74,12 +74,13 @@ class ResultEvent extends Event
     /**
      * Set the result for the Event.
      *
-     * @param mixed $result
+     * @param  mixed                            $result
      * @return Backend\Core\Event\ResponseEvent The current object.
      */
     public function setResult($result)
     {
         $this->result = $result;
+
         return $this;
     }
 
@@ -96,12 +97,13 @@ class ResultEvent extends Event
     /**
      * Set the Response for the Event.
      *
-     * @param Backend\Interfaces\ResponseInterface $response
-     * @return Backend\Core\Event\ResponseEvent The current object.
+     * @param  Backend\Interfaces\ResponseInterface $response
+     * @return Backend\Core\Event\ResponseEvent     The current object.
      */
     public function setResponse(ResponseInterface $response)
     {
         $this->response = $response;
+
         return $this;
     }
 }

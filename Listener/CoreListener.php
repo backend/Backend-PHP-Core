@@ -94,6 +94,7 @@ class CoreListener
         if (empty($formatter)) {
             if ($result instanceof ResponseInterface) {
                 $event->setResponse($result);
+
                 return;
             }
             throw new CoreException('Unsupported format requested', 415);
@@ -190,6 +191,7 @@ class CoreListener
                 }
             }
         }
+
         return $callback;
     }
 

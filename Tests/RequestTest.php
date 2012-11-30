@@ -12,7 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests;
+
 use \Backend\Core\Request;
+
 /**
  * Class to test the \Backend\Core\Controller class
  *
@@ -78,7 +80,8 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         //With Filename
         $request = new Request('http://backend-php.net/index.php', 'GET');
         $this->assertEquals(
-            'http://backend-php.net/index.php', $request->getUrl()
+            'http://backend-php.net/index.php',
+            $request->getUrl()
         );
     }
 
@@ -105,7 +108,8 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         //With Trailing Slash
         $request = new Request(
-            'http://backend-php.net/base/index.php/something/', 'GET'
+            'http://backend-php.net/base/index.php/something/',
+            'GET'
         );
         $this->assertEquals('/base/index.php/something', $request->getPath());
     }
@@ -257,25 +261,29 @@ class RequestTest extends \PHPUnit_Framework_TestCase
         // With php file
         $request = new Request('https://backend-php.net/index.php');
         $this->assertEquals(
-            'https://backend-php.net/index.php', $request->getUrl()
+            'https://backend-php.net/index.php',
+            $request->getUrl()
         );
 
         // With Path
         $request = new Request('https://backend-php.net/something/else');
         $this->assertEquals(
-            'https://backend-php.net/something/else', $request->getUrl()
+            'https://backend-php.net/something/else',
+            $request->getUrl()
         );
 
         // With php file and Path
         $request = new Request('https://backend-php.net/something/index.php/else');
         $this->assertEquals(
-            'https://backend-php.net/something/index.php/else', $request->getUrl()
+            'https://backend-php.net/something/index.php/else',
+            $request->getUrl()
         );
 
         // With php file, Path and query
         $request = new Request('https://backend-php.net/something/index.php/else?test=this');
         $this->assertEquals(
-            'https://backend-php.net/something/index.php/else', $request->getUrl()
+            'https://backend-php.net/something/index.php/else',
+            $request->getUrl()
         );
         $this->assertEquals(array('test' => 'this'), $request->getQuery());
     }

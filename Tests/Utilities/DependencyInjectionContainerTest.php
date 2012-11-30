@@ -12,8 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Utilities\Tests;
+
 use \Backend\Core\Utilities\DependencyInjectionContainer;
-require_once dirname(__FILE__) . '/../auxiliary/TestContainer.php';
+
 /**
  * Class to test the \Backend\Core\Utilities\DependencyInjectionContainer class
  *
@@ -55,12 +56,13 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefinitions()
     {
+        require_once dirname(__FILE__) . '/../auxiliary/TestContainer.php';
         $config = array(
             'services' => array(
                 'exception' => '\Backend\Core\Exception',
                 'test' => array(
-                    'class' => 'TestContainer',
-                    'factory_class' => 'TestContainer',
+                    'class' => '\Backend\Core\TestContainer',
+                    'factory_class' => '\Backend\Core\TestContainer',
                     'factory_method' => 'factory',
                     'calls' => array(
                         'addParam' => array('call'),
@@ -83,7 +85,7 @@ class DependencyInjectionContainerTest extends \PHPUnit_Framework_TestCase
         $container = new DependencyInjectionContainer($config);
         $test = $container->get('test');
         //Test class
-        $this->assertInstanceOf('\TestContainer', $test);
+        $this->assertInstanceOf('\Backend\Core\TestContainer', $test);
         //Test factory and arguments
         $this->assertSame($container, $test->container);
         //Test calls

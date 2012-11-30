@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Exceptions;
+
 /**
  * Thrown when an object doesn't behave as expected.
  *

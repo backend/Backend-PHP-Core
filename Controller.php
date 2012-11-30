@@ -12,10 +12,12 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+
 use Backend\Interfaces\ControllerInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Core\Exception as CoreException;
+
 /**
  * Controller that acts as the connection between Models and Views.
  *
@@ -44,9 +46,10 @@ class Controller implements ControllerInterface
     /**
      * The constructor for the object
      */
-    public function __construct(DependencyInjectionContainerInterface $container = null,
-        RequestInterface $request = null)
-    {
+    public function __construct(
+        DependencyInjectionContainerInterface $container = null,
+        RequestInterface $request = null
+    ) {
         $this->container = $container;
         $this->request = $request;
     }

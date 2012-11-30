@@ -13,9 +13,11 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Exceptions\ConfigException;
 use Backend\Core\Exceptions\DuckTypeException;
+
 /**
  * Class to handle application configs.
  *

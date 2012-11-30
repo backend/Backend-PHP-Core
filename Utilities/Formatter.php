@@ -12,11 +12,13 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\FormatterInterface;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\ResponseInterface;
 use Backend\Core\Response;
+
 /**
  * Transform results into the specified format.
  *
@@ -128,7 +130,8 @@ class Formatter implements FormatterInterface
             $regex  = new \RegexIterator($iter, $regex, \RecursiveRegexIterator::GET_MATCH);
             foreach ($regex as $file) {
                 $formatName = str_replace(
-                    array('/', '\\', DIRECTORY_SEPARATOR), '\\',
+                    array('/', '\\', DIRECTORY_SEPARATOR),
+                    '\\',
                     $file[1]
                 );
                 $formats[] = $formatName;

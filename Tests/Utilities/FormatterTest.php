@@ -12,8 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
+
 use \Backend\Core\Utilities\Formatter;
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '../auxiliary/TestFormat.php';
+
 /**
  * Class to test the \Backend\Core\Utilities\Formatter class
  *
@@ -66,7 +67,7 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
      */
     public function testBaseFoldersAccessors()
     {
-        $folders = array('one', 'two');;
+        $folders = array('one', 'two');
         Formatter::setBaseFolders($folders);
         $this->assertEquals($folders, Formatter::getBaseFolders());
     }
@@ -113,7 +114,8 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($request));
         $this->assertNull(Formatter::factory($container));
 
-        Formatter::setFormats(array('\TestFormat'));
+        require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . '../auxiliary/TestFormat.php';
+        Formatter::setFormats(array('\Backend\Core\TestFormat'));
 
         $request = $this->getMock('Backend\Interfaces\RequestInterface');
         $request
@@ -138,7 +140,7 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
         $container
             ->expects($this->exactly(2))
             ->method('get')
-            ->will($this->onConsecutiveCalls($request, new \TestFormat));
+            ->will($this->onConsecutiveCalls($request, new \Backend\Core\TestFormat));
         $formatter = Formatter::factory($container);
         $this->assertInstanceOf('Backend\Interfaces\FormatterInterface', $formatter);
     }
@@ -155,8 +157,8 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
         $filtered = array_filter($formats, 'class_exists');
         $this->assertEquals(count($filtered), count($formats));
 
-        Formatter::setFormats(array('\TestFormat'));
-        $this->assertEquals(array('\TestFormat'), Formatter::getFormats());
+        Formatter::setFormats(array('\Backend\Core\TestFormat'));
+        $this->assertEquals(array('\Backend\Core\TestFormat'), Formatter::getFormats());
     }
 
     /**
@@ -208,10 +210,10 @@ class FormatterTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsValidFormat()
     {
-        $actual = Formatter::isValidFormat(new \TestFormat);
+        $actual = Formatter::isValidFormat(new \Backend\Core\TestFormat);
         $this->assertTrue($actual);
 
-        $actual = Formatter::isValidFormat('\TestFormat');
+        $actual = Formatter::isValidFormat('\Backend\Core\TestFormat');
         $this->assertTrue($actual);
 
         $this->assertFalse(Formatter::isValidFormat('SomeRandomClass'));

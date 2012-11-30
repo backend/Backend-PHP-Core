@@ -12,8 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+
 use Backend\Interfaces\RequestInterface;
 use Backend\Core\Exception as CoreException;
+
 /**
  * The Request class which helps determine the Path and request format.
  *
@@ -877,6 +879,7 @@ class Request implements RequestInterface
             return $this->query;
         }
         $this->setQuery($this->getServerInfo('query_string'));
+
         return $this->query;
     }
 
@@ -897,6 +900,7 @@ class Request implements RequestInterface
             $query = (array) $query;
         }
         $this->query = $query;
+
         return $this;
     }
 

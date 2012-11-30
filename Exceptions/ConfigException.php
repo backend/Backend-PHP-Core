@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Exceptions;
+
 /**
  * Thrown when there's something wrong with the setup of the system.
  *

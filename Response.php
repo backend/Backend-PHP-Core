@@ -12,8 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core;
+
 use Backend\Interfaces\ResponseInterface;
 use Backend\Core\Exception as CoreException;
+
 /**
  * The response that will be sent back to the client
  *
@@ -270,6 +272,7 @@ class Response implements ResponseInterface
     {
         $this->sendHeaders()
             ->sendBody();
+
         return $this;
     }
 

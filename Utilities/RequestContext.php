@@ -13,8 +13,10 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\RequestInterface;
 use Backend\Interfaces\RequestContextInterface;
+
 /**
  * Class to define the context of a Request.
  *

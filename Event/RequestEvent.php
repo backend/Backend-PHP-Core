@@ -63,12 +63,13 @@ class RequestEvent extends Event
     /**
      * Set the Request for the Event.
      *
-     * @param Backend\Interfaces\RequestInterface $request
-     * @return Backend\Core\Event\RequestEvent The current object.
+     * @param  Backend\Interfaces\RequestInterface $request
+     * @return Backend\Core\Event\RequestEvent     The current object.
      */
     public function setRequest(RequestInterface $request)
     {
         $this->request = $request;
+
         return $this;
     }
 }

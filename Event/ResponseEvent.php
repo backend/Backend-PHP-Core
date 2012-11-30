@@ -63,12 +63,13 @@ class ResponseEvent extends Event
     /**
      * Set the Response for the Event.
      *
-     * @param Backend\Interfaces\ResponseInterface $response
-     * @return Backend\Core\Event\ResponseEvent The current object.
+     * @param  Backend\Interfaces\ResponseInterface $response
+     * @return Backend\Core\Event\ResponseEvent     The current object.
      */
     public function setResponse(ResponseInterface $response)
     {
         $this->response = $response;
+
         return $this;
     }
 }

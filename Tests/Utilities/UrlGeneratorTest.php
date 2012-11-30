@@ -12,7 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
+
 use Backend\Core\Utilities\UrlGenerator;
+
 /**
  * Class to test the \Backend\Core\Utilities\UrlGenerator class
  *

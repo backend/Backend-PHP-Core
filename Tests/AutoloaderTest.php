@@ -13,7 +13,9 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Tests;
+
 use \Backend\Core\Autoloader;
+
 /**
  * Class to test the \Backend\Core\Utilities\Autoloader class
  *
@@ -72,7 +74,7 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testBaseFoldersAccessors()
     {
-        $folders = array('one', 'two');;
+        $folders = array('one', 'two');
         Autoloader::setBaseFolders($folders);
         $this->assertEquals($folders, Autoloader::getBaseFolders());
     }
@@ -127,7 +129,7 @@ class AutoloaderTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse(
             class_exists('\TestController', false)
         );
-        $result = Autoloader::autoload('TestController');
+        $result = Autoloader::autoload('\TestController');
         $this->assertTrue($result);
         $this->assertTrue(
             class_exists('\TestController', false)

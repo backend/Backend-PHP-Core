@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining ApplicationTest
+ * File defining Backend\Core\Tests\ApplicationTest
  *
  * PHP Version 5.3
  *
@@ -12,11 +12,13 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests;
+
 use Backend\Core\Application;
 use Backend\Core\Request;
 use Backend\Core\Exception as CoreException;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\DependencyInjectionContainer;
+
 /**
  * Class to test the \Backend\Core\Application class
  *
@@ -175,7 +177,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($callback));
         $this->container->set('router', $router);
 
-        $eventDispatcher = $this->getMockForAbstractClass('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $eventDispatcher = $this->getMockForAbstractClass(
+            '\Symfony\Component\EventDispatcher\EventDispatcherInterface'
+        );
         $eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
@@ -194,7 +198,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->with('core.response', $this->isInstanceOf('\Backend\Core\Event\ResponseEvent'));
 
         $this->container->set('event_dispatcher', $eventDispatcher);
-
 
         $result = $this->application->main($request);
 
@@ -244,7 +247,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($callback));
         $this->container->set('router', $router);
 
-        $eventDispatcher = $this->getMockForAbstractClass('\Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $eventDispatcher = $this->getMockForAbstractClass(
+            '\Symfony\Component\EventDispatcher\EventDispatcherInterface'
+        );
         $eventDispatcher
             ->expects($this->at(0))
             ->method('dispatch')
@@ -255,7 +260,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             ->with('core.callback');
 
         $this->container->set('event_dispatcher', $eventDispatcher);
-
 
         $result = $this->application->main($request);
 

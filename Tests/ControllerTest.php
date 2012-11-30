@@ -12,9 +12,11 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests;
+
 use \Backend\Core\Controller;
 use \Backend\Core\Request;
 use \Backend\Core\Response;
+
 /**
  * Class to test the \Backend\Core\Controller class
  *
@@ -31,6 +33,8 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      * Test setting and getting the Request
      *
      * @return void
+     * @covers \Backend\Core\Controller::getRequest
+     * @covers \Backend\Core\Controller::setRequest
      */
     public function testRequestAccessors()
     {
@@ -46,6 +50,8 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
      * Test setting and getting the DIC
      *
      * @return void
+     * @covers \Backend\Core\Controller::getContainer
+     * @covers \Backend\Core\Controller::setContainer
      */
     public function testContainerAccessors()
     {

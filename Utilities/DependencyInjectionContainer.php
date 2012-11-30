@@ -12,6 +12,7 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\ConfigInterface;
 use Backend\Core\Exception as CoreException;
@@ -19,6 +20,7 @@ use Backend\Core\Exceptions\ConfigException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+
 /**
  * A Dependency Injection Container. Currently we just wrap the Symfony
  * DependencyInjection Component
@@ -29,8 +31,7 @@ use Symfony\Component\DependencyInjection\Reference;
  * @license  http://www.opensource.org/licenses/mit-license.php MIT License
  * @link     http://backend-php.net
  */
-class DependencyInjectionContainer extends ContainerBuilder
-    implements DependencyInjectionContainerInterface
+class DependencyInjectionContainer extends ContainerBuilder implements DependencyInjectionContainerInterface
 {
     protected $container = null;
 
@@ -124,21 +125,23 @@ class DependencyInjectionContainer extends ContainerBuilder
      * Resolve the config value, retrieving the required services, parameters and
      * constants.
      *
-     * @param  mixed $configValue The config value to resolve.
+     * @param mixed $configValue The config value to resolve.
      *
      * @return mixed
      */
-    protected function resolve($configValue) {
+    protected function resolve($configValue)
+    {
         if (is_array($configValue)) {
-            foreach($configValue as $key => &$value) {
+            foreach ($configValue as $key => &$value) {
                 $value = $this->resolve($value);
             }
+
             return $configValue;
-        } else if (is_string($configValue)) {
+        } elseif (is_string($configValue)) {
             if ($configValue[0] === '@') {
                 // Service
                 return new Reference(substr($configValue, 1));
-            } else if (defined($configValue)) {
+            } elseif (defined($configValue)) {
                 // Constant
                 return constant($configValue);
             } else {

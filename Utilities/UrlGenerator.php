@@ -13,9 +13,11 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\UrlGeneratorInterface;
 use Backend\Interfaces\RequestContextInterface;
 use Backend\Interfaces\ConfigInterface;
+
 /**
  * Class to generate URL's using routing information.
  *

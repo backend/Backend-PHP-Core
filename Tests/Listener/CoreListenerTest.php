@@ -1,11 +1,32 @@
 <?php
+/**
+ * File defining Backend\Core\Tests\Listener\CoreListenerTest
+ *
+ * PHP Version 5.3
+ *
+ * @category  Backend
+ * @package   CoreTests
+ * @author    J Jurgens du Toit <jrgns@backend-php.net>
+ * @copyright 2011 - 2012 Jade IT (cc)
+ * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link      http://backend-php.net
+ */
 namespace Backend\Core\Tests\Listener;
+
 use Backend\Core\Listener\CoreListener;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\DependencyInjectionContainer;
 
+/**
+ * Class to test the \Backend\Core\Listener\CoreListener class
+ *
+ * @category Backend
+ * @package  CoreTests
+ * @author   J Jurgens du Toit <jrgns@backend-php.net>
+ * @license  http://www.opensource.org/licenses/mit-license.php MIT License
+ * @link     http://backend-php.net
+ */
 class CoreListenerTest extends \PHPUnit_Framework_TestCase
-
 {
     protected $container = null;
 
@@ -239,7 +260,6 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
             ->with($result)
             ->will($this->returnValue($response));
 
-
         $this->container->set('formatter', $formatter);
 
         ob_start();
@@ -302,7 +322,6 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
             ->with($result)
             ->will($this->returnValue($response));
 
-
         $this->container->set('formatter', $formatter);
 
         ob_start('ob_gzhandler');
@@ -346,7 +365,7 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
 
         $listener = new CoreListener($this->container);
         $listener->coreCallbackEvent($event);
-   }
+    }
 
     /**
      * @return void
@@ -406,5 +425,5 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
         $response = $event->getResponse();
         $this->assertInstanceOf('\Backend\Core\Response', $response);
         $this->assertEquals(400, $response->getStatusCode());
-   }
+    }
 }

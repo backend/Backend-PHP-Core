@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Tests;
+
 /**
  * Class to test the autoloading functionality.
  *

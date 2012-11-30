@@ -12,7 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
+
 use Backend\Core\Utilities\Callback;
+
 /**
  * Class to test the \Backend\Core\Utilities\Callback class
  *

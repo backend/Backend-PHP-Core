@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core;
+
 /**
  * Base Core Exception.
  *

@@ -63,12 +63,13 @@ class CallbackEvent extends Event
     /**
      * Set the Callback for the Event.
      *
-     * @param Backend\Interfaces\CallbackInterface $callback
-     * @return Backend\Core\Event\CallbackEvent The current object.
+     * @param  Backend\Interfaces\CallbackInterface $callback
+     * @return Backend\Core\Event\CallbackEvent     The current object.
      */
     public function setCallback(CallbackInterface $callback)
     {
         $this->callback = $callback;
+
         return $this;
     }
 }

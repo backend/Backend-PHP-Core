@@ -13,8 +13,10 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\CallbackInterface;
 use Backend\Core\Exception as CoreException;
+
 /**
  * Class to handle application configs.
  *

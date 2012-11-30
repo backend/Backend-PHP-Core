@@ -12,7 +12,9 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests;
+
 use \Backend\Core\Response;
+
 /**
  * Class to test the \Backend\Core\Response class
  *

@@ -129,7 +129,7 @@ class Application implements ApplicationInterface
                 $this->setRequest($event->getRequest());
 
                 $callback = $this->getRouter()->inspect($this->getRequest());
-            } else if ($result instanceof CallbackInterface) {
+            } elseif ($result instanceof CallbackInterface) {
                 $callback = $result;
             }
 
@@ -161,6 +161,7 @@ class Application implements ApplicationInterface
         // Transform the Response
         $event = new Event\ResponseEvent($response);
         $this->raiseEvent('core.response', $event);
+
         return $event->getResponse();
     }
 
@@ -189,6 +190,7 @@ class Application implements ApplicationInterface
     {
         $this->request = $request;
         $this->container->set('request', $this->request);
+
         return $this;
     }
 
@@ -213,6 +215,7 @@ class Application implements ApplicationInterface
     {
         $this->config = $config;
         $this->container->set('application.config', $this->config);
+
         return $this;
     }
 
@@ -280,6 +283,7 @@ class Application implements ApplicationInterface
         if ($this->container->has('event_dispatcher')) {
             $this->container->get('event_dispatcher')->dispatch($name, $event);
         }
+
         return $this;
     }
 

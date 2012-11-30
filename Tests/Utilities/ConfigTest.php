@@ -12,8 +12,10 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
+
 use \Backend\Core\Utilities\Config;
 use \Backend\Interfaces\ConfigInterface;
+
 /**
  * Class to test the \Backend\Core\Utilities\Config class
  *
@@ -61,7 +63,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
      */
     public function testBaseFoldersAccessors()
     {
-        $folders = array('one', 'two');;
+        $folders = array('one', 'two');
         Config::setBaseFolders($folders);
         $this->assertEquals($folders, Config::getBaseFolders());
     }
@@ -224,9 +226,7 @@ class ConfigTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($configArray['one'], $config->one);
         $this->assertEquals('default', $config->get('other', 'default'));
 
-        $this->assertInstanceOf(
-            '\Backend\Interfaces\ConfigInterface', $config->set('test', 'set')
-        );
+        $this->assertInstanceOf('\Backend\Interfaces\ConfigInterface', $config->set('test', 'set'));
         $this->assertEquals('set', $config->test);
 
         $config->something = 'value';

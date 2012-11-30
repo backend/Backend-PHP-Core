@@ -1,6 +1,6 @@
 <?php
 /**
- * File defining TestContainer.
+ * File defining \Backend\Core\TestContainer.
  *
  * PHP Version 5.3
  *
@@ -12,6 +12,7 @@
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
+namespace Backend\Core;
 
 /**
  * Class to test the autoloading of classes in the include path and other controller
@@ -34,10 +35,11 @@ class TestContainer
     {
         $result = new static($container);
         if (func_num_args() > 2) {
-            for($i = 1; $i < func_num_args(); $i++) {
+            for ($i = 1; $i < func_num_args(); $i++) {
                 $result->addParam(func_get_arg($i));
             }
         }
+
         return $result;
     }
 

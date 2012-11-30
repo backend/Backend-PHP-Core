@@ -68,12 +68,13 @@ class ExceptionEvent extends Event
     /**
      * Set the Exception for the event.
      *
-     * @param \Exception $exception
+     * @param  \Exception                        $exception
      * @return Backend\Core\Event\ExceptionEvent The current object.
      */
     public function setException(\Exception $exception)
     {
         $this->exception = $exception;
+
         return $this;
     }
 
@@ -90,12 +91,13 @@ class ExceptionEvent extends Event
     /**
      * Set the Response for the Event.
      *
-     * @param Backend\Interfaces\ResponseInterface $response
-     * @return Backend\Core\Event\ExceptionEvent The current object.
+     * @param  Backend\Interfaces\ResponseInterface $response
+     * @return Backend\Core\Event\ExceptionEvent    The current object.
      */
     public function setResponse(ResponseInterface $response)
     {
         $this->response = $response;
+
         return $this;
     }
 }

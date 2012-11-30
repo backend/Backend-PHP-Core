@@ -13,6 +13,7 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core;
+
 /**
  * The main autoloader.
  *

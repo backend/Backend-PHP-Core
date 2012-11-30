@@ -12,10 +12,12 @@
  * @link      http://backend-php.net
  */
 namespace Backend\Core\Tests\Utilities;
+
 use Backend\Core\Utilities\Router;
 use Backend\Interfaces\CallbackFactoryInterface;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\Callback;
+
 /**
  * Class to test the \Backend\Core\Utilities\Router class
  *

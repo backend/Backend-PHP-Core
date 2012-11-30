@@ -13,11 +13,13 @@
  * @link       http://backend-php.net
  */
 namespace Backend\Core\Utilities;
+
 use Backend\Interfaces\ConfigInterface;
 use Backend\Interfaces\CallbackFactoryInterface;
 use Backend\Core\Utilities\Config;
 use Backend\Core\Utilities\CallbackFactory;
 use Backend\Interfaces\RequestInterface;
+
 /**
  * Class to inspect the Request to determine what callback should be executed.
  *
@@ -111,22 +113,16 @@ class Router
             //Straight match, no arguments
             return $factory->fromString($route['callback'], $defaults);
         }
-        $pregMatch = preg_match_all(
-            '/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches
-        );
+        $pregMatch = preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches);
         if ($pregMatch) {
             //Compile the Regex
             $varNames = $matches[1];
             $search   = $matches[0];
             $replace  = '(/([^/]*))?';
-            $regex    = str_replace(
-                '/', '\/', str_replace($search, $replace, $route['route'])
-            );
+            $regex    = str_replace('/', '\/', str_replace($search, $replace, $route['route']));
             $regex = '/^' . $regex . '$/';
             if (preg_match_all($regex, $request->getPath(), $matches)) {
-                $arguments = array_combine(
-                    $varNames, array_fill(0, count($varNames), null)
-                );
+                $arguments = array_combine($varNames, array_fill(0, count($varNames), null));
                 // Populate the defaults
                 $arguments = array_merge($arguments, $defaults);
 
