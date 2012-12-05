@@ -1,25 +1,25 @@
 <?php
 /**
- * File defining Backend\Modules\EventDispatcher\EventDispatcher.
+ * File defining Backend\Core\Utilities\EventDispatcher.
  *
  * PHP Version 5.3
  *
  * @category   Backend
- * @package    Modules
- * @subpackage EventDispatcher
+ * @package    Core
+ * @subpackage Utilities
  * @author     J Jurgens du Toit <jrgns@backend-php.net>
  * @copyright  2012 Jade IT (cc)
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
  */
-namespace Backend\Modules\EventDispatcher;
+namespace Backend\Core\Utilities;
 
 /**
  * An EventDispatcher to manage events and their listeners.
  *
  * @category   Backend
- * @package    Modules
- * @subpackage EventDispatcher
+ * @package    Core 
+ * @subpackage Utilities
  * @author     J Jurgens du Toit <jrgns@backend-php.net>
  * @license    http://www.opensource.org/licenses/mit-license.php MIT License
  * @link       http://backend-php.net
@@ -94,7 +94,6 @@ class EventDispatcher extends SymfonyEventDispatcher
     public function dispatch($eventName, Event $event = null)
     {
         $result = parent::dispatch($eventName, $event);
-        //var_dump($result); die;
         return $result;
     }
 }
