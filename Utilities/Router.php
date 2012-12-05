@@ -70,10 +70,13 @@ class Router
     public function inspect(RequestInterface $request)
     {
         if ($this->config->has('routes')) {
-            foreach ($this->config->get('routes') as $key => $route) {
-                $callback = $this->check($request, $route);
-                if ($callback) {
-                    return $callback;
+            $routes = $this->config->get('routes');
+            if (empty($routes) === false) {
+                foreach ($routes as $key => $route) {
+                    $callback = $this->check($request, $route);
+                    if ($callback) {
+                        return $callback;
+                    }
                 }
             }
         }
