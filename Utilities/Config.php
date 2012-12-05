@@ -155,8 +155,55 @@ class Config implements ConfigInterface
                 throw new ConfigException('Invalid configuration values: ' . $config);
                 break;
         }
+
+        // Check imports
+        if (array_key_exists('imports', $this->values)) {
+            foreach ($this->values['imports'] as $key => $import) {
+                $this->import($import);
+            }
+            unset($this->values['imports']);
+        }
+
         $this->rewind();
 
+        return $this;
+    }
+
+    /**
+     * Import a defined config into the current config file.
+     *
+     * The import references are defined as follows:
+     * imports:
+     *     - { [type]: [value] }
+     *
+     * Where type can be either <code>file</code> or <code>resource</code>. The
+     * <code>resource</code> type follows the same semantics as that of the getNamed
+     * method and takes precedent over the file directive.
+     *
+     * @param array $reference The import reference.
+     *
+     * @return \Backend\Core\Utilities\Config
+     */
+    protected function import($reference)
+    {
+        if (is_string($reference)) {
+            $reference = array('resource' => $reference);
+        }
+        switch (true) {
+            case array_key_exists('resource', $reference):
+                $result = static::getNamed($this->getParser(), $reference['resource']);
+                break;
+            case array_key_exists('file', $reference):
+                if (file_exists($reference['file']) === false) {
+                    throw new ConfigException('Could not find imported config file ' . $reference['file']);
+                }
+                $result = new static($this->getParser(), $this->fromFile($reference['file']));
+                break;
+        }
+        if (empty($result)) {
+            throw new ConfigException('Invalid Import Directive');
+        }
+        $this->values = array_merge_recursive($this->values, $result->get());
         return $this;
     }
 
@@ -211,7 +258,7 @@ class Config implements ConfigInterface
         $parser = $this->getParser();
         $result = $parser->parse(file_get_contents($filename));
         if (empty($result)) {
-            throw new ConfigException('Invalid Configuration File');
+            throw new ConfigException('Invalid Configuration File: ' . $filename);
         }
 
         return is_object($result) ? (array) $result : $result;
@@ -241,6 +288,8 @@ class Config implements ConfigInterface
                 if (file_exists($folder . $file) === false) {
                     continue;
                 }
+
+                // TODO Look for envionment specific files as well.
 
                 return new static($parser, $folder . $file);
             }
