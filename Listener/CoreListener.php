@@ -90,16 +90,16 @@ class CoreListener
     {
         // Check the Result & Formatter
         $result = $event->getResult();
-        $formatter = $this->container->get('formatter');
-        if (empty($formatter)) {
-            if ($result instanceof ResponseInterface) {
-                $event->setResponse($result);
-
-                return;
+        if ($this->container->has('formatter') === false) {
+            if (($result instanceof ResponseInterface) === false) {
+                $responseClass = $this->container->getParameter('response.class');
+                $result = new $responseClass((string)$result);
             }
-            throw new CoreException('Unsupported format requested', 415);
+            $event->setResponse($result);
+            return;
         }
 
+        $formatter = $this->container->get('formatter');
         // Get and Check the initial callback
         $callback = $this->container->get('callback');
 
