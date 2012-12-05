@@ -278,21 +278,13 @@ class Config implements ConfigInterface
      */
     public static function getNamed($parser, $name)
     {
-        $files = array(
-            'configs/' . $name . '.' . BACKEND_SITE_STATE . '.yml',
-            'configs/' . $name . '.yml',
-        );
+        $file = 'configs/' . $name . '.yml';
         $folders = self::getBaseFolders();
         foreach ($folders as $folder) {
-            foreach ($files as $file) {
-                if (file_exists($folder . $file) === false) {
-                    continue;
-                }
-
-                // TODO Look for envionment specific files as well.
-
-                return new static($parser, $folder . $file);
+            if (file_exists($folder . $file) === false) {
+                continue;
             }
+            return new static($parser, $folder . $file);
         }
 
         throw new ConfigException(
