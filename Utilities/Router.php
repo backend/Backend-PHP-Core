@@ -108,22 +108,26 @@ class Router
             return false;
         }
 
-        $defaults = array_key_exists('defaults', $route) ? $route['defaults']
-            : array();
+        $defaults = array_key_exists('defaults', $route) ? $route['defaults'] : array();
         //Try to match the route
         $factory  = $this->getCallbackFactory();
         if ($route['route'] == $request->getPath()) {
             //Straight match, no arguments
             return $factory->fromString($route['callback'], $defaults);
         }
+        // Check for arguments
         $pregMatch = preg_match_all('/\/<([a-zA-Z][a-zA-Z0-9_-]*)>/', $route['route'], $matches);
         if ($pregMatch) {
             //Compile the Regex
             $varNames = $matches[1];
-            $search   = $matches[0];
-            $replace  = '(/([^/]*))?';
-            $regex    = str_replace('/', '\/', str_replace($search, $replace, $route['route']));
-            $regex = '/^' . $regex . '$/';
+
+            $regex = $route['route'];
+            foreach($varNames as $name) {
+                $replace = array_key_exists($name, $defaults) ? '(/([^/]*))?' : '(/([^/]+))';
+                $regex = str_replace('/<' . $name . '>', $replace, $regex);
+            }
+            $regex = '/^' . str_replace('/', '\/', $regex) . '$/';
+
             if (preg_match_all($regex, $request->getPath(), $matches)) {
                 $arguments = array_combine($varNames, array_fill(0, count($varNames), null));
                 // Populate the defaults
@@ -132,7 +136,7 @@ class Router
                 // Check for passed values
                 $index = 2;
                 foreach ($varNames as $name) {
-                    if (empty($matches[$index-1][0]) === false) {
+                    if (empty($matches[$index][0]) === false) {
                         $arguments[$name] = $matches[$index][0];
                     }
                     $index = $index + 2;
