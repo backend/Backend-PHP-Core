@@ -46,7 +46,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $parser = new \Symfony\Component\Yaml\Parser;
-        $config = new Config($parser, __DIR__ . '/auxiliary/configs/application.testing.yml');
+        $config = new Config($parser, __DIR__ . '/auxiliary/configs/application.yml');
         $this->container   = new DependencyInjectionContainer($config);
         $this->application = new Application($config, $this->container);
     }

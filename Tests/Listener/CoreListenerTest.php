@@ -40,7 +40,7 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $parser = new \Symfony\Component\Yaml\Parser;
-        $config = new Config($parser, __DIR__ . '/../auxiliary/configs/application.testing.yml');
+        $config = new Config($parser, __DIR__ . '/../auxiliary/configs/application.yml');
         $this->container = new DependencyInjectionContainer($config);
     }
 
@@ -100,8 +100,6 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * @return void
      * @covers Backend\Core\Listener\CoreListener::coreResultEvent
-     * @expectedException \Backend\Core\Exception
-     * @expectedExceptionMessage Unsupported format requested
      */
     public function testUnsupportedFormatResultEvent()
     {
