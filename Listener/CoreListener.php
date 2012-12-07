@@ -91,11 +91,9 @@ class CoreListener
         // Check the Result & Formatter
         $result = $event->getResult();
         if ($this->container->has('formatter') === false || $this->container->get('formatter') === null) {
-            if (($result instanceof ResponseInterface) === false) {
-                $responseClass = $this->container->getParameter('response.class');
-                $result = new $responseClass((string)$result);
+            if ($result instanceof ResponseInterface) {
+                $event->setResponse($result);
             }
-            $event->setResponse($result);
             return;
         }
 
