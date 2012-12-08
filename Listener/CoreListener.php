@@ -16,7 +16,6 @@ namespace Backend\Core\Listener;
 
 use Backend\Core\Exception as CoreException;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
-use Backend\Interfaces\ResponseInterface;
 use Backend\Interfaces\CallbackInterface;
 
 /**
@@ -50,19 +49,6 @@ class CoreListener
     }
 
     /**
-     * Method to handle core.init Events.
-     *
-     * It starts an output buffer.
-     *
-     * @param  \Symfony\Component\EventDispatcher\Event $event The event to handle.
-     * @return void
-     */
-    public function coreInitEvent(\Symfony\Component\EventDispatcher\Event $event)
-    {
-        ob_start();
-    }
-
-    /**
      * Method to handle core.callback Events.
      *
      * It applies a couple of transforms on the object, ensuring consistency.
@@ -76,59 +62,6 @@ class CoreListener
         $callback = $this->transformCallback($callback);
         $this->container->set('callback', $callback);
         $event->setCallback($callback);
-    }
-
-    /**
-     * Method to handle core.result Events.
-     *
-     * It will try to format the result.
-     *
-     * @param  \Backend\Core\Event\CallbackEvent $event The event to handle
-     * @return void
-     */
-    public function coreResultEvent(\Backend\Core\Event\ResultEvent $event)
-    {
-        // Check the Result & Formatter
-        $result = $event->getResult();
-        if ($this->container->has('formatter') === false || $this->container->get('formatter') === null) {
-            if ($result instanceof ResponseInterface) {
-                $event->setResponse($result);
-            }
-            return;
-        }
-
-        $formatter = $this->container->get('formatter');
-        // Get and Check the initial callback
-        $callback = $this->container->get('callback');
-
-        // Check the Method
-        $method = $callback->getMethod();
-        if (empty($method)) {
-            return;
-        }
-
-        // Setup the formatting callback
-        $class = explode('\\', get_class($formatter));
-        $method = str_replace('Action', end($class), $method);
-        $callback->setMethod($method);
-
-        // Execute
-        try {
-            $result = $callback->execute(array($result));
-        } catch (CoreException $e) {
-            // If the callback is invalid, it won't be called, result won't change
-        }
-
-        // TODO This isn't optimal. We don't close any unclosed sessions
-        if (ob_get_level() > 1 && in_array('ob_gzhandler', ob_list_handlers()) === false) {
-            $buffered = ob_get_clean();
-            if (is_callable(array($formatter, 'setValue'))) {
-                $formatter->setValue('buffered', $buffered);
-            }
-        }
-        $response = $formatter->transform($result);
-
-        $event->setResponse($response);
     }
 
     /**

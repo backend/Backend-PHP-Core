@@ -147,7 +147,7 @@ class Application implements ApplicationInterface
             $callback = $event->getCallback();
 
             // Transform the request by executing the Callback
-            $result   = $callback->execute();
+            $result = $callback->execute();
 
         } while ($result instanceof RequestInterface
             || $result instanceof CallbackInterface);
