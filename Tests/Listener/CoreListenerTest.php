@@ -94,6 +94,46 @@ class CoreListenerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @return void
+     * @covers Backend\Core\Listener\CoreListener::coreResultEvent
+     */
+    public function testHandleResultEvent()
+    {
+        $result = 'string';
+
+        $event = $this->getMock(
+            'Backend\Core\Event\ResultEvent',
+            null,
+            array($result)
+        );
+
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
+
+        $this->assertInstanceOf('Backend\Interfaces\ResponseInterface', $event->getResponse());
+    }
+
+    /**
+     * @return void
+     * @covers Backend\Core\Listener\CoreListener::coreResultEvent
+     */
+    public function testResponseResultEvent()
+    {
+        $result = $this->getMockForAbstractClass('Backend\Interfaces\ResponseInterface');
+
+        $event = $this->getMock(
+            'Backend\Core\Event\ResultEvent',
+            null,
+            array($result)
+        );
+
+        $listener = new CoreListener($this->container);
+        $listener->coreResultEvent($event);
+
+        $this->assertSame($result, $event->getResponse());
+    }
+
+    /**
+     * @return void
      * @covers Backend\Core\Listener\CoreListener::coreExceptionEvent
      */
     public function testCorrectResponseCodeInExceptionEvent()

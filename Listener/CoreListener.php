@@ -17,6 +17,7 @@ namespace Backend\Core\Listener;
 use Backend\Core\Exception as CoreException;
 use Backend\Interfaces\DependencyInjectionContainerInterface;
 use Backend\Interfaces\CallbackInterface;
+use Backend\Interfaces\ResponseInterface;
 
 /**
  * The Core Listener.
@@ -62,6 +63,27 @@ class CoreListener
         $callback = $this->transformCallback($callback);
         $this->container->set('callback', $callback);
         $event->setCallback($callback);
+    }
+
+    /**
+     * Method to handle core.result Events.
+     *
+     * It will try to get a default format if none is specified.
+     *
+     * @param  \Backend\Core\Event\CallbackEvent $event The event to handle
+     * @return void
+     */
+    public function coreResultEvent(\Backend\Core\Event\ResultEvent $event)
+    {
+        $result = $event->getResult();
+        if ($result instanceof ResponseInterface) {
+            $event->setResponse($result);
+            return;
+        }
+
+        $responseClass = $this->container->getParameter('response.class');
+        $response = new $responseClass($result);
+        $event->setResponse($response);
     }
 
     /**
