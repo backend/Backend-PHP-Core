@@ -134,12 +134,11 @@ class Router
                 $arguments = array_merge($arguments, $defaults);
 
                 // Check for passed values
-                $index = 2;
-                foreach ($varNames as $name) {
+                foreach ($varNames as $key => $name) {
+                    $index = 2 + ($key * 2);
                     if (empty($matches[$index][0]) === false) {
                         $arguments[$name] = $matches[$index][0];
                     }
-                    $index = $index + 2;
                 }
 
                 return $factory->fromString($route['callback'], $arguments);
