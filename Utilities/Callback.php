@@ -269,7 +269,24 @@ class Callback implements CallbackInterface
             throw new CoreException('Unexecutable Callback');
         }
         $arguments = $arguments ?: $this->arguments;
-        $arguments = array_values($arguments);
+
+        // Reshuffle the arguments into the correct order if the arguments array is associative
+        if (count(array_filter(array_keys($arguments), 'is_string'))) {
+            if ($this->method) {
+                $refMethod = new \ReflectionMethod($this->object, $this->method);
+            } elseif ($this->function) {
+                $refMethod = new \ReflectionFunction($this->function);
+            }
+        }
+
+        if (empty($refMethod) === false) {
+            $names = array();
+            foreach ($refMethod->getParameters() as $param) {
+                $names[$param->getName()] = null;
+            }
+            $arguments = array_values(array_merge($names, $arguments));
+        }
+
         if ($this->method) {
             $callable = array();
             if ($this->object) {
