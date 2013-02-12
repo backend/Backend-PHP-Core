@@ -848,6 +848,19 @@ class Request implements RequestInterface
     }
 
     /**
+     * Get a specific part of the request body.
+     *
+     * @param string $name The name of the variable to get.
+     *
+     * @return mixed
+     */
+    public function get($name)
+    {
+        $body = $this->getBody();
+        return array_key_exists($name, $body) ? $body[$name] : null;
+    }
+
+    /**
      * Set the request's body.
      *
      * Strings will be parsed for variables and objects will be casted to arrays.
@@ -865,6 +878,22 @@ class Request implements RequestInterface
         }
         $this->body = $body;
 
+        return $this;
+    }
+
+    /**
+     * Set a specific part of the request body.
+     *
+     * @param string $name  The name of the variable to set.
+     * @param mixed  $value The value of the variable.
+     *
+     * @return Request The current object.
+     */
+    public function set($name, $value)
+    {
+        $body = $this->getBody();
+        $body[$name] = $value;
+        $this->setBody($body);
         return $this;
     }
 
