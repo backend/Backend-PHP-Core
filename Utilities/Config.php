@@ -67,9 +67,9 @@ class Config implements ConfigInterface
     }
 
     /**
-     * Magic function that returns the config values on request
+     * Magic function that returns the config values on request.
      *
-     * @param string $propertyName The name of the property being accessed
+     * @param string $propertyName The name of the property being accessed.
      *
      * @return mixed The value of the property
      */
@@ -80,6 +80,18 @@ class Config implements ConfigInterface
         }
 
         return null;
+    }
+
+    /**
+     * Magic function that checks if a config value is set.
+     *
+     * @param string $propertyName The name of the property to check.
+     *
+     * @return boolean
+     */
+    public function __isset($propertyName)
+    {
+        return $this->has($propertyName);
     }
 
     /**
