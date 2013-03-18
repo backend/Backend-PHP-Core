@@ -122,7 +122,7 @@ class Router
             $varNames = $matches[1];
 
             $regex = $route['route'];
-            foreach($varNames as $name) {
+            foreach ($varNames as $name) {
                 $replace = array_key_exists($name, $defaults) ? '(/([^/]*))?' : '(/([^/]+))';
                 $regex = str_replace('/<' . $name . '>', $replace, $regex);
             }

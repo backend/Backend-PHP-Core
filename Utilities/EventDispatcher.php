@@ -86,7 +86,9 @@ class EventDispatcher extends SymfonyEventDispatcher
     {
         return lcfirst(
             str_replace(
-                ' ', '', ucwords(str_replace(array('.', ',', ':'), ' ', $event))
+                ' ',
+                '',
+                ucwords(str_replace(array('.', ',', ':'), ' ', $event))
             )
         ) . 'Event';
     }
